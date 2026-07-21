@@ -419,9 +419,7 @@ img {
 }
 
 .stat-grid > div:first-child {
-  color: #fff;
-  background: #c93428;
-  border-color: #c93428;
+  border-top-color: #c93428;
 }
 
 .stat-grid > div:nth-child(2) {
@@ -439,6 +437,12 @@ img {
 .stat-grid > div:hover {
   transform: translateY(-7px);
   box-shadow: 0 19px 38px rgba(1, 12, 20, 0.28);
+}
+
+.stat-grid > div:first-child:hover {
+  color: #fff;
+  background: #c93428;
+  border-color: #c93428;
 }
 
 .stat-grid > div:nth-child(2):hover {
@@ -466,11 +470,15 @@ img {
   line-height: 1;
 }
 
-.stat-grid > div:first-child strong,
+.stat-grid > div:first-child:hover strong,
 .stat-grid > div:nth-child(2):hover strong,
 .stat-grid > div:nth-child(3):hover strong,
 .stat-grid > div:nth-child(4):hover strong {
   color: inherit;
+}
+
+.stat-grid > div:first-child strong {
+  color: #c93428;
 }
 
 .stat-grid > div:nth-child(2) strong {
@@ -487,10 +495,10 @@ img {
 }
 
 .stat-grid span {
-  max-width: 84px;
   font-size: 0.7rem;
   font-weight: 850;
   letter-spacing: 0.08em;
+  white-space: nowrap;
   text-transform: uppercase;
 }
 
@@ -2331,6 +2339,10 @@ footer {
 
   .stat-grid strong {
     font-size: 1.8rem;
+  }
+
+  .stat-grid span {
+    white-space: normal;
   }
 
   .section {
