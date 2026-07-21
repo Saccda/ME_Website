@@ -1,0 +1,281 @@
+from rest_framework import serializers
+
+from .models import (
+    Course,
+    CurriculumYear,
+    Facility,
+    FacultyMember,
+    FocusArea,
+    FocusAreaDetailItem,
+    Inquiry,
+    NewsEvent,
+    Partner,
+    ProgramSettings,
+    ResearchProject,
+    WhyChooseItem,
+)
+
+
+def image_url(image, request=None):
+    if not image:
+        return None
+    url = image.file.url
+    return request.build_absolute_uri(url) if request else url
+
+
+class ImageSerializerMixin:
+    def get_image(self, obj):
+        request = self.context.get("request")
+        image = getattr(obj, self.image_field, None)
+        return image_url(image, request)
+
+
+class WhyChooseItemSerializer(ImageSerializerMixin, serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    image_field = "image"
+
+    class Meta:
+        model = WhyChooseItem
+        fields = ("id", "sort_order", "title", "description", "media_kind", "image")
+
+
+class FocusAreaSerializer(ImageSerializerMixin, serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    image_field = "image"
+
+    class Meta:
+        model = FocusArea
+        fields = (
+            "id",
+            "sort_order",
+            "code",
+            "title",
+            "slug",
+            "description",
+            "accent_color",
+            "image",
+        )
+
+
+class CourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ("id", "sort_order", "code", "title", "credits", "semester")
+
+
+class FocusCourseSerializer(CourseSerializer):
+    year = serializers.IntegerField(source="curriculum_year.year", read_only=True)
+    year_theme = serializers.CharField(
+        source="curriculum_year.theme", read_only=True
+    )
+
+    class Meta(CourseSerializer.Meta):
+        fields = CourseSerializer.Meta.fields + ("year", "year_theme")
+
+
+class CurriculumYearSerializer(serializers.ModelSerializer):
+    courses = CourseSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CurriculumYear
+        fields = (
+            "id",
+            "sort_order",
+            "year",
+            "theme",
+            "credit_count",
+            "description",
+            "courses",
+        )
+
+
+class ResearchProjectSerializer(ImageSerializerMixin, serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    image_field = "image"
+    focus_area = FocusAreaSerializer(read_only=True)
+
+    class Meta:
+        model = ResearchProject
+        fields = (
+            "id",
+            "sort_order",
+            "title",
+            "slug",
+            "summary",
+            "body",
+            "image",
+            "focus_area",
+            "published_at",
+        )
+
+
+class PartnerSerializer(serializers.ModelSerializer):
+    logo = serializers.SerializerMethodField()
+
+    def get_logo(self, obj):
+        return image_url(obj.logo, self.context.get("request"))
+
+    class Meta:
+        model = Partner
+        fields = ("id", "sort_order", "name", "partner_type", "website", "logo")
+
+
+class FacilitySerializer(ImageSerializerMixin, serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    image_field = "image"
+
+    class Meta:
+        model = Facility
+        fields = ("id", "sort_order", "name", "description", "image")
+
+
+class FocusAreaDetailItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FocusAreaDetailItem
+        fields = ("id", "sort_order", "title", "description")
+
+
+class FocusAreaDetailSerializer(FocusAreaSerializer):
+    courses = FocusCourseSerializer(many=True, read_only=True)
+    facilities = FacilitySerializer(many=True, read_only=True)
+    outcomes = serializers.SerializerMethodField()
+    learning_activities = serializers.SerializerMethodField()
+    career_paths = serializers.SerializerMethodField()
+    research_projects = serializers.SerializerMethodField()
+
+    def _detail_items(self, obj, item_type):
+        items = [
+            item for item in obj.detail_items.all() if item.item_type == item_type
+        ]
+        return FocusAreaDetailItemSerializer(items, many=True).data
+
+    def get_outcomes(self, obj):
+        return self._detail_items(obj, "outcome")
+
+    def get_learning_activities(self, obj):
+        return self._detail_items(obj, "activity")
+
+    def get_career_paths(self, obj):
+        return self._detail_items(obj, "career")
+
+    def get_research_projects(self, obj):
+        projects = obj.research_projects.filter(is_published=True)
+        return ResearchProjectSerializer(
+            projects,
+            many=True,
+            context=self.context,
+        ).data
+
+    class Meta(FocusAreaSerializer.Meta):
+        fields = FocusAreaSerializer.Meta.fields + (
+            "courses",
+            "facilities",
+            "outcomes",
+            "learning_activities",
+            "career_paths",
+            "research_projects",
+        )
+
+
+class FacultyMemberSerializer(serializers.ModelSerializer):
+    photo = serializers.SerializerMethodField()
+    focus_areas = FocusAreaSerializer(many=True, read_only=True)
+
+    def get_photo(self, obj):
+        return image_url(obj.photo, self.context.get("request"))
+
+    class Meta:
+        model = FacultyMember
+        fields = (
+            "id",
+            "sort_order",
+            "name",
+            "role",
+            "bio",
+            "email",
+            "photo",
+            "focus_areas",
+        )
+
+
+class NewsEventSerializer(ImageSerializerMixin, serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    image_field = "image"
+
+    class Meta:
+        model = NewsEvent
+        fields = (
+            "id",
+            "sort_order",
+            "content_type",
+            "title",
+            "slug",
+            "excerpt",
+            "body",
+            "image",
+            "event_date",
+            "published_at",
+        )
+
+
+class ProgramSettingsSerializer(serializers.ModelSerializer):
+    hero_image = serializers.SerializerMethodField()
+
+    def get_hero_image(self, obj):
+        return image_url(obj.hero_image, self.context.get("request"))
+
+    class Meta:
+        model = ProgramSettings
+        fields = (
+            "program_name",
+            "program_short_name",
+            "established_year",
+            "hero_title",
+            "hero_emphasis",
+            "hero_description",
+            "hero_image",
+            "vision",
+            "mission_one",
+            "mission_two",
+            "program_years",
+            "credit_hours",
+            "address",
+            "email",
+            "phone",
+            "facebook_url",
+            "telegram_url",
+            "youtube_url",
+            "linkedin_url",
+            "application_url",
+        )
+
+
+class InquirySerializer(serializers.ModelSerializer):
+    website = serializers.CharField(
+        required=False, allow_blank=True, write_only=True, max_length=200
+    )
+
+    class Meta:
+        model = Inquiry
+        fields = (
+            "id",
+            "inquiry_type",
+            "name",
+            "email",
+            "phone",
+            "organization",
+            "subject",
+            "message",
+            "website",
+            "created_at",
+        )
+        read_only_fields = ("id", "created_at")
+
+    def validate_website(self, value):
+        if value:
+            raise serializers.ValidationError("Unable to submit this form.")
+        return value
+
+    def create(self, validated_data):
+        validated_data.pop("website", None)
+        return super().create(validated_data)

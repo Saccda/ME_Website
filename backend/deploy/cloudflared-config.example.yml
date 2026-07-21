@@ -1,0 +1,9 @@
+tunnel: YOUR_TUNNEL_UUID
+credentials-file: C:\Windows\System32\config\systemprofile\.cloudflared\YOUR_TUNNEL_UUID.json
+
+ingress:
+  - hostname: me-api.putsaccada.dpdns.org
+    service: http://127.0.0.1:8080
+  - service: http_status:404
+
+logfile: C:\Cloudflared\cloudflared.log
