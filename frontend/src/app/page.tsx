@@ -1,13 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import CurriculumTabs from "@/components/CurriculumTabs";
+import JobOpportunities from "@/components/IndustryCareers";
 import InquiryForm from "@/components/InquiryForm";
 import SiteHeader from "@/components/SiteHeader";
 import { getHomeData } from "@/lib/api";
-import {
-  getHomeFacilityImage,
-  getResearchImage,
-} from "@/lib/editorialImages";
+import { getResearchImage } from "@/lib/editorialImages";
 
 export const dynamic = "force-dynamic";
 
@@ -238,18 +236,19 @@ export default async function Home() {
 
         <section className="section gold partners" id="partners">
           <div className="shell partner-lead">
-            <div>
-              <p className="eyebrow">Our partners</p>
-              <h2>Education, industry & innovation—working together.</h2>
+            <div className="partner-lead-copy">
+              <p className="eyebrow">Partners & industry</p>
+              <h2>Education and industry, connected.</h2>
             </div>
-            <p>
-              We welcome universities, industry, government, and community
-              organizations to collaborate on teaching, research, and applied
-              innovation.
-            </p>
-            <a className="button button-navy" href="#contact">
-              Start a conversation <span>↗</span>
-            </a>
+            <div className="partner-lead-action">
+              <p>
+                Our partnerships connect learning with applied research,
+                industry experience, and career opportunities for ME students.
+              </p>
+              <a className="button button-navy" href="#contact">
+                Start a partnership <span>↗</span>
+              </a>
+            </div>
           </div>
           <div className="marquee" aria-label="ME Program partners">
             <div className="marquee-track">
@@ -261,39 +260,14 @@ export default async function Home() {
               ))}
             </div>
           </div>
-        </section>
-
-        <section className="section white facilities">
-          <div className="shell">
-            <div className="section-intro">
-              <div>
-                <p className="eyebrow">Learning environment</p>
-                <h2>
-                  Tools for turning theory
-                  <em>into ability.</em>
-                </h2>
-              </div>
-              <p>
-                Students combine seminars and lectures with laboratories,
-                workshops, site visits, and community practice.
-              </p>
-            </div>
-            <div className="facility-grid">
-              {data.facilities.map((facility, index) => (
-                <article key={facility.name}>
-                  <span>0{index + 1}</span>
-                  <img
-                    src={getHomeFacilityImage(
-                      facility.name,
-                      facility.image || "",
-                    )}
-                    alt=""
-                    loading="lazy"
-                  />
-                  <h3>{facility.name}</h3>
-                  <p>{facility.description}</p>
-                </article>
-              ))}
+          <div className="partner-jobs-band">
+            <div className="shell">
+              <JobOpportunities
+                email={program.email}
+                facebookUrl={program.facebook_url}
+                opportunities={data.opportunities}
+                telegramUrl={program.telegram_url}
+              />
             </div>
           </div>
         </section>

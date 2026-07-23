@@ -8,6 +8,7 @@ from .api import (
     FocusAreaViewSet,
     InquiryCreateView,
     NewsEventViewSet,
+    OpportunityViewSet,
     PartnerViewSet,
     ResearchProjectViewSet,
     health,
@@ -22,6 +23,7 @@ router.register("partners", PartnerViewSet, basename="partner")
 router.register("facilities", FacilityViewSet, basename="facility")
 router.register("faculty", FacultyMemberViewSet, basename="faculty")
 router.register("news", NewsEventViewSet, basename="news")
+router.register("opportunities", OpportunityViewSet, basename="opportunity")
 
 urlpatterns = [
     path("health/", health, name="health"),

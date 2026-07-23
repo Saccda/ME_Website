@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from django.utils import timezone
 from rest_framework import filters, generics, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
@@ -15,6 +15,7 @@ from .models import (
     FocusArea,
     Inquiry,
     NewsEvent,
+    Opportunity,
     Partner,
     ProgramSettings,
     ResearchProject,
@@ -28,6 +29,7 @@ from .serializers import (
     FocusAreaSerializer,
     InquirySerializer,
     NewsEventSerializer,
+    OpportunitySerializer,
     PartnerSerializer,
     ProgramSettingsSerializer,
     ResearchProjectSerializer,
@@ -96,6 +98,51 @@ class PartnerViewSet(PublicReadOnlyViewSet):
     serializer_class = PartnerSerializer
     search_fields = ("name", "partner_type")
     ordering_fields = ("sort_order", "name", "partner_type")
+
+
+def active_opportunities():
+    today = timezone.localdate()
+    return (
+        Opportunity.objects.filter(
+            is_published=True,
+            published_at__lte=timezone.now(),
+        )
+        .filter(
+            Q(application_deadline__isnull=True)
+            | Q(application_deadline__gte=today)
+        )
+        .select_related("partner", "partner__logo", "announcement_image")
+        .prefetch_related("focus_areas")
+        .order_by("-is_featured", "sort_order", "application_deadline", "-published_at")
+    )
+
+
+class OpportunityViewSet(PublicReadOnlyViewSet):
+    serializer_class = OpportunitySerializer
+    lookup_field = "slug"
+    search_fields = (
+        "title",
+        "summary",
+        "location",
+        "partner__name",
+        "focus_areas__code",
+    )
+    ordering_fields = (
+        "sort_order",
+        "application_deadline",
+        "published_at",
+        "title",
+    )
+
+    def get_queryset(self):
+        queryset = active_opportunities()
+        focus = self.request.query_params.get("focus")
+        opportunity_type = self.request.query_params.get("type")
+        if focus:
+            queryset = queryset.filter(focus_areas__code__iexact=focus)
+        if opportunity_type:
+            queryset = queryset.filter(opportunity_type=opportunity_type)
+        return queryset.distinct()
 
 
 class FacultyMemberViewSet(PublicReadOnlyViewSet):
@@ -189,7 +236,9 @@ def home_data(request):
                 context=context,
             ).data,
             "focus_areas": FocusAreaSerializer(
-                FocusArea.objects.select_related("image").all(),
+                FocusArea.objects.select_related("image").prefetch_related(
+                    "detail_items"
+                ),
                 many=True,
                 context=context,
             ).data,
@@ -207,6 +256,11 @@ def home_data(request):
             ).data,
             "partners": PartnerSerializer(
                 Partner.objects.select_related("logo").all(),
+                many=True,
+                context=context,
+            ).data,
+            "opportunities": OpportunitySerializer(
+                active_opportunities()[:10],
                 many=True,
                 context=context,
             ).data,

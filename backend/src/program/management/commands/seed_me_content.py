@@ -356,22 +356,28 @@ FOCUS_DETAIL_ITEMS = {
 }
 
 FOCUS_EQUIPMENT = [
-    ("Robot with Artificial Vision System", "Learn automation and robotics for Industry 4.0.", "why/06-emerging-tech.webp", ("MAS",), True),
-    ("CNC Machines", "Precision lathe and vertical machining for modern manufacturing.", "why/05-technology.webp", ("DMP",), True),
-    ("Universal Testing Machine", "Test mechanical properties and material strength.", "focus-ecm.png", ("DMP", "ECM"), True),
-    ("Additive Manufacturing System", "Create and evaluate rapid prototypes with multi-nozzle 3D printing.", "focus-dmp.png", ("DMP",), False),
-    ("Wire-cut EDM Machine", "Study ultra-precise metal cutting through controlled spark erosion.", "focus-dmp.png", ("DMP",), False),
-    ("Controlled Atmosphere Furnace", "Conduct heat-treatment experiments and investigate material-property changes.", "focus-dmp.png", ("DMP",), False),
-    ("Thermal and Heat-transfer Trainer", "Measure conduction, convection, and heat-exchanger performance.", "focus-tes.png", ("TES",), False),
-    ("Fluid Mechanics Bench", "Investigate flow rate, pressure loss, pumps, and fluid-system behavior.", "focus-tes.png", ("TES",), False),
-    ("Refrigeration and Cooling-system Rig", "Test cooling cycles, controls, efficiency, and operating conditions.", "focus-tes.png", ("TES",), False),
-    ("Renewable-energy Measurement Kit", "Monitor generation and system performance for solar and other energy applications.", "focus-tes.png", ("TES",), False),
-    ("PLC and Automation Workstations", "Program, commission, and troubleshoot industrial automation sequences.", "focus-mas.png", ("MAS",), False),
-    ("Sensor and Data-acquisition Kits", "Connect sensors, acquire signals, and evaluate machine behavior.", "focus-mas.png", ("MAS",), False),
-    ("Electric-vehicle Control Platform", "Explore integrated electric powertrain, sensing, and control systems.", "focus-mas.png", ("MAS",), False),
-    ("Precision Metrology and Inspection Tools", "Verify dimensions, tolerances, quality, and documented requirements.", "focus-ecm.png", ("ECM",), False),
-    ("Safety and Compliance Resources", "Practice structured hazard identification, risk assessment, and standards review.", "why/03-collaboration.webp", ("ECM",), False),
-    ("Engineering Project Planning Workspace", "Plan scope, resources, schedule, risk, quality, and team delivery.", "why/09-active-learning.webp", ("ECM",), False),
+    ("Excetek V400G Plus Wire-Cut EDM", "Cut complex profiles in electrically conductive materials through controlled wire electrical-discharge machining.", "https://www.excetek.com/shop/v400g-plus-17#attr=", "available", ("DMP",)),
+    ("Rownd Desktop CNC Lathe", "Support compact CNC turning, small-part production, CAD/CAM practice, and manufacturing-process training.", "https://rowndprecision.com/en-us/products/rownd-desktop-cnc-lathe-compact-modular-high-precision-3", "available", ("DMP",)),
+    ("DMC2 Mini CNC", "Provide a compact CNC platform for machining practice, prototyping, setup, tooling, and process planning.", "https://shariffdmc.com/product/dmc2-mini-cnc/", "available", ("DMP",)),
+    ("Carbolite HTF High-Temperature Chamber Furnace", "Support high-temperature heat treatment, annealing, calcination, and sintering investigations.", "https://www.carbolite.com/products/chamber-furnaces/laboratory-furnaces/htf-high-temperature-chamber-furnaces/", "available", ("DMP",)),
+    ("DECHANG GH4230 Metal Band Saw", "Prepare metal stock safely and efficiently before turning, milling, forming, or fabrication processes.", "https://www.alibaba.com/product-detail/DECHANG-GH4230-High-Efficiency-Mini-Metal_1601387433469.html", "new", ("DMP",)),
+    ("InssTek MX-Lab Six-Nozzle Metal Additive Manufacturing System", "Build, repair, and investigate metal components through directed-energy-deposition additive manufacturing.", "https://www.insstek.com/products/mx-lab?ckattempt=3", "new", ("DMP",)),
+    ("SYIL L3 CNC Lathe", "Support precision CNC turning, toolpath development, setup, production, and manufacturing instruction.", "https://syil.com/L3", "new", ("DMP",)),
+    ("SYIL X9 5-Axis Vertical Machining Center", "Enable advanced multi-axis milling, complex-part production, and high-level CAD/CAM learning.", "https://syil.com/x9", "new", ("DMP",)),
+    ("500-Ton Servo CNC Hydraulic Press", "Compact metal powder and support forming research before downstream sintering and material evaluation.", "https://www.yihui-press.com/dongguan-yihui-hydraulic-press-machine-for-metal-deep-drawing.html", "new", ("DMP",)),
+    ("Metal Powder Water Atomization System", "Produce metal powder feedstock through controlled water atomization for materials and manufacturing research.", "https://en.hncpie.com/products_detail/17.html", "new", ("DMP",)),
+    ("Anycubic FDM 3D Printing System with ACE Pro", "Support rapid prototyping and multicolor filament workflows with a compatible Anycubic FDM printer.", "https://store.anycubic.com/products/anycubic-ace-pro", "available", ("DMP",)),
+    ("Automated Cooling and Spraying System", "Investigate cooling performance, spraying control, sensors, actuation, and energy-efficient operation.", "", "available", ("TES",)),
+    ("Solar Tracking System", "Study solar positioning, tracking control, energy capture, measurement, and renewable-system performance.", "", "available", ("TES",)),
+    ("Wind Turbine System", "Extend future learning and research in wind-energy conversion, measurement, control, and system performance.", "", "planned", ("TES",)),
+    ("Robot with Artificial Vision System", "Combine robotics, machine vision, sensing, and control for Industry 4.0 learning activities.", "", "available", ("MAS",)),
+    ("Four-Station Automation Simulation System", "Practice integrated sequencing, sensing, handling, control, and troubleshooting across four automated stations.", "", "available", ("MAS",)),
+    ("Robot with Warehouse Automation System", "Explore robotic material handling, storage, retrieval, coordination, and warehouse automation.", "", "available", ("MAS",)),
+    ("Industrial Electronic Circuit System", "Build and diagnose industrial electronic circuits used in machines, automation, and control systems.", "", "available", ("MAS",)),
+    ("PLC Panel with Simulation System", "Program, simulate, commission, and troubleshoot PLC-based industrial control sequences.", "", "available", ("MAS",)),
+    ("Universal Testing Machine", "Measure mechanical properties and material strength through controlled tensile, compression, and related tests.", "https://www.insize.com/testingmachines/UTM-GB.html", "available", ("ECM",)),
+    ("Handheld LIBS Spectrometer", "Identify and evaluate material composition through rapid laser-induced breakdown spectroscopy.", "https://m.insize.com/page-35-2542.html", "available", ("ECM",)),
+    ("Precision Metrology Equipment Package", "Verify dimensions, tolerances, inspection results, quality requirements, and engineering compliance.", "https://insizeus.com/tool.html", "available", ("ECM",)),
 ]
 
 
@@ -516,17 +522,18 @@ class Command(BaseCommand):
         for index, (
             name,
             description,
-            image_path,
+            reference_url,
+            availability_status,
             focus_codes,
-            is_featured,
         ) in enumerate(FOCUS_EQUIPMENT, start=1):
             facility, _ = Facility.objects.update_or_create(
                 name=name,
                 defaults={
                     "sort_order": index,
                     "description": description,
-                    "image": import_image(image_path, f"Facility: {name}"),
-                    "is_featured": is_featured,
+                    "reference_url": reference_url,
+                    "availability_status": availability_status,
+                    "is_featured": False,
                 },
             )
             facility.focus_areas.set(

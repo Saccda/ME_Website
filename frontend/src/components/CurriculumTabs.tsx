@@ -11,6 +11,19 @@ export default function CurriculumTabs({ years }: { years: CurriculumYear[] }) {
     return <p>Curriculum information will be available soon.</p>;
   }
 
+  const semesterGroups = [
+    { key: "1", label: "Semester 1" },
+    { key: "2", label: "Semester 2" },
+    { key: "full", label: "Full-year courses" },
+  ]
+    .map((semester) => ({
+      ...semester,
+      courses: selected.courses.filter(
+        (course) => course.semester === semester.key,
+      ),
+    }))
+    .filter((semester) => semester.courses.length > 0);
+
   return (
     <div className="curriculum-card">
       <div className="year-panel">
@@ -39,19 +52,38 @@ export default function CurriculumTabs({ years }: { years: CurriculumYear[] }) {
             </button>
           ))}
         </div>
-        <div className="course-heading">
-          <span>Course</span>
-          <span>Code</span>
-          <span>Credits</span>
-        </div>
-        <div className="course-list">
-          {selected.courses.map((course) => (
-            <div className="course-row" key={course.code}>
-              <strong>{course.title}</strong>
-              <span>{course.code}</span>
-              <span>{course.credits}</span>
-            </div>
-          ))}
+        <div className="semester-groups">
+          {semesterGroups.map((semester) => {
+            const semesterCredits = semester.courses.reduce(
+              (total, course) => total + course.credits,
+              0,
+            );
+
+            return (
+              <section className="semester-block" key={semester.key}>
+                <header className="semester-heading">
+                  <h4>{semester.label}</h4>
+                  <span>
+                    {semester.courses.length} courses · {semesterCredits} credits
+                  </span>
+                </header>
+                <div className="course-heading" aria-hidden="true">
+                  <span>Code</span>
+                  <span>Course name</span>
+                  <span>Credits</span>
+                </div>
+                <div className="course-list">
+                  {semester.courses.map((course) => (
+                    <div className="course-row" key={course.code}>
+                      <span className="course-code">{course.code}</span>
+                      <strong>{course.title}</strong>
+                      <span>{course.credits}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
         </div>
       </div>
     </div>

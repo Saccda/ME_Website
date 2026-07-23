@@ -4,11 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import SiteHeader from "@/components/SiteHeader";
 import { getFocusArea, getHomeData, type FocusCourse } from "@/lib/api";
-import {
-  getFocusFacilityImage,
-  getFocusHeroImage,
-  getResearchImage,
-} from "@/lib/editorialImages";
+import { getFocusHeroImage, getResearchImage } from "@/lib/editorialImages";
 
 export const dynamic = "force-dynamic";
 
@@ -130,32 +126,50 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
 
         <section className="section cream">
           <div className="shell">
-            <div className="detail-section-heading">
+            <div className="equipment-section-heading">
               <div>
                 <p className="eyebrow">Laboratories & equipment</p>
-                <h2>Learn with the tools of the profession.</h2>
+                <h2>Machines & systems</h2>
+                <p className="equipment-intro">
+                  Learning, research, prototyping, testing & engineering services.
+                </p>
               </div>
-              <p>
-                Equipment is treated as a learning environment: students plan,
-                operate, measure, interpret results, and improve their work.
-              </p>
+              <div className="equipment-count" aria-label={`${focus.facilities.length} pieces of equipment`}>
+                <strong>{focus.facilities.length}</strong>
+                <span>{focus.code} equipment</span>
+              </div>
             </div>
             <div className="focus-equipment-grid">
               {focus.facilities.map((facility, index) => (
-                <article key={facility.name}>
-                  <div>
-                    <img
-                      src={getFocusFacilityImage(
-                        focus.code,
-                        facility.name,
-                        facility.image || focus.image || "",
-                      )}
-                      alt=""
-                    />
-                    <span>{String(index + 1).padStart(2, "0")}</span>
+                <article
+                  className={`equipment-card status-${facility.availability_status}`}
+                  key={facility.name}
+                >
+                  <div className="equipment-media">
+                    {facility.image ? (
+                      <img src={facility.image} alt={facility.name} />
+                    ) : (
+                      <div className="equipment-image-placeholder" aria-hidden="true">
+                        <svg viewBox="0 0 64 64" focusable="false">
+                          <path d="M13 51h38M17 47V14h30v33M22 20h20v16H22zM27 24h10v8H27zM23 42h18" />
+                          <circle cx="42" cy="42" r="2" />
+                        </svg>
+                        <span>{focus.code}</span>
+                      </div>
+                    )}
+                    <span className="equipment-index">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    {facility.availability_status !== "available" ? (
+                      <small className="equipment-status">
+                        {facility.availability_label}
+                      </small>
+                    ) : null}
                   </div>
-                  <h3>{facility.name}</h3>
-                  <p>{facility.description}</p>
+                  <div className="equipment-card-body">
+                    <h3>{facility.name}</h3>
+                    <p>{facility.description}</p>
+                  </div>
                 </article>
               ))}
             </div>

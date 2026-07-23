@@ -1,6 +1,9 @@
 from django.core import mail
+from datetime import timedelta
+
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 from wagtail.models import Site
 
 from .models import (
@@ -10,6 +13,8 @@ from .models import (
     FocusArea,
     FocusAreaDetailItem,
     Inquiry,
+    Opportunity,
+    Partner,
     ProgramSettings,
 )
 
@@ -31,6 +36,42 @@ class PublicApiTests(TestCase):
         self.assertEqual(body["settings"]["program_short_name"], "ME")
         self.assertIn("focus_areas", body)
         self.assertIn("partners", body)
+        self.assertIn("opportunities", body)
+
+    def test_home_endpoint_only_returns_current_published_opportunities(self):
+        partner = Partner.objects.create(
+            name="Industry Partner",
+            partner_type="industry",
+        )
+        current = Opportunity.objects.create(
+            title="Graduate Mechanical Engineer",
+            slug="graduate-mechanical-engineer",
+            partner=partner,
+            summary="An entry-level engineering opportunity.",
+            application_deadline=timezone.localdate() + timedelta(days=14),
+            is_published=True,
+        )
+        Opportunity.objects.create(
+            title="Expired Internship",
+            slug="expired-internship",
+            partner=partner,
+            summary="An opportunity whose deadline has passed.",
+            application_deadline=timezone.localdate() - timedelta(days=1),
+            is_published=True,
+        )
+        Opportunity.objects.create(
+            title="Draft Scholarship",
+            slug="draft-scholarship",
+            partner=partner,
+            summary="An unpublished opportunity.",
+            is_published=False,
+        )
+
+        response = self.client.get(reverse("home-data"))
+        self.assertEqual(response.status_code, 200)
+        opportunities = response.json()["opportunities"]
+        self.assertEqual([item["slug"] for item in opportunities], [current.slug])
+        self.assertIsNone(opportunities[0]["announcement_image"])
 
     def test_focus_area_detail_endpoint(self):
         focus = FocusArea.objects.create(

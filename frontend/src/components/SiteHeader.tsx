@@ -4,14 +4,44 @@ import type { ProgramSettings } from "@/lib/api";
 import AdmissionBar from "./AdmissionBar";
 
 const navItems = [
-  ["Why ME", "why-me"],
-  ["Vision & Mission", "vision"],
-  ["Focus", "focus"],
-  ["Curriculum", "curriculum"],
-  ["Research", "research"],
-  ["Partners", "partners"],
-  ["Contact", "contact"],
-];
+  {
+    label: "About",
+    links: [
+      ["Why choose ME", "/#why-me"],
+      ["Vision & mission", "/#vision"],
+    ],
+  },
+  {
+    label: "Academics",
+    links: [
+      ["Areas of focus", "/#focus"],
+      ["Curriculum", "/#curriculum"],
+    ],
+  },
+  {
+    label: "Research & Innovation",
+    links: [
+      ["Applied research", "/#research"],
+      ["Partners & collaboration", "/#partners"],
+      ["Job opportunities", "/#opportunities"],
+    ],
+  },
+  {
+    label: "People",
+    links: [
+      ["Faculty & staff", "/people#faculty-staff"],
+      ["Alumni", "/people#alumni"],
+    ],
+  },
+  {
+    label: "News & Events",
+    links: [
+      ["Latest news", "/news-events#latest"],
+      ["Upcoming events", "/news-events#events"],
+      ["Seminars & publications", "/news-events#publications"],
+    ],
+  },
+] as const;
 
 type SiteHeaderProps = {
   settings: ProgramSettings;
@@ -53,17 +83,23 @@ export default function SiteHeader({ settings }: SiteHeaderProps) {
           </Link>
 
           <nav className="desktop-nav" aria-label="Main navigation">
-            {navItems.map(([label, id]) => (
-              <Link href={`/#${id}`} key={id}>
-                {label}
-              </Link>
-            ))}
-            <a
-              className="nav-cta"
-              href={settings.application_url || "/#contact"}
-            >
-              Apply
-            </a>
+            {navItems.map((item) =>
+              "links" in item ? (
+                <div className="nav-dropdown" key={item.label}>
+                  <button type="button" aria-haspopup="true">
+                    {item.label}
+                    <span className="nav-chevron" aria-hidden="true" />
+                  </button>
+                  <div className="nav-dropdown-menu">
+                    {item.links.map(([label, href]) => (
+                      <Link href={href} key={href}>
+                        {label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ) : null,
+            )}
           </nav>
 
           <details className="mobile-menu">
@@ -73,17 +109,23 @@ export default function SiteHeader({ settings }: SiteHeaderProps) {
               <span />
             </summary>
             <nav>
-              {navItems.map(([label, id]) => (
-                <Link href={`/#${id}`} key={id}>
-                  {label}
-                </Link>
-              ))}
-              <a
-                className="nav-cta"
-                href={settings.application_url || "/#contact"}
-              >
-                Apply
-              </a>
+              {navItems.map((item) =>
+                "links" in item ? (
+                  <details className="mobile-nav-group" key={item.label}>
+                    <summary>
+                      {item.label}
+                      <span aria-hidden="true">+</span>
+                    </summary>
+                    <div>
+                      {item.links.map(([label, href]) => (
+                        <Link href={href} key={href}>
+                          {label}
+                        </Link>
+                      ))}
+                    </div>
+                  </details>
+                ) : null,
+              )}
             </nav>
           </details>
         </div>

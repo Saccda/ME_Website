@@ -306,9 +306,102 @@ class Partner(OrderedModel):
 
 
 @register_snippet
+class Opportunity(OrderedModel):
+    OPPORTUNITY_TYPES = (
+        ("job", "Job"),
+        ("internship", "Internship"),
+        ("scholarship", "Scholarship"),
+        ("training", "Training"),
+    )
+
+    title = models.CharField(max_length=220)
+    slug = models.SlugField(max_length=240, unique=True)
+    opportunity_type = models.CharField(
+        max_length=20,
+        choices=OPPORTUNITY_TYPES,
+        default="job",
+    )
+    partner = models.ForeignKey(
+        Partner,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="opportunities",
+    )
+    announcement_image = models.ForeignKey(
+        "wagtailimages.Image",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        help_text=(
+            "Upload the partner's hiring poster or announcement artwork. "
+            "A landscape 3:2 image is recommended."
+        ),
+    )
+    focus_areas = models.ManyToManyField(
+        FocusArea,
+        blank=True,
+        related_name="opportunities",
+        help_text="Focus areas most relevant to this opportunity.",
+    )
+    summary = models.TextField()
+    body = RichTextField(blank=True)
+    location = models.CharField(max_length=180, blank=True)
+    application_deadline = models.DateField(null=True, blank=True)
+    application_url = models.URLField(blank=True)
+    published_at = models.DateTimeField(default=timezone.now)
+    is_published = models.BooleanField(default=False)
+    is_featured = models.BooleanField(
+        default=False,
+        help_text="Prioritize this announcement on the homepage.",
+    )
+
+    panels = [
+        FieldPanel("sort_order"),
+        FieldPanel("title"),
+        FieldPanel("slug"),
+        FieldPanel("opportunity_type"),
+        FieldPanel("partner"),
+        FieldPanel("announcement_image"),
+        FieldPanel("focus_areas"),
+        FieldPanel("summary"),
+        FieldPanel("body"),
+        FieldPanel("location"),
+        FieldPanel("application_deadline"),
+        FieldPanel("application_url"),
+        FieldPanel("published_at"),
+        FieldPanel("is_published"),
+        FieldPanel("is_featured"),
+    ]
+
+    class Meta(OrderedModel.Meta):
+        verbose_name_plural = "Opportunities"
+
+    def __str__(self):
+        return self.title
+
+
+@register_snippet
 class Facility(OrderedModel):
+    AVAILABILITY_CHOICES = (
+        ("available", "Available"),
+        ("new", "New equipment"),
+        ("commissioning", "Commissioning"),
+        ("planned", "Planned"),
+    )
+
     name = models.CharField(max_length=180)
     description = models.TextField()
+    reference_url = models.URLField(
+        blank=True,
+        help_text="Manufacturer or technical reference page for this machine.",
+    )
+    availability_status = models.CharField(
+        max_length=20,
+        choices=AVAILABILITY_CHOICES,
+        default="available",
+    )
     is_featured = models.BooleanField(
         default=False,
         help_text="Show this equipment item in the homepage learning environment section.",
@@ -331,6 +424,8 @@ class Facility(OrderedModel):
         FieldPanel("sort_order"),
         FieldPanel("name"),
         FieldPanel("description"),
+        FieldPanel("reference_url"),
+        FieldPanel("availability_status"),
         FieldPanel("image"),
         FieldPanel("is_featured"),
         FieldPanel("focus_areas"),

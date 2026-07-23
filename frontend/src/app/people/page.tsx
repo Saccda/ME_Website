@@ -1,0 +1,108 @@
+/* eslint-disable @next/next/no-img-element */
+import Link from "next/link";
+import SiteHeader from "@/components/SiteHeader";
+import { getFacultyMembers, getHomeData } from "@/lib/api";
+
+export const dynamic = "force-dynamic";
+
+export default async function PeoplePage() {
+  const [home, faculty] = await Promise.all([
+    getHomeData(),
+    getFacultyMembers(),
+  ]);
+
+  return (
+    <>
+      <SiteHeader settings={home.settings} />
+      <main id="main-content" className="editorial-page">
+        <section className="directory-hero">
+          <div className="shell">
+            <p className="eyebrow light">People</p>
+            <h1>
+              The people behind
+              <em>Mechanical Engineering.</em>
+            </h1>
+            <p>
+              Meet the educators, specialists, graduates, and collaborators
+              shaping practical engineering education at RUPP.
+            </p>
+          </div>
+        </section>
+
+        <section className="section white" id="faculty-staff">
+          <div className="shell">
+            <div className="detail-section-heading">
+              <div>
+                <p className="eyebrow">Faculty & staff</p>
+                <h2>Teaching, mentoring and building together.</h2>
+              </div>
+              <p>
+                Our team connects disciplinary knowledge with laboratories,
+                applied research, industry practice, and community engagement.
+              </p>
+            </div>
+
+            {faculty.length > 0 ? (
+              <div className="people-grid">
+                {faculty.map((person) => (
+                  <article className="person-card" key={person.id}>
+                    <div className="person-photo">
+                      {person.photo ? (
+                        <img src={person.photo} alt={person.name} />
+                      ) : (
+                        <span aria-hidden="true">
+                          {person.name
+                            .split(" ")
+                            .slice(0, 2)
+                            .map((part) => part[0])
+                            .join("")}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <p>{person.role}</p>
+                      <h3>{person.name}</h3>
+                      <span>{person.bio}</span>
+                      {person.email ? (
+                        <a href={`mailto:${person.email}`}>Email profile</a>
+                      ) : null}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="content-empty-state">
+                <h3>Faculty profiles are being prepared.</h3>
+                <p>
+                  Profiles can be published from the Faculty members section
+                  in the ME content management system.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="section cream" id="alumni">
+          <div className="shell alumni-feature">
+            <div>
+              <p className="eyebrow">Alumni</p>
+              <h2>
+                Engineering careers,
+                <em>connected back to RUPP.</em>
+              </h2>
+            </div>
+            <div>
+              <p>
+                We are building an alumni network that connects graduates with
+                students, faculty, industry opportunities, and one another.
+              </p>
+              <Link className="button button-navy" href="/#contact">
+                Join the alumni network <span>↗</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+    </>
+  );
+}

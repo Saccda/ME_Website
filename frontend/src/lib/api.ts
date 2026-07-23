@@ -39,6 +39,7 @@ export type FocusArea = {
   description: string;
   accent_color: string;
   image: string | null;
+  career_paths: FocusDetailItem[];
 };
 
 export type Course = {
@@ -71,9 +72,54 @@ export type Partner = {
   logo: string | null;
 };
 
+export type OpportunityFocusArea = Pick<
+  FocusArea,
+  "code" | "title" | "slug" | "accent_color"
+>;
+
+export type Opportunity = {
+  id?: number;
+  title: string;
+  slug: string;
+  opportunity_type: "job" | "internship" | "scholarship" | "training";
+  opportunity_type_label: string;
+  partner: Partner | null;
+  announcement_image: string | null;
+  focus_areas: OpportunityFocusArea[];
+  summary: string;
+  location: string;
+  application_deadline: string | null;
+  application_url: string;
+  is_featured: boolean;
+};
+
+export type FacultyMember = {
+  id: number;
+  name: string;
+  role: string;
+  bio: string;
+  email: string;
+  photo: string | null;
+  focus_areas: FocusArea[];
+};
+
+export type NewsEvent = {
+  id: number;
+  content_type: "news" | "event";
+  title: string;
+  slug: string;
+  excerpt: string;
+  image: string | null;
+  event_date: string | null;
+  published_at: string;
+};
+
 export type Facility = {
   name: string;
   description: string;
+  reference_url: string;
+  availability_status: "available" | "new" | "commissioning" | "planned";
+  availability_label: string;
   image: string | null;
 };
 
@@ -104,6 +150,7 @@ export type HomeData = {
   curriculum: CurriculumYear[];
   research: ResearchProject[];
   partners: Partner[];
+  opportunities: Opportunity[];
   facilities: Facility[];
 };
 
@@ -116,6 +163,12 @@ const focusAreas: FocusArea[] = [
       "Learn how ideas become real products—from creative design to modern manufacturing methods that shape everything we use.",
     accent_color: "#061b2b",
     image: "/assets/focus-dmp.png",
+    career_paths: [
+      { title: "Design Engineer", description: "Develop products, mechanisms, and production-ready engineering documentation." },
+      { title: "Manufacturing Engineer", description: "Improve processes, tooling, quality, efficiency, and production capability." },
+      { title: "Process Engineer", description: "Design and optimize reliable industrial processes." },
+      { title: "Product Engineer", description: "Guide a product from concept and testing through manufacture and improvement." },
+    ],
   },
   {
     code: "TES",
@@ -125,6 +178,12 @@ const focusAreas: FocusArea[] = [
       "Engineer systems to utilize energy through generation, transfer, and storage—from cooling and heating to sustainable energy.",
     accent_color: "#dcae42",
     image: "/assets/focus-tes.png",
+    career_paths: [
+      { title: "Energy Engineer", description: "Improve energy generation, conversion, efficiency, and sustainability." },
+      { title: "Power Engineer", description: "Support reliable energy and power systems across facilities and industry." },
+      { title: "HVAC Engineer", description: "Design and manage heating, ventilation, refrigeration, and cooling systems." },
+      { title: "Plant Engineer", description: "Operate and improve complex thermal, fluid, and utility systems." },
+    ],
   },
   {
     code: "MAS",
@@ -134,6 +193,12 @@ const focusAreas: FocusArea[] = [
       "Discover how mechanical, electrical, and computer systems work together—building smart machines for Industry 4.0.",
     accent_color: "#176ab5",
     image: "/assets/focus-mas.png",
+    career_paths: [
+      { title: "Mechatronics Engineer", description: "Create integrated electromechanical products and intelligent machines." },
+      { title: "Automation Engineer", description: "Design, program, commission, and improve automated systems." },
+      { title: "Control Systems Engineer", description: "Develop reliable control strategies for machines, vehicles, and processes." },
+      { title: "Systems Engineer", description: "Coordinate technical requirements, interfaces, verification, and delivery." },
+    ],
   },
   {
     code: "ECM",
@@ -143,6 +208,12 @@ const focusAreas: FocusArea[] = [
       "Gain skills in safety, standards, and project management—ensuring solutions are reliable, efficient, and ready for the real world.",
     accent_color: "#3e8b56",
     image: "/assets/focus-ecm.png",
+    career_paths: [
+      { title: "Project Engineer", description: "Coordinate technical work, resources, risk, quality, and stakeholder delivery." },
+      { title: "Quality Engineer", description: "Build systems that prevent defects and improve process capability." },
+      { title: "Compliance Engineer", description: "Ensure products and operations meet standards, regulations, and documented requirements." },
+      { title: "Facility Engineer", description: "Manage safe, reliable, and efficient engineering services and assets." },
+    ],
   },
 ];
 
@@ -245,23 +316,8 @@ const fallbackData: HomeData = {
     website: "",
     logo: `/assets/partners/${file}`,
   })),
-  facilities: [
-    {
-      name: "Robot with Artificial Vision System",
-      description: "Learn automation and robotics for Industry 4.0.",
-      image: "/assets/why/06-emerging-tech.webp",
-    },
-    {
-      name: "CNC Machines",
-      description: "Precision lathe and vertical machining for modern manufacturing.",
-      image: "/assets/why/05-technology.webp",
-    },
-    {
-      name: "Universal Testing Machine",
-      description: "Test mechanical properties and material strength.",
-      image: "/assets/focus-ecm.png",
-    },
-  ],
+  opportunities: [],
+  facilities: [],
 };
 
 const fallbackFocusDetails: Record<
@@ -271,7 +327,9 @@ const fallbackFocusDetails: Record<
     activities: Array<[string, string]>;
     careers: Array<[string, string]>;
     courseCodes: string[];
-    equipment: Array<[string, string, string]>;
+    equipment: Array<
+      [string, string, string, Facility["availability_status"]]
+    >;
   }
 > = {
   DMP: {
@@ -295,11 +353,17 @@ const fallbackFocusDetails: Record<
     ],
     courseCodes: ["ME 103", "ME 107", "ME 213", "ME 219", "ME 313", "ME 319", "ME 3E1", "ME 3E2", "ME 401", "ME 402", "ME 403", "ME 4E1", "ME 4E2"],
     equipment: [
-      ["CNC Machines", "Precision lathe and vertical machining for modern manufacturing.", "/assets/why/05-technology.webp"],
-      ["Universal Testing Machine", "Test mechanical properties and material strength.", "/assets/focus-ecm.png"],
-      ["Additive Manufacturing System", "Create and evaluate rapid prototypes with multi-nozzle 3D printing.", "/assets/focus-dmp.png"],
-      ["Wire-cut EDM Machine", "Study ultra-precise metal cutting through controlled spark erosion.", "/assets/focus-dmp.png"],
-      ["Controlled Atmosphere Furnace", "Conduct heat-treatment experiments and investigate material-property changes.", "/assets/focus-dmp.png"],
+      ["Excetek V400G Plus Wire-Cut EDM", "Cut complex profiles through controlled wire electrical-discharge machining.", "https://www.excetek.com/shop/v400g-plus-17#attr=", "available"],
+      ["Rownd Desktop CNC Lathe", "Support compact CNC turning, small-part production, and manufacturing training.", "https://rowndprecision.com/en-us/products/rownd-desktop-cnc-lathe-compact-modular-high-precision-3", "available"],
+      ["DMC2 Mini CNC", "Provide compact CNC machining for prototyping, setup, tooling, and process planning.", "https://shariffdmc.com/product/dmc2-mini-cnc/", "available"],
+      ["Carbolite HTF High-Temperature Chamber Furnace", "Support high-temperature heat treatment, annealing, calcination, and sintering.", "https://www.carbolite.com/products/chamber-furnaces/laboratory-furnaces/htf-high-temperature-chamber-furnaces/", "available"],
+      ["DECHANG GH4230 Metal Band Saw", "Prepare metal stock before turning, milling, forming, or fabrication.", "https://www.alibaba.com/product-detail/DECHANG-GH4230-High-Efficiency-Mini-Metal_1601387433469.html", "new"],
+      ["InssTek MX-Lab Six-Nozzle Metal Additive Manufacturing System", "Build and investigate metal components through additive manufacturing.", "https://www.insstek.com/products/mx-lab?ckattempt=3", "new"],
+      ["SYIL L3 CNC Lathe", "Support precision CNC turning, toolpath development, setup, and production.", "https://syil.com/L3", "new"],
+      ["SYIL X9 5-Axis Vertical Machining Center", "Enable advanced multi-axis milling and complex-part production.", "https://syil.com/x9", "new"],
+      ["500-Ton Servo CNC Hydraulic Press", "Compact metal powder and support forming research before sintering.", "https://www.yihui-press.com/dongguan-yihui-hydraulic-press-machine-for-metal-deep-drawing.html", "new"],
+      ["Metal Powder Water Atomization System", "Produce metal powder feedstock through controlled water atomization.", "https://en.hncpie.com/products_detail/17.html", "new"],
+      ["Anycubic FDM 3D Printing System with ACE Pro", "Support rapid prototyping and multicolor filament workflows.", "https://store.anycubic.com/products/anycubic-ace-pro", "available"],
     ],
   },
   TES: {
@@ -323,10 +387,9 @@ const fallbackFocusDetails: Record<
     ],
     courseCodes: ["PHY 101", "ME 211", "ME 217", "ME 311", "ME 319", "ME 3E1", "ME 3E2", "ME 401", "ME 402", "ME 403", "ME 4E1", "ME 4E2", "ME 411"],
     equipment: [
-      ["Thermal and Heat-transfer Trainer", "Measure conduction, convection, and heat-exchanger performance.", "/assets/focus-tes.png"],
-      ["Fluid Mechanics Bench", "Investigate flow rate, pressure loss, pumps, and fluid-system behavior.", "/assets/focus-tes.png"],
-      ["Refrigeration and Cooling-system Rig", "Test cooling cycles, controls, efficiency, and operating conditions.", "/assets/focus-tes.png"],
-      ["Renewable-energy Measurement Kit", "Monitor generation and system performance for solar and other energy applications.", "/assets/focus-tes.png"],
+      ["Automated Cooling and Spraying System", "Investigate cooling, spraying control, sensing, actuation, and efficient operation.", "", "available"],
+      ["Solar Tracking System", "Study tracking control, energy capture, measurement, and renewable-system performance.", "", "available"],
+      ["Wind Turbine System", "Extend future learning and research in wind-energy conversion and control.", "", "planned"],
     ],
   },
   MAS: {
@@ -350,10 +413,11 @@ const fallbackFocusDetails: Record<
     ],
     courseCodes: ["ME 105", "ME 215", "EE 201", "ME 221", "ME 315", "ME 317", "ME 319", "ME 3E1", "ME 3E2", "ME 401", "ME 402", "ME 403", "ME 4E1", "ME 4E2"],
     equipment: [
-      ["Robot with Artificial Vision System", "Learn automation and robotics for Industry 4.0.", "/assets/why/06-emerging-tech.webp"],
-      ["PLC and Automation Workstations", "Program, commission, and troubleshoot industrial automation sequences.", "/assets/focus-mas.png"],
-      ["Sensor and Data-acquisition Kits", "Connect sensors, acquire signals, and evaluate machine behavior.", "/assets/focus-mas.png"],
-      ["Electric-vehicle Control Platform", "Explore integrated electric powertrain, sensing, and control systems.", "/assets/focus-mas.png"],
+      ["Robot with Artificial Vision System", "Combine robotics, machine vision, sensing, and control for Industry 4.0.", "", "available"],
+      ["Four-Station Automation Simulation System", "Practice sequencing, sensing, handling, control, and troubleshooting.", "", "available"],
+      ["Robot with Warehouse Automation System", "Explore robotic material handling, storage, retrieval, and coordination.", "", "available"],
+      ["Industrial Electronic Circuit System", "Build and diagnose industrial circuits used in machines and automation.", "", "available"],
+      ["PLC Panel with Simulation System", "Program, simulate, commission, and troubleshoot industrial controls.", "", "available"],
     ],
   },
   ECM: {
@@ -377,10 +441,9 @@ const fallbackFocusDetails: Record<
     ],
     courseCodes: ["ME 107", "GEN 301", "ME 401", "ME 402", "ME 403", "ME 405", "ME 411", "GEN 401", "ME 4E1", "ME 4E2"],
     equipment: [
-      ["Universal Testing Machine", "Test mechanical properties and material strength.", "/assets/focus-ecm.png"],
-      ["Precision Metrology and Inspection Tools", "Verify dimensions, tolerances, quality, and documented requirements.", "/assets/focus-ecm.png"],
-      ["Safety and Compliance Resources", "Practice structured hazard identification, risk assessment, and standards review.", "/assets/why/03-collaboration.webp"],
-      ["Engineering Project Planning Workspace", "Plan scope, resources, schedule, risk, quality, and team delivery.", "/assets/why/09-active-learning.webp"],
+      ["Universal Testing Machine", "Measure mechanical properties and material strength through controlled testing.", "https://www.insize.com/testingmachines/UTM-GB.html", "available"],
+      ["Handheld LIBS Spectrometer", "Identify and evaluate material composition through rapid LIBS analysis.", "https://m.insize.com/page-35-2542.html", "available"],
+      ["Precision Metrology Equipment Package", "Verify dimensions, tolerances, quality, and engineering compliance.", "https://insizeus.com/tool.html", "available"],
     ],
   },
 };
@@ -408,10 +471,20 @@ function getFallbackFocusArea(slug: string): FocusAreaDetail | null {
   return {
     ...focusArea,
     courses,
-    facilities: detail.equipment.map(([name, description, image]) => ({
+    facilities: detail.equipment.map((
+      [name, description, reference_url, availability_status],
+    ) => ({
       name,
       description,
-      image,
+      reference_url,
+      availability_status,
+      availability_label: {
+        available: "Available",
+        new: "New equipment",
+        commissioning: "Commissioning",
+        planned: "Planned",
+      }[availability_status],
+      image: null,
     })),
     outcomes: toItems(detail.outcomes),
     learning_activities: toItems(detail.activities),
@@ -430,7 +503,17 @@ export async function getHomeData(): Promise<HomeData> {
     });
     if (!response.ok) return fallbackData;
     const data = (await response.json()) as Partial<HomeData>;
-    return data.settings ? (data as HomeData) : fallbackData;
+    if (!data.settings) return fallbackData;
+
+    return {
+      ...fallbackData,
+      ...data,
+      settings: {
+        ...fallbackData.settings,
+        ...data.settings,
+      },
+      opportunities: data.opportunities ?? fallbackData.opportunities,
+    };
   } catch {
     return fallbackData;
   }
@@ -455,4 +538,26 @@ export async function getFocusArea(
   } catch {
     return fallback;
   }
+}
+
+async function getCollection<T>(path: string): Promise<T[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${path}/`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(2500),
+    });
+    if (!response.ok) return [];
+    const data = (await response.json()) as T[] | { results?: T[] };
+    return Array.isArray(data) ? data : data.results ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export function getFacultyMembers(): Promise<FacultyMember[]> {
+  return getCollection<FacultyMember>("faculty");
+}
+
+export function getNewsEvents(): Promise<NewsEvent[]> {
+  return getCollection<NewsEvent>("news");
 }

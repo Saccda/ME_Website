@@ -9,6 +9,7 @@ from .models import (
     FocusAreaDetailItem,
     Inquiry,
     NewsEvent,
+    Opportunity,
     Partner,
     ProgramSettings,
     ResearchProject,
@@ -41,7 +42,14 @@ class WhyChooseItemSerializer(ImageSerializerMixin, serializers.ModelSerializer)
 
 class FocusAreaSerializer(ImageSerializerMixin, serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
+    career_paths = serializers.SerializerMethodField()
     image_field = "image"
+
+    def get_career_paths(self, obj):
+        items = [
+            item for item in obj.detail_items.all() if item.item_type == "career"
+        ]
+        return FocusAreaDetailItemSerializer(items, many=True).data
 
     class Meta:
         model = FocusArea
@@ -54,6 +62,7 @@ class FocusAreaSerializer(ImageSerializerMixin, serializers.ModelSerializer):
             "description",
             "accent_color",
             "image",
+            "career_paths",
         )
 
 
@@ -120,13 +129,69 @@ class PartnerSerializer(serializers.ModelSerializer):
         fields = ("id", "sort_order", "name", "partner_type", "website", "logo")
 
 
+class OpportunityFocusAreaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FocusArea
+        fields = ("code", "title", "slug", "accent_color")
+
+
+class OpportunitySerializer(serializers.ModelSerializer):
+    partner = PartnerSerializer(read_only=True)
+    focus_areas = OpportunityFocusAreaSerializer(many=True, read_only=True)
+    announcement_image = serializers.SerializerMethodField()
+    opportunity_type_label = serializers.CharField(
+        source="get_opportunity_type_display",
+        read_only=True,
+    )
+
+    def get_announcement_image(self, obj):
+        return image_url(
+            obj.announcement_image,
+            self.context.get("request"),
+        )
+
+    class Meta:
+        model = Opportunity
+        fields = (
+            "id",
+            "sort_order",
+            "title",
+            "slug",
+            "opportunity_type",
+            "opportunity_type_label",
+            "partner",
+            "announcement_image",
+            "focus_areas",
+            "summary",
+            "body",
+            "location",
+            "application_deadline",
+            "application_url",
+            "published_at",
+            "is_featured",
+        )
+
+
 class FacilitySerializer(ImageSerializerMixin, serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
+    availability_label = serializers.CharField(
+        source="get_availability_status_display",
+        read_only=True,
+    )
     image_field = "image"
 
     class Meta:
         model = Facility
-        fields = ("id", "sort_order", "name", "description", "image")
+        fields = (
+            "id",
+            "sort_order",
+            "name",
+            "description",
+            "reference_url",
+            "availability_status",
+            "availability_label",
+            "image",
+        )
 
 
 class FocusAreaDetailItemSerializer(serializers.ModelSerializer):
@@ -140,7 +205,6 @@ class FocusAreaDetailSerializer(FocusAreaSerializer):
     facilities = FacilitySerializer(many=True, read_only=True)
     outcomes = serializers.SerializerMethodField()
     learning_activities = serializers.SerializerMethodField()
-    career_paths = serializers.SerializerMethodField()
     research_projects = serializers.SerializerMethodField()
 
     def _detail_items(self, obj, item_type):
@@ -154,9 +218,6 @@ class FocusAreaDetailSerializer(FocusAreaSerializer):
 
     def get_learning_activities(self, obj):
         return self._detail_items(obj, "activity")
-
-    def get_career_paths(self, obj):
-        return self._detail_items(obj, "career")
 
     def get_research_projects(self, obj):
         projects = obj.research_projects.filter(is_published=True)
@@ -172,7 +233,6 @@ class FocusAreaDetailSerializer(FocusAreaSerializer):
             "facilities",
             "outcomes",
             "learning_activities",
-            "career_paths",
             "research_projects",
         )
 
