@@ -10,6 +10,7 @@ backend/src/db.sqlite3
 backend/src/media/
 backend/src/static/
 backend/.env.production
+backend/deploy/*.local.yml
 
 # Node
 frontend/node_modules/

@@ -17,7 +17,9 @@ type AdmissionBarProps = {
 };
 
 export default function AdmissionBar({ settings }: AdmissionBarProps) {
-  const applicationHref = settings.application_url || "/#contact";
+  const applicationHref =
+    settings.application_url ||
+    `mailto:${settings.email}?subject=ME admission enquiry`;
   const phoneHref = `tel:${settings.phone.replace(/[^\d+]/g, "")}`;
   const contactLinks = [
     {

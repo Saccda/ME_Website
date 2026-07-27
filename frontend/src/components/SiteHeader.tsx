@@ -7,15 +7,16 @@ const navItems = [
   {
     label: "About",
     links: [
+      ["What is mechanical engineering?", "/#what-is-me"],
       ["Why choose ME", "/#why-me"],
-      ["Vision & mission", "/#vision"],
+      ["Vision & mission", "/about"],
     ],
   },
   {
     label: "Academics",
     links: [
       ["Areas of focus", "/#focus"],
-      ["Curriculum", "/#curriculum"],
+      ["Curriculum", "/curriculum"],
     ],
   },
   {

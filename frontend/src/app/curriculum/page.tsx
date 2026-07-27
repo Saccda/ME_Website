@@ -1,0 +1,56 @@
+import CurriculumTabs from "@/components/CurriculumTabs";
+import SiteFooter from "@/components/SiteFooter";
+import SiteHeader from "@/components/SiteHeader";
+import { getHomeData } from "@/lib/api";
+
+export const dynamic = "force-dynamic";
+
+export default async function CurriculumPage() {
+  const home = await getHomeData();
+
+  return (
+    <>
+      <SiteHeader settings={home.settings} />
+      <main id="main-content" className="editorial-page">
+        <section className="directory-hero">
+          <div className="shell">
+            <p className="eyebrow light">Academics</p>
+            <h1>
+              The curriculum
+              <em>journey.</em>
+            </h1>
+            <p>
+              Explore the four-year progression from scientific foundations to
+              integrated design, industry experience, and professional
+              engineering practice.
+            </p>
+          </div>
+        </section>
+
+        <section className="section cream curriculum-page-section">
+          <div className="shell">
+            <div className="section-intro">
+              <div>
+                <p className="eyebrow">Four-year study plan</p>
+                <h2>
+                  Foundations to
+                  <em>professional practice.</em>
+                </h2>
+              </div>
+              <p>
+                Select a year to review its theme, credit count, and courses by
+                semester.
+              </p>
+            </div>
+            <CurriculumTabs years={home.curriculum} />
+          </div>
+        </section>
+      </main>
+
+      <SiteFooter
+        focusAreas={home.focus_areas}
+        settings={home.settings}
+      />
+    </>
+  );
+}

@@ -35,9 +35,11 @@ function deadlineBadge(deadline: string | null) {
 
 function JobCard({
   duplicate = false,
+  fallbackHref,
   opportunity,
 }: {
   duplicate?: boolean;
+  fallbackHref: string;
   opportunity: Opportunity;
 }) {
   const deadline = deadlineBadge(opportunity.application_deadline);
@@ -94,7 +96,7 @@ function JobCard({
           <strong>{opportunity.location || "To be confirmed"}</strong>
         </div>
         <a
-          href={opportunity.application_url || "#contact"}
+          href={opportunity.application_url || fallbackHref}
           target={opportunity.application_url ? "_blank" : undefined}
           rel={opportunity.application_url ? "noreferrer" : undefined}
           tabIndex={duplicate ? -1 : undefined}
@@ -154,6 +156,9 @@ export default function JobOpportunities({
                 <JobCard
                   opportunity={opportunity}
                   duplicate={shouldAnimate && index >= jobs.length}
+                  fallbackHref={`mailto:${email}?subject=${encodeURIComponent(
+                    `ME job enquiry: ${opportunity.title}`,
+                  )}`}
                   key={`${opportunity.slug}-${index}`}
                 />
               ))}

@@ -1,11 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import CurriculumTabs from "@/components/CurriculumTabs";
+import ImpactStory from "@/components/ImpactStory";
 import JobOpportunities from "@/components/IndustryCareers";
-import InquiryForm from "@/components/InquiryForm";
+import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getHomeData } from "@/lib/api";
 import { getResearchImage } from "@/lib/editorialImages";
+import { impactProjects } from "@/lib/impactProjects";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,7 @@ export default async function Home() {
             </h1>
             <p>{program.hero_description}</p>
             <div className="hero-actions">
-              <a className="button button-gold" href="#why-me">
+              <a className="button button-gold" href="#what-is-me">
                 Explore the program <span>↗</span>
               </a>
               <a className="text-link light" href="#partners">
@@ -64,73 +65,23 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="section cream" id="why-me">
+        <section className="section cream discipline-section" id="what-is-me">
           <div className="shell">
-            <div className="section-intro">
+            <div className="impact-heading">
               <div>
-                <p className="eyebrow">Why choose ME at RUPP?</p>
+                <p className="eyebrow">What is mechanical engineering?</p>
                 <h2>
-                  Nine reasons.
-                  <em>One future-ready program.</em>
+                  Designed by engineers.
+                  <em>Built for the world.</em>
                 </h2>
               </div>
               <p>
-                Our learning model brings technology, social responsibility,
-                and active practice together—so graduates leave ready to
-                contribute from day one.
+                From drones and vehicles to satellites, robots, and the cooling
+                systems behind AI, mechanical engineers shape how modern
+                products move, work, and endure.
               </p>
             </div>
-            <div className="proof-grid">
-              {data.why_choose.map((item, index) => (
-                <article className="proof-card" key={item.id || item.title}>
-                  <header>
-                    <span>{String(index + 1).padStart(2, "0")}</span>
-                    <h3>{item.title}</h3>
-                  </header>
-                  <div
-                    className={`proof-media ${item.media_kind === "logo" ? "logo-media" : ""}`}
-                  >
-                    <img src={item.image || ""} alt="" loading="lazy" />
-                  </div>
-                  <p>{item.description}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="section navy vision" id="vision">
-          <div className="shell vision-layout">
-            <div>
-              <p className="eyebrow light">Our vision</p>
-              <span className="orbit" aria-hidden="true" />
-            </div>
-            <blockquote>“{program.vision}.”</blockquote>
-          </div>
-        </section>
-
-        <section className="section cream">
-          <div className="shell">
-            <div className="section-intro compact">
-              <div>
-                <p className="eyebrow">Our mission</p>
-                <h2>
-                  Education with
-                  <em>purpose and momentum.</em>
-                </h2>
-              </div>
-            </div>
-            <div className="mission-grid">
-              {[program.mission_one, program.mission_two].map((mission, index) => (
-                <article key={mission}>
-                  <span>0{index + 1}</span>
-                  <div className="mission-icon" aria-hidden="true">
-                    {index === 0 ? "⌁" : "◎"}
-                  </div>
-                  <p>{mission}</p>
-                </article>
-              ))}
-            </div>
+            <ImpactStory projects={impactProjects} />
           </div>
         </section>
 
@@ -175,22 +126,38 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="section cream" id="curriculum">
+        <section className="section cream" id="why-me">
           <div className="shell">
             <div className="section-intro">
               <div>
-                <p className="eyebrow">Curriculum journey</p>
+                <p className="eyebrow">Why choose ME at RUPP?</p>
                 <h2>
-                  Foundations to
-                  <em>professional practice.</em>
+                  Nine reasons.
+                  <em>One future-ready program.</em>
                 </h2>
               </div>
               <p>
-                A four-year progression from core scientific thinking to
-                integrated design, industry experience, and capstone work.
+                Our learning model brings technology, social responsibility,
+                and active practice together—so graduates leave ready to
+                contribute from day one.
               </p>
             </div>
-            <CurriculumTabs years={data.curriculum} />
+            <div className="proof-grid">
+              {data.why_choose.map((item, index) => (
+                <article className="proof-card" key={item.id || item.title}>
+                  <header>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <h3>{item.title}</h3>
+                  </header>
+                  <div
+                    className={`proof-media ${item.media_kind === "logo" ? "logo-media" : ""}`}
+                  >
+                    <img src={item.image || ""} alt="" loading="lazy" />
+                  </div>
+                  <p>{item.description}</p>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -224,7 +191,11 @@ export default async function Home() {
                     <small>Student & faculty research</small>
                     <h3>{project.title}</h3>
                     <p>{project.summary}</p>
-                    <a href="#contact">
+                    <a
+                      href={`mailto:${program.email}?subject=${encodeURIComponent(
+                        `ME research enquiry: ${project.title}`,
+                      )}`}
+                    >
                       Discuss the project <span>↗</span>
                     </a>
                   </div>
@@ -245,7 +216,10 @@ export default async function Home() {
                 Our partnerships connect learning with applied research,
                 industry experience, and career opportunities for ME students.
               </p>
-              <a className="button button-navy" href="#contact">
+              <a
+                className="button button-navy"
+                href={`mailto:${program.email}?subject=ME partnership enquiry`}
+              >
                 Start a partnership <span>↗</span>
               </a>
             </div>
@@ -272,76 +246,9 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="section navy contact-section" id="contact">
-          <div className="shell contact-layout">
-            <div>
-              <p className="eyebrow light">Contact the program</p>
-              <h2>
-                Ready to engineer
-                <em>your future?</em>
-              </h2>
-              <p>
-                Ask about admission, curriculum, research, facilities, or a new
-                collaboration.
-              </p>
-              <dl>
-                <div>
-                  <dt>Email</dt>
-                  <dd>
-                    <a href={`mailto:${program.email}`}>{program.email}</a>
-                  </dd>
-                </div>
-                <div>
-                  <dt>Phone</dt>
-                  <dd>{program.phone}</dd>
-                </div>
-                <div>
-                  <dt>Address</dt>
-                  <dd>{program.address}</dd>
-                </div>
-              </dl>
-            </div>
-            <InquiryForm />
-          </div>
-        </section>
       </main>
 
-      <footer>
-        <div className="shell footer-grid">
-          <div className="footer-brand">
-            <img src="/assets/me-logo.png" alt="ME Program logo" />
-            <p>
-              Mechanical Engineering Program
-              <br />
-              Faculty of Engineering · RUPP
-            </p>
-          </div>
-          <div>
-            <h3>Program</h3>
-            <a href="#why-me">Why ME</a>
-            <a href="#vision">Vision & mission</a>
-            <a href="#curriculum">Curriculum</a>
-          </div>
-          <div>
-            <h3>Focus areas</h3>
-            {data.focus_areas.map((area) => (
-              <a href="#focus" key={area.code}>
-                {area.code}
-              </a>
-            ))}
-          </div>
-          <div>
-            <h3>Connect</h3>
-            <a href="#research">Research</a>
-            <a href="#partners">Partnership</a>
-            <a href={`mailto:${program.email}`}>Email ME</a>
-          </div>
-        </div>
-        <div className="shell footer-bottom">
-          <span>© {new Date().getFullYear()} Mechanical Engineering · RUPP</span>
-          <span>Nature · Nurture · Nourish</span>
-        </div>
-      </footer>
+      <SiteFooter focusAreas={data.focus_areas} settings={program} />
     </>
   );
 }

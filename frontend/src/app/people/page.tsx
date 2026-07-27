@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
+import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getFacultyMembers, getHomeData } from "@/lib/api";
 
@@ -96,13 +97,20 @@ export default async function PeoplePage() {
                 We are building an alumni network that connects graduates with
                 students, faculty, industry opportunities, and one another.
               </p>
-              <Link className="button button-navy" href="/#contact">
+              <Link
+                className="button button-navy"
+                href={`mailto:${home.settings.email}?subject=ME alumni network enquiry`}
+              >
                 Join the alumni network <span>↗</span>
               </Link>
             </div>
           </div>
         </section>
       </main>
+      <SiteFooter
+        focusAreas={home.focus_areas}
+        settings={home.settings}
+      />
     </>
   );
 }

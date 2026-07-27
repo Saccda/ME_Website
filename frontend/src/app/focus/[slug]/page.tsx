@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getFocusArea, getHomeData, type FocusCourse } from "@/lib/api";
 import { getFocusHeroImage, getResearchImage } from "@/lib/editorialImages";
@@ -308,7 +309,13 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
                 <p className="eyebrow">Continue exploring</p>
                 <h2>Compare the other areas of focus.</h2>
               </div>
-              <Link className="button button-navy" href="/#contact">
+              <Link
+                className="button button-navy"
+                href={
+                  home.settings.application_url ||
+                  `mailto:${home.settings.email}?subject=ME program enquiry`
+                }
+              >
                 Ask the program <span>↗</span>
               </Link>
             </div>
@@ -325,12 +332,10 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
         </section>
       </main>
 
-      <footer className="focus-footer">
-        <div className="shell footer-bottom">
-          <span>© {new Date().getFullYear()} Mechanical Engineering · RUPP</span>
-          <Link href="/">Return to the program homepage</Link>
-        </div>
-      </footer>
+      <SiteFooter
+        focusAreas={home.focus_areas}
+        settings={home.settings}
+      />
     </>
   );
 }

@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getHomeData, getNewsEvents, type NewsEvent } from "@/lib/api";
 
@@ -135,6 +136,10 @@ export default async function NewsEventsPage() {
           </div>
         </section>
       </main>
+      <SiteFooter
+        focusAreas={home.focus_areas}
+        settings={home.settings}
+      />
     </>
   );
 }
