@@ -26,7 +26,7 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        <section className="section white about-vision">
+        <section className="section white about-vision" id="vision">
           <div className="shell about-statement">
             <div>
               <p className="eyebrow">Our vision</p>
@@ -36,7 +36,7 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        <section className="section cream">
+        <section className="section cream" id="mission">
           <div className="shell">
             <div className="section-intro compact">
               <div>
@@ -59,6 +59,36 @@ export default async function AboutPage() {
                   </article>
                 ),
               )}
+            </div>
+          </div>
+        </section>
+
+        <section className="section white" id="peos">
+          <div className="shell">
+            <div className="detail-section-heading">
+              <div>
+                <p className="eyebrow">Program Educational Objectives</p>
+                <h2>What graduates are prepared to achieve.</h2>
+              </div>
+              <p>
+                The approved PEO statements from the Mechanical Engineering
+                program development document will be published here.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="section cream" id="plos">
+          <div className="shell">
+            <div className="detail-section-heading">
+              <div>
+                <p className="eyebrow">Program Learning Outcomes</p>
+                <h2>What every graduate will know and be able to do.</h2>
+              </div>
+              <p>
+                The approved PLO statements from the Mechanical Engineering
+                program development document will be published here.
+              </p>
             </div>
           </div>
         </section>

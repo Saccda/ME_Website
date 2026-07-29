@@ -125,7 +125,7 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
           </div>
         </section>
 
-        <section className="section cream">
+        <section className="section cream" id="focus-facilities">
           <div className="shell">
             <div className="equipment-section-heading">
               <div>
@@ -244,7 +244,7 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
         </section>
 
         {focus.research_projects.length > 0 && (
-          <section className="section cream">
+          <section className="section cream" id="focus-research">
             <div className="shell">
               <div className="detail-section-heading">
                 <div>

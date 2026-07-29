@@ -40,6 +40,52 @@ The introductory Alumni section is also design copy for now; individual alumni
 profiles will need a dedicated CMS content type before they can be managed like
 faculty profiles.
 
+## Edit the main navigation
+
+The main navigation is stored in one frontend configuration file:
+
+`frontend/src/config/navigation.ts`
+
+Each top-level object in `navigationItems` is one navigation section. The order
+of those objects controls the left-to-right order in the desktop header and the
+top-to-bottom order in the mobile menu.
+
+To add a section, add another object:
+
+```ts
+{
+  label: "New Section",
+  links: [
+    { label: "First Page", href: "/first-page" },
+    { label: "Second Page", href: "/second-page" },
+  ],
+},
+```
+
+To remove a section or subsection, remove its matching object. To reorder
+sections or links, move the complete object higher or lower in its array.
+
+For a two-level submenu, use `children`:
+
+```ts
+{
+  label: "Research Area",
+  children: [
+    { label: "DMP", href: "/focus/design-and-manufacturing-process" },
+    { label: "TES", href: "/focus/thermofluid-and-energy-system" },
+  ],
+},
+```
+
+Internal links begin with `/`. To link to a specific section on a page, append
+its HTML anchor, for example `/about#vision`. Every navigation item must have
+either an `href` or a `children` array.
+
+Navigation is currently source-controlled rather than managed in Wagtail. This
+keeps structural site changes reviewed and versioned. A Wagtail navigation
+editor can be added later if program administrators need to change the menu
+without deploying the frontend.
+
 If no administrator account exists, create one from the `backend` directory:
 
 ```powershell

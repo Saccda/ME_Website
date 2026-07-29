@@ -265,7 +265,7 @@ img {
   z-index: 10;
   top: calc(100% - 1px);
   left: 0;
-  min-width: 260px;
+  min-width: 310px;
   padding: 8px;
   display: none;
   background: var(--brand-gold);
@@ -287,6 +287,63 @@ img {
   font-size: 0.98rem;
   font-weight: 620;
   line-height: 1.25;
+}
+
+.nav-submenu {
+  position: relative;
+}
+
+.nav-submenu > button {
+  width: 100%;
+  padding: 12px 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--brand-navy);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: "Segoe UI Variable Display", "Segoe UI", Arial, sans-serif;
+  font-size: 0.98rem;
+  font-weight: 620;
+  line-height: 1.25;
+  text-align: left;
+}
+
+.nav-submenu-chevron {
+  width: 7px;
+  height: 7px;
+  margin-right: 4px;
+  border-top: 1.5px solid currentColor;
+  border-right: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.nav-submenu-menu {
+  position: absolute;
+  z-index: 12;
+  top: -8px;
+  left: calc(100% + 8px);
+  min-width: 128px;
+  padding: 8px;
+  display: none;
+  background: var(--brand-gold);
+  border-top: 3px solid var(--brand-navy);
+  border-radius: 0 8px 8px 8px;
+  box-shadow: 0 18px 36px rgba(6, 26, 42, 0.22);
+}
+
+.nav-submenu:hover > .nav-submenu-menu,
+.nav-submenu:has(:focus-visible) > .nav-submenu-menu {
+  display: grid;
+}
+
+.nav-submenu > button:hover,
+.nav-submenu > button:focus-visible {
+  color: var(--white);
+  background: var(--brand-navy);
+  outline: none;
 }
 
 .nav-dropdown-menu a:hover,
@@ -3639,6 +3696,48 @@ img {
 
   .mobile-menu nav .mobile-nav-group a:last-child {
     border-bottom: 0;
+  }
+
+  .mobile-nav-subgroup {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .mobile-nav-subgroup > summary {
+    min-height: 45px;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: rgba(255, 255, 255, 0.88);
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.9rem;
+    font-weight: 650;
+  }
+
+  .mobile-nav-subgroup > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .mobile-nav-subgroup > summary span {
+    color: var(--brand-gold);
+    font-size: 1.1rem;
+    transition: transform 180ms ease;
+  }
+
+  .mobile-nav-subgroup[open] > summary span {
+    transform: rotate(45deg);
+  }
+
+  .mobile-nav-subgroup > div {
+    display: grid;
+    padding: 0 8px 8px 14px;
+    background: rgba(0, 0, 0, 0.12);
+  }
+
+  .mobile-menu nav .mobile-nav-subgroup a {
+    padding-left: 22px;
+    font-size: 0.86rem;
   }
 
   .mobile-menu nav .nav-cta {

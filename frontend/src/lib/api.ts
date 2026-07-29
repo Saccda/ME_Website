@@ -561,3 +561,7 @@ export function getFacultyMembers(): Promise<FacultyMember[]> {
 export function getNewsEvents(): Promise<NewsEvent[]> {
   return getCollection<NewsEvent>("news");
 }
+
+export function getFacilities(): Promise<Facility[]> {
+  return getCollection<Facility>("facilities");
+}

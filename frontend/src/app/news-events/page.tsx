@@ -87,7 +87,7 @@ export default async function NewsEventsPage() {
           </div>
         </section>
 
-        <section className="section cream" id="events">
+        <section className="section cream" id="lab-openhouse">
           <div className="shell">
             <div className="detail-section-heading">
               <div>
@@ -109,7 +109,8 @@ export default async function NewsEventsPage() {
           </div>
         </section>
 
-        <section className="section navy" id="publications">
+        <section className="section navy" id="seminar-series">
+          <span id="publication" aria-hidden="true" />
           <div className="shell">
             <div className="detail-section-heading inverse">
               <div>

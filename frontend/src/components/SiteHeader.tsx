@@ -1,52 +1,59 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
+import {
+  navigationItems,
+  type NavigationLink,
+} from "@/config/navigation";
 import type { ProgramSettings } from "@/lib/api";
 import AdmissionBar from "./AdmissionBar";
-
-const navItems = [
-  {
-    label: "About",
-    links: [
-      ["What is mechanical engineering?", "/#what-is-me"],
-      ["Why choose ME", "/#why-me"],
-      ["Vision & mission", "/about"],
-    ],
-  },
-  {
-    label: "Academics",
-    links: [
-      ["Areas of focus", "/#focus"],
-      ["Curriculum", "/curriculum"],
-    ],
-  },
-  {
-    label: "Research & Innovation",
-    links: [
-      ["Applied research", "/#research"],
-      ["Partners & collaboration", "/#partners"],
-      ["Job opportunities", "/#opportunities"],
-    ],
-  },
-  {
-    label: "People",
-    links: [
-      ["Faculty & staff", "/people#faculty-staff"],
-      ["Alumni", "/people#alumni"],
-    ],
-  },
-  {
-    label: "News & Events",
-    links: [
-      ["Latest news", "/news-events#latest"],
-      ["Upcoming events", "/news-events#events"],
-      ["Seminars & publications", "/news-events#publications"],
-    ],
-  },
-] as const;
 
 type SiteHeaderProps = {
   settings: ProgramSettings;
 };
+
+function DesktopNavigationLink({ item }: { item: NavigationLink }) {
+  if (item.children) {
+    return (
+      <div className="nav-submenu">
+        <button type="button" aria-haspopup="true">
+          {item.label}
+          <span className="nav-submenu-chevron" aria-hidden="true" />
+        </button>
+        <div className="nav-submenu-menu">
+          {item.children.map((child) => (
+            <Link href={child.href || "/"} key={`${child.label}-${child.href}`}>
+              {child.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return <Link href={item.href || "/"}>{item.label}</Link>;
+}
+
+function MobileNavigationLink({ item }: { item: NavigationLink }) {
+  if (item.children) {
+    return (
+      <details className="mobile-nav-subgroup">
+        <summary>
+          {item.label}
+          <span aria-hidden="true">+</span>
+        </summary>
+        <div>
+          {item.children.map((child) => (
+            <Link href={child.href || "/"} key={`${child.label}-${child.href}`}>
+              {child.label}
+            </Link>
+          ))}
+        </div>
+      </details>
+    );
+  }
+
+  return <Link href={item.href || "/"}>{item.label}</Link>;
+}
 
 export default function SiteHeader({ settings }: SiteHeaderProps) {
   return (
@@ -84,23 +91,22 @@ export default function SiteHeader({ settings }: SiteHeaderProps) {
           </Link>
 
           <nav className="desktop-nav" aria-label="Main navigation">
-            {navItems.map((item) =>
-              "links" in item ? (
-                <div className="nav-dropdown" key={item.label}>
-                  <button type="button" aria-haspopup="true">
-                    {item.label}
-                    <span className="nav-chevron" aria-hidden="true" />
-                  </button>
-                  <div className="nav-dropdown-menu">
-                    {item.links.map(([label, href]) => (
-                      <Link href={href} key={href}>
-                        {label}
-                      </Link>
-                    ))}
-                  </div>
+            {navigationItems.map((item) => (
+              <div className="nav-dropdown" key={item.label}>
+                <button type="button" aria-haspopup="true">
+                  {item.label}
+                  <span className="nav-chevron" aria-hidden="true" />
+                </button>
+                <div className="nav-dropdown-menu">
+                  {item.links.map((link) => (
+                    <DesktopNavigationLink
+                      item={link}
+                      key={`${link.label}-${link.href || "group"}`}
+                    />
+                  ))}
                 </div>
-              ) : null,
-            )}
+              </div>
+            ))}
           </nav>
 
           <details className="mobile-menu">
@@ -110,23 +116,22 @@ export default function SiteHeader({ settings }: SiteHeaderProps) {
               <span />
             </summary>
             <nav>
-              {navItems.map((item) =>
-                "links" in item ? (
-                  <details className="mobile-nav-group" key={item.label}>
-                    <summary>
-                      {item.label}
-                      <span aria-hidden="true">+</span>
-                    </summary>
-                    <div>
-                      {item.links.map(([label, href]) => (
-                        <Link href={href} key={href}>
-                          {label}
-                        </Link>
-                      ))}
-                    </div>
-                  </details>
-                ) : null,
-              )}
+              {navigationItems.map((item) => (
+                <details className="mobile-nav-group" key={item.label}>
+                  <summary>
+                    {item.label}
+                    <span aria-hidden="true">+</span>
+                  </summary>
+                  <div>
+                    {item.links.map((link) => (
+                      <MobileNavigationLink
+                        item={link}
+                        key={`${link.label}-${link.href || "group"}`}
+                      />
+                    ))}
+                  </div>
+                </details>
+              ))}
             </nav>
           </details>
         </div>
