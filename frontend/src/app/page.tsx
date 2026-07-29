@@ -226,12 +226,38 @@ export default async function Home() {
           </div>
           <div className="marquee" aria-label="ME Program partners">
             <div className="marquee-track">
-              {partners.map((partner, index) => (
-                <div className="partner-logo" key={`${partner.name}-${index}`}>
-                  <img src={partner.logo || ""} alt={partner.name} loading="lazy" />
-                  <small>{partner.partner_type}</small>
-                </div>
-              ))}
+              {partners.map((partner, index) => {
+                const logo = (
+                  <>
+                    <img
+                      src={partner.logo || ""}
+                      alt={partner.name}
+                      loading="lazy"
+                    />
+                    <small>{partner.partner_type}</small>
+                  </>
+                );
+
+                return partner.website ? (
+                  <a
+                    className="partner-logo"
+                    href={partner.website}
+                    key={`${partner.name}-${index}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Visit ${partner.name} website`}
+                  >
+                    {logo}
+                  </a>
+                ) : (
+                  <div
+                    className="partner-logo"
+                    key={`${partner.name}-${index}`}
+                  >
+                    {logo}
+                  </div>
+                );
+              })}
             </div>
           </div>
           <div className="partner-jobs-band">
