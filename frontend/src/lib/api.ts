@@ -9,6 +9,18 @@ export type ProgramSettings = {
   hero_emphasis: string;
   hero_description: string;
   hero_image: string | null;
+  what_is_me_eyebrow: string;
+  what_is_me_heading: string;
+  what_is_me_intro: string;
+  focus_section_eyebrow: string;
+  focus_section_heading: string;
+  focus_section_intro: string;
+  why_section_eyebrow: string;
+  why_section_heading: string;
+  why_section_intro: string;
+  partners_section_eyebrow: string;
+  partners_section_heading: string;
+  partners_section_intro: string;
   vision: string;
   mission_one: string;
   mission_two: string;
@@ -39,6 +51,18 @@ export type FocusArea = {
   description: string;
   accent_color: string;
   image: string | null;
+  overview_heading: string;
+  overview_intro: string;
+  facility_heading: string;
+  facility_intro: string;
+  curriculum_heading: string;
+  curriculum_intro: string;
+  learning_heading: string;
+  learning_intro: string;
+  careers_heading: string;
+  careers_intro: string;
+  research_heading: string;
+  research_intro: string;
   career_paths: FocusDetailItem[];
 };
 
@@ -61,8 +85,9 @@ export type ResearchProject = {
   title: string;
   slug: string;
   summary: string;
+  body: string;
   image: string | null;
-  focus_area: FocusArea | null;
+  focus_areas: FocusArea[];
 };
 
 export type Partner = {
@@ -154,6 +179,29 @@ export type HomeData = {
   facilities: Facility[];
 };
 
+function focusSectionCopy(facilityHeading: string) {
+  return {
+    overview_heading: "Knowledge that becomes engineering ability.",
+    overview_intro:
+      "Connect classroom fundamentals with practical investigation, modern tools, teamwork, and evidence-based engineering decisions.",
+    facility_heading: facilityHeading,
+    facility_intro:
+      "Learning, research, prototyping, testing, and engineering services.",
+    curriculum_heading: "A progressive four-year study path.",
+    curriculum_intro:
+      "Foundation subjects lead to specialist work, integrated projects, industry experience, and the final capstone.",
+    learning_heading: "Active learning beyond memorization.",
+    learning_intro:
+      "Activities combine technical knowledge with communication, iteration, safety, and reflection.",
+    careers_heading: "Where this focus can take you.",
+    careers_intro:
+      "Graduates can move across technical and leadership roles as their experience grows.",
+    research_heading: "Research connected to this focus.",
+    research_intro:
+      "Explore current projects in Research & Innovation for full project details and related focus areas.",
+  };
+}
+
 const focusAreas: FocusArea[] = [
   {
     code: "DMP",
@@ -163,6 +211,7 @@ const focusAreas: FocusArea[] = [
       "Learn how ideas become real products—from creative design to modern manufacturing methods that shape everything we use.",
     accent_color: "#061b2b",
     image: "/assets/focus-dmp.png",
+    ...focusSectionCopy("Design & Manufacturing Lab"),
     career_paths: [
       { title: "Design Engineer", description: "Develop products, mechanisms, and production-ready engineering documentation." },
       { title: "Manufacturing Engineer", description: "Improve processes, tooling, quality, efficiency, and production capability." },
@@ -178,6 +227,7 @@ const focusAreas: FocusArea[] = [
       "Engineer systems to utilize energy through generation, transfer, and storage—from cooling and heating to sustainable energy.",
     accent_color: "#dcae42",
     image: "/assets/focus-tes.png",
+    ...focusSectionCopy("Thermofluid & Energy Systems Lab"),
     career_paths: [
       { title: "Energy Engineer", description: "Improve energy generation, conversion, efficiency, and sustainability." },
       { title: "Power Engineer", description: "Support reliable energy and power systems across facilities and industry." },
@@ -193,6 +243,7 @@ const focusAreas: FocusArea[] = [
       "Discover how mechanical, electrical, and computer systems work together—building smart machines for Industry 4.0.",
     accent_color: "#176ab5",
     image: "/assets/focus-mas.png",
+    ...focusSectionCopy("Mechatronics & Automation Lab"),
     career_paths: [
       { title: "Mechatronics Engineer", description: "Create integrated electromechanical products and intelligent machines." },
       { title: "Automation Engineer", description: "Design, program, commission, and improve automated systems." },
@@ -208,6 +259,7 @@ const focusAreas: FocusArea[] = [
       "Gain skills in safety, standards, and project management—ensuring solutions are reliable, efficient, and ready for the real world.",
     accent_color: "#3e8b56",
     image: "/assets/focus-ecm.png",
+    ...focusSectionCopy("Engineering Compliance & Management Lab"),
     career_paths: [
       { title: "Project Engineer", description: "Coordinate technical work, resources, risk, quality, and stakeholder delivery." },
       { title: "Quality Engineer", description: "Build systems that prevent defects and improve process capability." },
@@ -246,6 +298,22 @@ const fallbackData: HomeData = {
     hero_description:
       "Build the machines, energy systems, and intelligent technologies that move our nation forward.",
     hero_image: "/assets/hero-lab.png",
+    what_is_me_eyebrow: "What is mechanical engineering?",
+    what_is_me_heading: "Designed by engineers. Built for the world.",
+    what_is_me_intro:
+      "From drones and vehicles to satellites, robots, and the cooling systems behind AI, mechanical engineers shape how modern products move, work, and endure.",
+    focus_section_eyebrow: "Areas of focus",
+    focus_section_heading: "Four paths. One purpose.",
+    focus_section_intro:
+      "Move fluently between theory, simulation, fabrication, testing, and responsible engineering practice.",
+    why_section_eyebrow: "Why choose ME at RUPP?",
+    why_section_heading: "Nine reasons. One future-ready program.",
+    why_section_intro:
+      "Our learning model brings technology, social responsibility, and active practice together so graduates leave ready to contribute from day one.",
+    partners_section_eyebrow: "Partnership",
+    partners_section_heading: "Education and industry, connected.",
+    partners_section_intro:
+      "Our partnerships connect learning with research, industry experience, and job opportunities for ME students.",
     vision:
       "To become a leader in Mechanical Engineering Education by infusing technology and social engagement into teaching and learning, research, and innovation for the advancement of society",
     mission_one:
@@ -284,19 +352,22 @@ const fallbackData: HomeData = {
       semester: index < 4 ? "1" : "2",
     })),
   })),
-  research: [
-    ["Metal Recycling", "DMP", "Exploring practical processes for recovering, sorting, and reusing metal resources to support more sustainable manufacturing."],
-    ["Automated Cooling & Spraying System", "MAS", "Developing sensor-based cooling and spraying controls for consistent, efficient environmental management."],
-    ["Sugarcane Particle Board", "DMP", "Investigating sugarcane residue as a useful raw material for lower-impact engineered particle board."],
-    ["Non-Intrusive Load Monitoring System", "TES", "Using electrical measurements and intelligent analysis to identify appliance-level energy use without individual sensors."],
-  ].map(([title, code, summary]) => {
-    const focus = focusAreas.find((area) => area.code === code) || null;
+  research: ([
+    ["Metal Recycling", ["DMP"], "Exploring practical processes for recovering, sorting, and reusing metal resources to support more sustainable manufacturing."],
+    ["Automated Cooling & Spraying System", ["TES", "MAS"], "Developing sensor-based cooling and spraying controls for consistent, efficient environmental management."],
+    ["Sugarcane Particle Board", ["DMP", "ECM"], "Investigating sugarcane residue as a useful raw material for lower-impact engineered particle board."],
+    ["Non-Intrusive Load Monitoring System", ["TES", "MAS"], "Using electrical measurements and intelligent analysis to identify appliance-level energy use without individual sensors."],
+  ] as Array<[string, string[], string]>).map(([title, codes, summary]) => {
+    const relatedFocusAreas = focusAreas.filter((area) =>
+      codes.includes(area.code),
+    );
     return {
       title,
       slug: title.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
       summary,
-      image: focus?.image || null,
-      focus_area: focus,
+      body: "",
+      image: relatedFocusAreas[0]?.image || null,
+      focus_areas: relatedFocusAreas,
     };
   }),
   partners: [
@@ -490,7 +561,8 @@ function getFallbackFocusArea(slug: string): FocusAreaDetail | null {
     learning_activities: toItems(detail.activities),
     career_paths: toItems(detail.careers),
     research_projects: fallbackData.research.filter(
-      (project) => project.focus_area?.code === focusArea.code,
+      (project) =>
+        project.focus_areas.some((area) => area.code === focusArea.code),
     ),
   };
 }
@@ -534,7 +606,12 @@ export async function getFocusArea(
       },
     );
     if (!response.ok) return fallback;
-    return (await response.json()) as FocusAreaDetail;
+
+    const data = (await response.json()) as FocusAreaDetail;
+
+    // Preserve newly introduced CMS presentation defaults while an older
+    // production API is still being upgraded. API values continue to win.
+    return { ...fallback, ...data };
   } catch {
     return fallback;
   }
@@ -542,10 +619,14 @@ export async function getFocusArea(
 
 async function getCollection<T>(path: string): Promise<T[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/${path}/`, {
+    const [pathname, query] = path.split("?", 2);
+    const response = await fetch(
+      `${API_BASE_URL}/${pathname}/${query ? `?${query}` : ""}`,
+      {
       cache: "no-store",
       signal: AbortSignal.timeout(2500),
-    });
+      },
+    );
     if (!response.ok) return [];
     const data = (await response.json()) as T[] | { results?: T[] };
     return Array.isArray(data) ? data : data.results ?? [];
@@ -564,4 +645,16 @@ export function getNewsEvents(): Promise<NewsEvent[]> {
 
 export function getFacilities(): Promise<Facility[]> {
   return getCollection<Facility>("facilities");
+}
+
+export async function getResearchProjects(
+  focusCode?: string,
+): Promise<ResearchProject[]> {
+  const query = focusCode ? `?focus=${encodeURIComponent(focusCode)}` : "";
+  const projects = await getCollection<ResearchProject>(`research${query}`);
+  if (projects.length > 0) return projects;
+  if (!focusCode) return fallbackData.research;
+  return fallbackData.research.filter((project) =>
+    project.focus_areas.some((area) => area.code === focusCode),
+  );
 }

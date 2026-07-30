@@ -34,6 +34,64 @@ class ProgramSettings(BaseSiteSetting):
         on_delete=models.SET_NULL,
         related_name="+",
     )
+    what_is_me_eyebrow = models.CharField(
+        max_length=120,
+        default="What is mechanical engineering?",
+    )
+    what_is_me_heading = models.CharField(
+        max_length=220,
+        default="Designed by engineers. Built for the world.",
+    )
+    what_is_me_intro = models.TextField(
+        default=(
+            "From drones and vehicles to satellites, robots, and the cooling "
+            "systems behind AI, mechanical engineers shape how modern products "
+            "move, work, and endure."
+        )
+    )
+    focus_section_eyebrow = models.CharField(
+        max_length=120,
+        default="Areas of focus",
+    )
+    focus_section_heading = models.CharField(
+        max_length=220,
+        default="Four paths. One purpose.",
+    )
+    focus_section_intro = models.TextField(
+        default=(
+            "Move fluently between theory, simulation, fabrication, testing, "
+            "and responsible engineering practice."
+        )
+    )
+    why_section_eyebrow = models.CharField(
+        max_length=120,
+        default="Why choose ME at RUPP?",
+    )
+    why_section_heading = models.CharField(
+        max_length=220,
+        default="Nine reasons. One future-ready program.",
+    )
+    why_section_intro = models.TextField(
+        default=(
+            "Our learning model brings technology, social responsibility, and "
+            "active practice together so graduates leave ready to contribute "
+            "from day one."
+        )
+    )
+    partners_section_eyebrow = models.CharField(
+        max_length=120,
+        default="Partnership",
+    )
+    partners_section_heading = models.CharField(
+        max_length=220,
+        default="Education and industry, connected.",
+    )
+    partners_section_intro = models.TextField(
+        default=(
+            "Our partnerships connect learning with research, industry "
+            "experience, and job opportunities for ME students."
+        )
+    )
     vision = models.TextField(
         default=(
             "To become a leader in Mechanical Engineering Education by infusing "
@@ -88,6 +146,38 @@ class ProgramSettings(BaseSiteSetting):
                 FieldPanel("hero_image"),
             ],
             heading="Homepage hero",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("what_is_me_eyebrow"),
+                FieldPanel("what_is_me_heading"),
+                FieldPanel("what_is_me_intro"),
+            ],
+            heading="Homepage: What is mechanical engineering?",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("focus_section_eyebrow"),
+                FieldPanel("focus_section_heading"),
+                FieldPanel("focus_section_intro"),
+            ],
+            heading="Homepage: Areas of focus",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("why_section_eyebrow"),
+                FieldPanel("why_section_heading"),
+                FieldPanel("why_section_intro"),
+            ],
+            heading="Homepage: Why choose ME?",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("partners_section_eyebrow"),
+                FieldPanel("partners_section_heading"),
+                FieldPanel("partners_section_intro"),
+            ],
+            heading="Homepage: Partnership",
         ),
         MultiFieldPanel(
             [
@@ -161,6 +251,65 @@ class FocusArea(OrderedModel):
         on_delete=models.SET_NULL,
         related_name="+",
     )
+    overview_heading = models.CharField(
+        max_length=220,
+        default="Knowledge that becomes engineering ability.",
+    )
+    overview_intro = models.TextField(
+        default=(
+            "Connect classroom fundamentals with practical investigation, "
+            "modern tools, teamwork, and evidence-based engineering decisions."
+        )
+    )
+    facility_heading = models.CharField(
+        max_length=220,
+        default="Equipment and facilities",
+    )
+    facility_intro = models.TextField(
+        default=(
+            "Learning, research, prototyping, testing, and engineering services."
+        )
+    )
+    curriculum_heading = models.CharField(
+        max_length=220,
+        default="A progressive four-year study path.",
+    )
+    curriculum_intro = models.TextField(
+        default=(
+            "Foundation subjects lead to specialist work, integrated projects, "
+            "industry experience, and the final capstone."
+        )
+    )
+    learning_heading = models.CharField(
+        max_length=220,
+        default="Active learning beyond memorization.",
+    )
+    learning_intro = models.TextField(
+        default=(
+            "Activities combine technical knowledge with communication, "
+            "iteration, safety, and reflection."
+        )
+    )
+    careers_heading = models.CharField(
+        max_length=220,
+        default="Where this focus can take you.",
+    )
+    careers_intro = models.TextField(
+        default=(
+            "Graduates can move across technical and leadership roles as their "
+            "experience grows."
+        )
+    )
+    research_heading = models.CharField(
+        max_length=220,
+        default="Research connected to this focus.",
+    )
+    research_intro = models.TextField(
+        default=(
+            "Explore current projects in Research & Innovation for full project "
+            "details and related focus areas."
+        )
+    )
 
     panels = [
         FieldPanel("sort_order"),
@@ -170,6 +319,23 @@ class FocusArea(OrderedModel):
         FieldPanel("description"),
         FieldPanel("accent_color"),
         FieldPanel("image"),
+        MultiFieldPanel(
+            [
+                FieldPanel("overview_heading"),
+                FieldPanel("overview_intro"),
+                FieldPanel("facility_heading"),
+                FieldPanel("facility_intro"),
+                FieldPanel("curriculum_heading"),
+                FieldPanel("curriculum_intro"),
+                FieldPanel("learning_heading"),
+                FieldPanel("learning_intro"),
+                FieldPanel("careers_heading"),
+                FieldPanel("careers_intro"),
+                FieldPanel("research_heading"),
+                FieldPanel("research_intro"),
+            ],
+            heading="Focus page section copy",
+        ),
     ]
 
     def __str__(self):
@@ -238,12 +404,11 @@ class Course(OrderedModel):
 class ResearchProject(OrderedModel):
     title = models.CharField(max_length=220)
     slug = models.SlugField(max_length=240, unique=True)
-    focus_area = models.ForeignKey(
+    focus_areas = models.ManyToManyField(
         FocusArea,
-        null=True,
         blank=True,
-        on_delete=models.SET_NULL,
         related_name="research_projects",
+        help_text="Select every focus area connected to this project.",
     )
     summary = models.TextField()
     body = RichTextField(blank=True)
@@ -261,7 +426,7 @@ class ResearchProject(OrderedModel):
         FieldPanel("sort_order"),
         FieldPanel("title"),
         FieldPanel("slug"),
-        FieldPanel("focus_area"),
+        FieldPanel("focus_areas"),
         FieldPanel("summary"),
         FieldPanel("body"),
         FieldPanel("image"),

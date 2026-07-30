@@ -178,22 +178,22 @@ CURRICULUM = [
 RESEARCH = [
     (
         "Metal Recycling",
-        "DMP",
+        ("DMP",),
         "Exploring practical processes for recovering, sorting, and reusing metal resources to support more sustainable manufacturing.",
     ),
     (
         "Automated Cooling & Spraying System",
-        "MAS",
+        ("TES", "MAS"),
         "Developing sensor-based cooling and spraying controls for more consistent, efficient environmental management.",
     ),
     (
         "Sugarcane Particle Board",
-        "DMP",
+        ("DMP", "ECM"),
         "Investigating sugarcane residue as a useful raw material for lower-impact engineered particle board.",
     ),
     (
         "Non-Intrusive Load Monitoring System",
-        "TES",
+        ("TES", "MAS"),
         "Using electrical measurements and intelligent analysis to identify appliance-level energy use without individual sensors.",
     ),
 ]
@@ -449,6 +449,12 @@ class Command(BaseCommand):
             )
 
         focus_objects = {}
+        facility_headings = {
+            "DMP": "Design & Manufacturing Lab",
+            "TES": "Thermofluid & Energy Systems Lab",
+            "MAS": "Mechatronics & Automation Lab",
+            "ECM": "Engineering Compliance & Management Lab",
+        }
         for index, (code, title, description, accent, image_path) in enumerate(
             FOCUS_AREAS, start=1
         ):
@@ -461,6 +467,7 @@ class Command(BaseCommand):
                     "description": description,
                     "accent_color": accent,
                     "image": import_image(image_path, f"{code}: {title}"),
+                    "facility_heading": facility_headings[code],
                 },
             )
             focus_objects[code] = focus
@@ -495,18 +502,20 @@ class Command(BaseCommand):
                 if course:
                     course.focus_areas.add(focus_objects[focus_code])
 
-        for index, (title, focus_code, summary) in enumerate(RESEARCH, start=1):
-            focus = focus_objects[focus_code]
-            ResearchProject.objects.update_or_create(
+        for index, (title, focus_codes, summary) in enumerate(RESEARCH, start=1):
+            primary_focus = focus_objects[focus_codes[0]]
+            project, _ = ResearchProject.objects.update_or_create(
                 slug=slugify(title),
                 defaults={
                     "sort_order": index,
                     "title": title,
-                    "focus_area": focus,
                     "summary": summary,
-                    "image": focus.image,
+                    "image": primary_focus.image,
                     "is_published": True,
                 },
+            )
+            project.focus_areas.set(
+                [focus_objects[focus_code] for focus_code in focus_codes]
             )
 
         for index, (name, partner_type, image_path) in enumerate(PARTNERS, start=1):

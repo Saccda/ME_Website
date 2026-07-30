@@ -5,10 +5,24 @@ import JobOpportunities from "@/components/IndustryCareers";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getHomeData } from "@/lib/api";
-import { getResearchImage } from "@/lib/editorialImages";
 import { impactProjects } from "@/lib/impactProjects";
 
 export const dynamic = "force-dynamic";
+
+function EditorialSectionHeading({ text }: { text: string }) {
+  const sentenceBreak = text.match(/^(.+?[.!?])\s+(.+)$/);
+
+  if (!sentenceBreak) {
+    return <h2>{text}</h2>;
+  }
+
+  return (
+    <h2>
+      <span>{sentenceBreak[1]}</span>{" "}
+      <em>{sentenceBreak[2]}</em>
+    </h2>
+  );
+}
 
 export default async function Home() {
   const data = await getHomeData();
@@ -67,19 +81,10 @@ export default async function Home() {
 
         <section className="section cream discipline-section" id="what-is-me">
           <div className="shell">
-            <div className="impact-heading">
-              <div>
-                <p className="eyebrow">What is mechanical engineering?</p>
-                <h2>
-                  Designed by engineers.
-                  <em>Built for the world.</em>
-                </h2>
-              </div>
-              <p>
-                From drones and vehicles to satellites, robots, and the cooling
-                systems behind AI, mechanical engineers shape how modern
-                products move, work, and endure.
-              </p>
+            <div className="section-masthead">
+              <p className="eyebrow">{program.what_is_me_eyebrow}</p>
+              <EditorialSectionHeading text={program.what_is_me_heading} />
+              <p>{program.what_is_me_intro}</p>
             </div>
             <ImpactStory projects={impactProjects} />
           </div>
@@ -87,18 +92,10 @@ export default async function Home() {
 
         <section className="section white" id="focus">
           <div className="shell">
-            <div className="section-intro">
-              <div>
-                <p className="eyebrow">Areas of focus</p>
-                <h2>
-                  Four paths.
-                  <em>One purpose.</em>
-                </h2>
-              </div>
-              <p>
-                Move fluently between theory, simulation, fabrication, testing,
-                and responsible engineering practice.
-              </p>
+            <div className="section-masthead">
+              <p className="eyebrow">{program.focus_section_eyebrow}</p>
+              <EditorialSectionHeading text={program.focus_section_heading} />
+              <p>{program.focus_section_intro}</p>
             </div>
             <div className="focus-grid">
               {data.focus_areas.map((area, index) => (
@@ -128,19 +125,10 @@ export default async function Home() {
 
         <section className="section cream" id="why-me">
           <div className="shell">
-            <div className="section-intro">
-              <div>
-                <p className="eyebrow">Why choose ME at RUPP?</p>
-                <h2>
-                  Nine reasons.
-                  <em>One future-ready program.</em>
-                </h2>
-              </div>
-              <p>
-                Our learning model brings technology, social responsibility,
-                and active practice together—so graduates leave ready to
-                contribute from day one.
-              </p>
+            <div className="section-masthead">
+              <p className="eyebrow">{program.why_section_eyebrow}</p>
+              <EditorialSectionHeading text={program.why_section_heading} />
+              <p>{program.why_section_intro}</p>
             </div>
             <div className="proof-grid">
               {data.why_choose.map((item, index) => (
@@ -161,61 +149,14 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="section navy" id="research">
-          <div className="shell">
-            <div className="section-intro inverse">
-              <div>
-                <p className="eyebrow light">Applied research</p>
-                <h2>
-                  Ideas made
-                  <em>useful.</em>
-                </h2>
-              </div>
-              <p>
-                Student and faculty teams investigate practical problems with
-                measurable relevance to Cambodian communities and industry.
-              </p>
-            </div>
-            <div className="research-grid">
-              {data.research.map((project) => (
-                <article className="research-card" key={project.slug}>
-                  <div className="research-media">
-                    <img
-                      src={getResearchImage(project.title, project.image || "")}
-                      alt=""
-                      loading="lazy"
-                    />
-                    <span>{project.focus_area?.code || "ME"}</span>
-                  </div>
-                  <div>
-                    <small>Student & faculty research</small>
-                    <h3>{project.title}</h3>
-                    <p>{project.summary}</p>
-                    <a
-                      href={`mailto:${program.email}?subject=${encodeURIComponent(
-                        `ME research enquiry: ${project.title}`,
-                      )}`}
-                    >
-                      Discuss the project <span>↗</span>
-                    </a>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
         <section className="section gold partners" id="partners">
           <div className="shell partner-lead">
             <div className="partner-lead-copy">
-              <p className="eyebrow">Partners & industry</p>
-              <h2>Education and industry, connected.</h2>
+              <p className="eyebrow">{program.partners_section_eyebrow}</p>
+              <h2>{program.partners_section_heading}</h2>
+              <p>{program.partners_section_intro}</p>
             </div>
             <div className="partner-lead-action">
-              <p>
-                Our partnerships connect learning with applied research,
-                industry experience, and career opportunities for ME students.
-              </p>
               <a
                 className="button button-navy"
                 href={`mailto:${program.email}?subject=ME partnership enquiry`}

@@ -62,6 +62,18 @@ class FocusAreaSerializer(ImageSerializerMixin, serializers.ModelSerializer):
             "description",
             "accent_color",
             "image",
+            "overview_heading",
+            "overview_intro",
+            "facility_heading",
+            "facility_intro",
+            "curriculum_heading",
+            "curriculum_intro",
+            "learning_heading",
+            "learning_intro",
+            "careers_heading",
+            "careers_intro",
+            "research_heading",
+            "research_intro",
             "career_paths",
         )
 
@@ -101,7 +113,7 @@ class CurriculumYearSerializer(serializers.ModelSerializer):
 class ResearchProjectSerializer(ImageSerializerMixin, serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     image_field = "image"
-    focus_area = FocusAreaSerializer(read_only=True)
+    focus_areas = FocusAreaSerializer(many=True, read_only=True)
 
     class Meta:
         model = ResearchProject
@@ -113,7 +125,7 @@ class ResearchProjectSerializer(ImageSerializerMixin, serializers.ModelSerialize
             "summary",
             "body",
             "image",
-            "focus_area",
+            "focus_areas",
             "published_at",
         )
 
@@ -294,6 +306,18 @@ class ProgramSettingsSerializer(serializers.ModelSerializer):
             "hero_emphasis",
             "hero_description",
             "hero_image",
+            "what_is_me_eyebrow",
+            "what_is_me_heading",
+            "what_is_me_intro",
+            "focus_section_eyebrow",
+            "focus_section_heading",
+            "focus_section_intro",
+            "why_section_eyebrow",
+            "why_section_heading",
+            "why_section_intro",
+            "partners_section_eyebrow",
+            "partners_section_heading",
+            "partners_section_intro",
             "vision",
             "mission_one",
             "mission_two",

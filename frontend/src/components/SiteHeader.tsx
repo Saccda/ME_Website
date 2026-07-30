@@ -93,10 +93,21 @@ export default function SiteHeader({ settings }: SiteHeaderProps) {
           <nav className="desktop-nav" aria-label="Main navigation">
             {navigationItems.map((item) => (
               <div className="nav-dropdown" key={item.label}>
-                <button type="button" aria-haspopup="true">
-                  {item.label}
-                  <span className="nav-chevron" aria-hidden="true" />
-                </button>
+                {item.href ? (
+                  <Link
+                    className="nav-dropdown-trigger"
+                    href={item.href}
+                    aria-haspopup="true"
+                  >
+                    {item.label}
+                    <span className="nav-chevron" aria-hidden="true" />
+                  </Link>
+                ) : (
+                  <button type="button" aria-haspopup="true">
+                    {item.label}
+                    <span className="nav-chevron" aria-hidden="true" />
+                  </button>
+                )}
                 <div className="nav-dropdown-menu">
                   {item.links.map((link) => (
                     <DesktopNavigationLink
@@ -123,6 +134,11 @@ export default function SiteHeader({ settings }: SiteHeaderProps) {
                     <span aria-hidden="true">+</span>
                   </summary>
                   <div>
+                    {item.href ? (
+                      <Link className="mobile-nav-overview" href={item.href}>
+                        Research landing page
+                      </Link>
+                    ) : null}
                     {item.links.map((link) => (
                       <MobileNavigationLink
                         item={link}

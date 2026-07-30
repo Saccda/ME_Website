@@ -6,6 +6,7 @@ export type NavigationLink = {
 
 export type NavigationSection = {
   label: string;
+  href?: string;
   links: readonly NavigationLink[];
 };
 
@@ -35,30 +36,25 @@ export const navigationItems: readonly NavigationSection[] = [
     ],
   },
   {
-    label: "Research & Innovation",
+    label: "Research",
+    href: "/research",
     links: [
       {
-        label: "Research Area",
-        children: [
-          {
-            label: "DMP",
-            href: "/focus/design-and-manufacturing-process#focus-research",
-          },
-          {
-            label: "TES",
-            href: "/focus/thermofluid-and-energy-system#focus-research",
-          },
-          {
-            label: "MAS",
-            href: "/focus/mechatronic-and-automation-system#focus-research",
-          },
-          {
-            label: "ECM",
-            href: "/focus/engineering-compliance-and-management#focus-research",
-          },
-        ],
+        label: "DMP — Design & Manufacturing",
+        href: "/research/dmp",
       },
-      { label: "Partnership", href: "/#partners" },
+      {
+        label: "TES — Thermofluid & Energy",
+        href: "/research/tes",
+      },
+      {
+        label: "MAS — Mechatronics & Automation",
+        href: "/research/mas",
+      },
+      {
+        label: "ECM — Compliance & Management",
+        href: "/research/ecm",
+      },
     ],
   },
   {

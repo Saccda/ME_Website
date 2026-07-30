@@ -56,6 +56,9 @@ class FocusAreaViewSet(PublicReadOnlyViewSet):
                 "facilities__image",
                 "courses__curriculum_year",
                 "research_projects__image",
+                "research_projects__focus_areas",
+                "research_projects__focus_areas__image",
+                "research_projects__focus_areas__detail_items",
             )
             .all()
         )
@@ -80,17 +83,20 @@ class CurriculumYearViewSet(PublicReadOnlyViewSet):
 class ResearchProjectViewSet(PublicReadOnlyViewSet):
     serializer_class = ResearchProjectSerializer
     lookup_field = "slug"
-    search_fields = ("title", "summary", "body", "focus_area__code")
+    search_fields = ("title", "summary", "body", "focus_areas__code")
     ordering_fields = ("sort_order", "published_at", "title")
 
     def get_queryset(self):
         queryset = (
             ResearchProject.objects.filter(is_published=True)
-            .select_related("focus_area", "image", "focus_area__image")
+            .select_related("image")
+            .prefetch_related("focus_areas", "focus_areas__image", "focus_areas__detail_items")
             .order_by("sort_order", "-published_at")
         )
         focus = self.request.query_params.get("focus")
-        return queryset.filter(focus_area__code__iexact=focus) if focus else queryset
+        if focus:
+            queryset = queryset.filter(focus_areas__code__iexact=focus)
+        return queryset.distinct()
 
 
 class PartnerViewSet(PublicReadOnlyViewSet):
@@ -249,7 +255,12 @@ def home_data(request):
             ).data,
             "research": ResearchProjectSerializer(
                 ResearchProject.objects.filter(is_published=True)
-                .select_related("focus_area", "focus_area__image", "image")
+                .select_related("image")
+                .prefetch_related(
+                    "focus_areas",
+                    "focus_areas__image",
+                    "focus_areas__detail_items",
+                )
                 .order_by("sort_order", "-published_at")[:8],
                 many=True,
                 context=context,

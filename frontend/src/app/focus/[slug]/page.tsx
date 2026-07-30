@@ -100,18 +100,11 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
         </section>
 
         <section className="section white">
-          <div className="shell focus-overview">
-            <div className="focus-overview-lead">
+          <div className="shell">
+            <div className="section-masthead focus-overview-lead">
               <p className="eyebrow">What this focus develops</p>
-              <h2>
-                Knowledge that becomes
-                <em>engineering ability.</em>
-              </h2>
-              <p>
-                The {focus.code} pathway connects classroom fundamentals with
-                practical investigation, modern tools, teamwork, and evidence-
-                based engineering decisions.
-              </p>
+              <h2>{focus.overview_heading}</h2>
+              <p>{focus.overview_intro}</p>
             </div>
             <div className="outcome-grid">
               {focus.outcomes.map((outcome, index) => (
@@ -129,11 +122,9 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
           <div className="shell">
             <div className="equipment-section-heading">
               <div>
-                <p className="eyebrow">Laboratories & equipment</p>
-                <h2>Machines & systems</h2>
-                <p className="equipment-intro">
-                  Learning, research, prototyping, testing & engineering services.
-                </p>
+                <p className="eyebrow">Lab Equipment</p>
+                <h2>{focus.facility_heading}</h2>
+                <p className="equipment-intro">{focus.facility_intro}</p>
               </div>
               <div className="equipment-count" aria-label={`${focus.facilities.length} pieces of equipment`}>
                 <strong>{focus.facilities.length}</strong>
@@ -182,12 +173,9 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
             <div className="detail-section-heading inverse">
               <div>
                 <p className="eyebrow light">Supporting curriculum</p>
-                <h2>Built progressively across four years.</h2>
+                <h2>{focus.curriculum_heading}</h2>
               </div>
-              <p>
-                Foundation subjects support later specialist work, integrated
-                projects, industry experience, and the final capstone.
-              </p>
+              <p>{focus.curriculum_intro}</p>
             </div>
             <div className="focus-course-years">
               {Object.entries(coursesByYear)
@@ -222,12 +210,9 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
             <div className="detail-section-heading">
               <div>
                 <p className="eyebrow">How students learn</p>
-                <h2>Active learning beyond memorization.</h2>
+                <h2>{focus.learning_heading}</h2>
               </div>
-              <p>
-                Each activity combines technical knowledge with communication,
-                iteration, safety, and reflection.
-              </p>
+              <p>{focus.learning_intro}</p>
             </div>
             <div className="activity-grid">
               {focus.learning_activities.map((activity, index) => (
@@ -243,52 +228,14 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
           </div>
         </section>
 
-        {focus.research_projects.length > 0 && (
-          <section className="section cream" id="focus-research">
-            <div className="shell">
-              <div className="detail-section-heading">
-                <div>
-                  <p className="eyebrow">Related applied research</p>
-                  <h2>Questions connected to real needs.</h2>
-                </div>
-                <p>
-                  Current work shows how the focus area contributes to
-                  sustainability, industry, communities, and innovation.
-                </p>
-              </div>
-              <div className="focus-research-grid">
-                {focus.research_projects.map((project) => (
-                  <article key={project.slug}>
-                    <img
-                      src={getResearchImage(
-                        project.title,
-                        project.image || focus.image || "",
-                      )}
-                      alt=""
-                    />
-                    <div>
-                      <span>{focus.code} research</span>
-                      <h3>{project.title}</h3>
-                      <p>{project.summary}</p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
         <section className="section navy focus-careers">
           <div className="shell">
             <div className="detail-section-heading inverse">
               <div>
                 <p className="eyebrow light">Career pathways</p>
-                <h2>Where this focus can take you.</h2>
+                <h2>{focus.careers_heading}</h2>
               </div>
-              <p>
-                Graduates can move across technical and leadership roles as
-                their experience grows.
-              </p>
+              <p>{focus.careers_intro}</p>
             </div>
             <div className="career-path-grid">
               {focus.career_paths.map((career, index) => (
@@ -301,6 +248,49 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
             </div>
           </div>
         </section>
+
+        {focus.research_projects.length > 0 && (
+          <section className="section cream" id="focus-research">
+            <div className="shell">
+              <div className="section-masthead">
+                <p className="eyebrow">Research & Innovation</p>
+                <h2>{focus.research_heading}</h2>
+                <p>{focus.research_intro}</p>
+              </div>
+              <div className="focus-research-preview-grid">
+                {focus.research_projects.map((project) => (
+                  <Link
+                    className="focus-research-preview"
+                    href={`/research/${focus.code.toLowerCase()}#${project.slug}`}
+                    key={project.slug}
+                  >
+                    <div className="focus-research-preview-media">
+                      <img
+                        src={getResearchImage(
+                          project.title,
+                          project.image || focus.image || "",
+                        )}
+                        alt=""
+                      />
+                      <div className="research-focus-tags">
+                        {project.focus_areas.map((area) => (
+                          <span key={area.code}>{area.code}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <small>Current research</small>
+                      <h3>{project.title}</h3>
+                      <span className="focus-research-preview-link">
+                        View in Research & Innovation <i>↗</i>
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         <section className="section gold focus-next">
           <div className="shell">

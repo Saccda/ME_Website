@@ -53,13 +53,13 @@ export default function SiteFooter({
         </div>
 
         <nav aria-label="Program footer links">
-          <h2>Program</h2>
+          <h2>About</h2>
           <Link href="/#what-is-me">What is mechanical engineering?</Link>
           <Link href="/#why-me">Why choose ME</Link>
-          <Link href="/about">Vision & mission</Link>
+          <Link href="/about">Program profile</Link>
           <Link href="/curriculum">Curriculum</Link>
-          <Link href="/people">People</Link>
-          <Link href="/news-events">News & events</Link>
+          <Link href="/people#faculty-staff">Faculty</Link>
+          <Link href="/facilities">Facilities</Link>
         </nav>
 
         <nav aria-label="Focus-area footer links">
@@ -72,10 +72,11 @@ export default function SiteFooter({
         </nav>
 
         <div className="footer-connect">
-          <h2>Research & community</h2>
-          <Link href="/#research">Applied research</Link>
-          <Link href="/#partners">Partners & collaboration</Link>
+          <h2>Research & Innovation</h2>
+          <Link href="/research">Research areas</Link>
+          <Link href="/#partners">Partnership</Link>
           <Link href="/#opportunities">Job opportunities</Link>
+          <Link href="/news-events">News & events</Link>
 
           {socialLinks.length > 0 ? (
             <div className="footer-socials" aria-label="ME social media">

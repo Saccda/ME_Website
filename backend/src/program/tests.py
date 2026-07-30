@@ -16,6 +16,7 @@ from .models import (
     Opportunity,
     Partner,
     ProgramSettings,
+    ResearchProject,
 )
 
 
@@ -103,6 +104,12 @@ class PublicApiTests(TestCase):
             title="CNC workshop practice",
             description="Plan and machine a component safely.",
         )
+        project = ResearchProject.objects.create(
+            title="Automated Cooling",
+            slug="automated-cooling",
+            summary="A cross-disciplinary cooling and control project.",
+        )
+        project.focus_areas.add(focus)
 
         response = self.client.get(
             reverse("focus-area-detail", args=(focus.slug,))
@@ -115,6 +122,7 @@ class PublicApiTests(TestCase):
         self.assertEqual(
             body["learning_activities"][0]["title"], "CNC workshop practice"
         )
+        self.assertEqual(body["research_projects"][0]["focus_areas"][0]["code"], "DMP")
 
     @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
     def test_inquiry_submission(self):
