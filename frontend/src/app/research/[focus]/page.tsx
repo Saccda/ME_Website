@@ -6,7 +6,6 @@ import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getHomeData, getResearchProjects } from "@/lib/api";
 import { getResearchImage } from "@/lib/editorialImages";
-import { getResearchAreaEditorial } from "@/lib/researchAreas";
 
 export const dynamic = "force-dynamic";
 
@@ -43,9 +42,8 @@ export default async function ResearchAreaPage({
     getResearchProjects(focusCode),
   ]);
   const area = home.focus_areas.find((item) => item.code === focusCode);
-  const editorial = getResearchAreaEditorial(focusCode);
 
-  if (!area || !editorial) notFound();
+  if (!area) notFound();
 
   return (
     <>
@@ -105,14 +103,16 @@ export default async function ResearchAreaPage({
             <header className="research-simple-heading">
               <p>{area.code} research</p>
               <h2>What we investigate in {area.code}</h2>
-              <span>{editorial.overview}</span>
+              <span>{area.research_overview}</span>
             </header>
-            <p className="research-area-question">{editorial.question}</p>
+            {area.research_question ? (
+              <p className="research-area-question">{area.research_question}</p>
+            ) : null}
             <div className="research-theme-grid">
-              {editorial.themes.map((theme, index) => (
-                <article key={theme}>
+              {area.research_themes.map((theme, index) => (
+                <article key={theme.title}>
                   <span>{String(index + 1).padStart(2, "0")}</span>
-                  <strong>{theme}</strong>
+                  <strong>{theme.title}</strong>
                 </article>
               ))}
             </div>
@@ -122,12 +122,9 @@ export default async function ResearchAreaPage({
         <section className="section cream research-area-projects">
           <div className="shell">
             <header className="research-simple-heading">
-              <p>Current investigations</p>
+              <p>{home.settings.research_area_projects_eyebrow}</p>
               <h2>Current {area.code} research projects</h2>
-              <span>
-                Projects may also appear in another research area when the work
-                depends on shared expertise.
-              </span>
+              <span>{home.settings.research_area_projects_intro}</span>
             </header>
 
             {projects.length > 0 ? (
@@ -192,8 +189,8 @@ export default async function ResearchAreaPage({
 
         <section className="research-boundaries-band">
           <div className="shell">
-            <p>Connected by the problem</p>
-            <h2>Research areas guide collaboration. They do not limit it.</h2>
+            <p>{home.settings.research_boundaries_eyebrow}</p>
+            <h2>{home.settings.research_boundaries_heading}</h2>
             <Link href="/research">
               Return to all research areas <span>↗</span>
             </Link>

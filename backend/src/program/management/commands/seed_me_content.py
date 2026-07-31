@@ -292,6 +292,12 @@ FOCUS_DETAIL_ITEMS = {
             ("Process Engineer", "Design and optimize reliable industrial processes."),
             ("Product Engineer", "Guide a product from concept and testing through manufacture and improvement."),
         ],
+        "theme": [
+            ("Product and machine design", ""),
+            ("Digital engineering and simulation", ""),
+            ("Advanced and additive manufacturing", ""),
+            ("Materials recovery and circular production", ""),
+        ],
     },
     "TES": {
         "outcome": [
@@ -311,6 +317,12 @@ FOCUS_DETAIL_ITEMS = {
             ("Power Engineer", "Support reliable energy and power systems across facilities and industry."),
             ("HVAC Engineer", "Design and manage heating, ventilation, refrigeration, and cooling systems."),
             ("Plant Engineer", "Operate and improve complex thermal, fluid, and utility systems."),
+        ],
+        "theme": [
+            ("Thermal and fluid systems", ""),
+            ("Cooling and heat-transfer technology", ""),
+            ("Renewable energy and storage", ""),
+            ("Energy measurement and efficiency", ""),
         ],
     },
     "MAS": {
@@ -332,6 +344,12 @@ FOCUS_DETAIL_ITEMS = {
             ("Control Systems Engineer", "Develop reliable control strategies for machines, vehicles, and processes."),
             ("Systems Engineer", "Coordinate complex technical requirements, interfaces, verification, and delivery."),
         ],
+        "theme": [
+            ("Mechatronic and embedded systems", ""),
+            ("Robotics and machine vision", ""),
+            ("Automation and industrial control", ""),
+            ("Intelligent monitoring and machine data", ""),
+        ],
     },
     "ECM": {
         "outcome": [
@@ -352,7 +370,32 @@ FOCUS_DETAIL_ITEMS = {
             ("Compliance Engineer", "Ensure products and operations meet standards, regulations, and documented requirements."),
             ("Facility Engineer", "Manage safe, reliable, and efficient engineering services and assets."),
         ],
+        "theme": [
+            ("Safety, standards, and compliance", ""),
+            ("Quality and reliability engineering", ""),
+            ("Engineering project management", ""),
+            ("Responsible and sustainable delivery", ""),
+        ],
     },
+}
+
+FOCUS_RESEARCH = {
+    "DMP": (
+        "How can an idea become a reliable, manufacturable, and more sustainable product?",
+        "Design and Manufacturing Process research connects product development, materials, digital engineering, and production. The work moves from defining a need to modelling, making, measuring, and improving a physical solution.",
+    ),
+    "TES": (
+        "How can energy and thermal systems work more efficiently in Cambodia’s climate?",
+        "Thermofluid and Energy System research investigates heat, fluids, energy conversion, and environmental control. Projects connect fundamental analysis with cooling, renewable energy, storage, and practical efficiency.",
+    ),
+    "MAS": (
+        "How can machines sense, decide, and act with greater accuracy and autonomy?",
+        "Mechatronic and Automation System research brings mechanical systems together with electronics, control, computing, and data. The aim is to create useful intelligent machines for industry, infrastructure, and communities.",
+    ),
+    "ECM": (
+        "How can engineering solutions remain safe, dependable, compliant, and well managed?",
+        "Engineering Compliance and Management research studies the systems around successful engineering: safety, standards, quality, reliability, project delivery, and responsible decision-making across a product or facility lifecycle.",
+    ),
 }
 
 FOCUS_EQUIPMENT = [
@@ -458,6 +501,7 @@ class Command(BaseCommand):
         for index, (code, title, description, accent, image_path) in enumerate(
             FOCUS_AREAS, start=1
         ):
+            research_question, research_overview = FOCUS_RESEARCH[code]
             focus, _ = FocusArea.objects.update_or_create(
                 code=code,
                 defaults={
@@ -468,6 +512,8 @@ class Command(BaseCommand):
                     "accent_color": accent,
                     "image": import_image(image_path, f"{code}: {title}"),
                     "facility_heading": facility_headings[code],
+                    "research_question": research_question,
+                    "research_overview": research_overview,
                 },
             )
             focus_objects[code] = focus

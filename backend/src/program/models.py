@@ -92,6 +92,84 @@ class ProgramSettings(BaseSiteSetting):
             "experience, and job opportunities for ME students."
         )
     )
+    research_hero_eyebrow = models.CharField(
+        max_length=120,
+        default="Research at ME RUPP",
+    )
+    research_hero_title = models.CharField(
+        max_length=220,
+        default="Engineering research at the interface of ideas",
+    )
+    research_hero_description = models.TextField(
+        default=(
+            "Our work connects design, energy, automation, and responsible "
+            "engineering to practical challenges in Cambodia and beyond."
+        )
+    )
+    research_quote = models.TextField(
+        default=(
+            "Mechanical engineering research is strongest where disciplines "
+            "meet and useful solutions begin to take shape."
+        )
+    )
+    research_quote_attribution = models.CharField(
+        max_length=220,
+        default="Design · Energy · Automation · Responsible engineering",
+    )
+    research_areas_eyebrow = models.CharField(
+        max_length=120,
+        default="Explore research",
+    )
+    research_areas_heading = models.CharField(
+        max_length=220,
+        default="Investigate our four research areas",
+    )
+    research_areas_intro = models.TextField(
+        default=(
+            "Each area organizes expertise without limiting collaboration "
+            "across disciplines."
+        )
+    )
+    research_projects_eyebrow = models.CharField(
+        max_length=120,
+        default="Current research",
+    )
+    research_projects_heading = models.CharField(
+        max_length=220,
+        default="Explore current research projects",
+    )
+    research_projects_intro = models.TextField(
+        default=(
+            "Open a project through its primary area to see its full context "
+            "and connected disciplines."
+        )
+    )
+    research_collaboration_eyebrow = models.CharField(
+        max_length=120,
+        default="Research collaboration",
+    )
+    research_collaboration_heading = models.CharField(
+        max_length=220,
+        default="Good research grows through shared expertise.",
+    )
+    research_area_projects_eyebrow = models.CharField(
+        max_length=120,
+        default="Current investigations",
+    )
+    research_area_projects_intro = models.TextField(
+        default=(
+            "Projects may also appear in another research area when the work "
+            "depends on shared expertise."
+        )
+    )
+    research_boundaries_eyebrow = models.CharField(
+        max_length=120,
+        default="Connected by the problem",
+    )
+    research_boundaries_heading = models.CharField(
+        max_length=220,
+        default="Research areas guide collaboration. They do not limit it.",
+    )
     vision = models.TextField(
         default=(
             "To become a leader in Mechanical Engineering Education by infusing "
@@ -178,6 +256,33 @@ class ProgramSettings(BaseSiteSetting):
                 FieldPanel("partners_section_intro"),
             ],
             heading="Homepage: Partnership",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("research_hero_eyebrow"),
+                FieldPanel("research_hero_title"),
+                FieldPanel("research_hero_description"),
+                FieldPanel("research_quote"),
+                FieldPanel("research_quote_attribution"),
+                FieldPanel("research_areas_eyebrow"),
+                FieldPanel("research_areas_heading"),
+                FieldPanel("research_areas_intro"),
+                FieldPanel("research_projects_eyebrow"),
+                FieldPanel("research_projects_heading"),
+                FieldPanel("research_projects_intro"),
+                FieldPanel("research_collaboration_eyebrow"),
+                FieldPanel("research_collaboration_heading"),
+            ],
+            heading="Research landing page",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("research_area_projects_eyebrow"),
+                FieldPanel("research_area_projects_intro"),
+                FieldPanel("research_boundaries_eyebrow"),
+                FieldPanel("research_boundaries_heading"),
+            ],
+            heading="Research area pages (shared copy)",
         ),
         MultiFieldPanel(
             [
@@ -310,6 +415,14 @@ class FocusArea(OrderedModel):
             "details and related focus areas."
         )
     )
+    research_question = models.TextField(
+        blank=True,
+        help_text="The guiding research question shown on this area's research page.",
+    )
+    research_overview = models.TextField(
+        blank=True,
+        help_text="Introduces what this area investigates on its research page.",
+    )
 
     panels = [
         FieldPanel("sort_order"),
@@ -335,6 +448,13 @@ class FocusArea(OrderedModel):
                 FieldPanel("research_intro"),
             ],
             heading="Focus page section copy",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("research_question"),
+                FieldPanel("research_overview"),
+            ],
+            heading="Research area page",
         ),
     ]
 
@@ -606,6 +726,7 @@ class FocusAreaDetailItem(OrderedModel):
         ("outcome", "Learning outcome"),
         ("activity", "Learning activity"),
         ("career", "Career pathway"),
+        ("theme", "Research theme"),
     )
 
     focus_area = models.ForeignKey(

@@ -43,13 +43,20 @@ class WhyChooseItemSerializer(ImageSerializerMixin, serializers.ModelSerializer)
 class FocusAreaSerializer(ImageSerializerMixin, serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     career_paths = serializers.SerializerMethodField()
+    research_themes = serializers.SerializerMethodField()
     image_field = "image"
 
-    def get_career_paths(self, obj):
+    def _items_of_type(self, obj, item_type):
         items = [
-            item for item in obj.detail_items.all() if item.item_type == "career"
+            item for item in obj.detail_items.all() if item.item_type == item_type
         ]
         return FocusAreaDetailItemSerializer(items, many=True).data
+
+    def get_career_paths(self, obj):
+        return self._items_of_type(obj, "career")
+
+    def get_research_themes(self, obj):
+        return self._items_of_type(obj, "theme")
 
     class Meta:
         model = FocusArea
@@ -74,7 +81,10 @@ class FocusAreaSerializer(ImageSerializerMixin, serializers.ModelSerializer):
             "careers_intro",
             "research_heading",
             "research_intro",
+            "research_question",
+            "research_overview",
             "career_paths",
+            "research_themes",
         )
 
 
@@ -219,17 +229,11 @@ class FocusAreaDetailSerializer(FocusAreaSerializer):
     learning_activities = serializers.SerializerMethodField()
     research_projects = serializers.SerializerMethodField()
 
-    def _detail_items(self, obj, item_type):
-        items = [
-            item for item in obj.detail_items.all() if item.item_type == item_type
-        ]
-        return FocusAreaDetailItemSerializer(items, many=True).data
-
     def get_outcomes(self, obj):
-        return self._detail_items(obj, "outcome")
+        return self._items_of_type(obj, "outcome")
 
     def get_learning_activities(self, obj):
-        return self._detail_items(obj, "activity")
+        return self._items_of_type(obj, "activity")
 
     def get_research_projects(self, obj):
         projects = obj.research_projects.filter(is_published=True)
@@ -318,6 +322,23 @@ class ProgramSettingsSerializer(serializers.ModelSerializer):
             "partners_section_eyebrow",
             "partners_section_heading",
             "partners_section_intro",
+            "research_hero_eyebrow",
+            "research_hero_title",
+            "research_hero_description",
+            "research_quote",
+            "research_quote_attribution",
+            "research_areas_eyebrow",
+            "research_areas_heading",
+            "research_areas_intro",
+            "research_projects_eyebrow",
+            "research_projects_heading",
+            "research_projects_intro",
+            "research_collaboration_eyebrow",
+            "research_collaboration_heading",
+            "research_area_projects_eyebrow",
+            "research_area_projects_intro",
+            "research_boundaries_eyebrow",
+            "research_boundaries_heading",
             "vision",
             "mission_one",
             "mission_two",

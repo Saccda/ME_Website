@@ -54,12 +54,9 @@ export default async function ResearchPage({
           />
           <div className="research-showcase-overlay" />
           <div className="shell research-showcase-content">
-            <p>Research at ME RUPP</p>
-            <h1>Engineering research at the interface of ideas</h1>
-            <span>
-              Our work connects design, energy, automation, and responsible
-              engineering to practical challenges in Cambodia and beyond.
-            </span>
+            <p>{home.settings.research_hero_eyebrow}</p>
+            <h1>{home.settings.research_hero_title}</h1>
+            <span>{home.settings.research_hero_description}</span>
             <a href="#research-areas">
               Scroll to explore <i>↓</i>
             </a>
@@ -85,23 +82,17 @@ export default async function ResearchPage({
 
         <section className="research-quote-panel">
           <div className="shell">
-            <p>
-              Mechanical engineering research is strongest where disciplines
-              meet and useful solutions begin to take shape.
-            </p>
-            <span>Design · Energy · Automation · Responsible engineering</span>
+            <p>{home.settings.research_quote}</p>
+            <span>{home.settings.research_quote_attribution}</span>
           </div>
         </section>
 
         <section className="section white research-area-directory" id="research-areas">
           <div className="shell">
             <header className="research-simple-heading">
-              <p>Explore research</p>
-              <h2>Investigate our four research areas</h2>
-              <span>
-                Each area organizes expertise without limiting collaboration
-                across disciplines.
-              </span>
+              <p>{home.settings.research_areas_eyebrow}</p>
+              <h2>{home.settings.research_areas_heading}</h2>
+              <span>{home.settings.research_areas_intro}</span>
             </header>
 
             <div className="research-area-tile-grid">
@@ -144,12 +135,9 @@ export default async function ResearchPage({
         <section className="section cream research-current-section" id="current-research">
           <div className="shell">
             <header className="research-simple-heading">
-              <p>Current research</p>
-              <h2>Explore current research projects</h2>
-              <span>
-                Open a project through its primary area to see its full context
-                and connected disciplines.
-              </span>
+              <p>{home.settings.research_projects_eyebrow}</p>
+              <h2>{home.settings.research_projects_heading}</h2>
+              <span>{home.settings.research_projects_intro}</span>
             </header>
 
             {projects.length > 0 ? (
@@ -205,8 +193,8 @@ export default async function ResearchPage({
         <section className="research-collaboration-band">
           <div className="shell">
             <div>
-              <p>Research collaboration</p>
-              <h2>Good research grows through shared expertise.</h2>
+              <p>{home.settings.research_collaboration_eyebrow}</p>
+              <h2>{home.settings.research_collaboration_heading}</h2>
             </div>
             <Link className="button button-gold" href="/#partners">
               Explore our partnerships <span>↗</span>

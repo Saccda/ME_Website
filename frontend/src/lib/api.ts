@@ -21,6 +21,23 @@ export type ProgramSettings = {
   partners_section_eyebrow: string;
   partners_section_heading: string;
   partners_section_intro: string;
+  research_hero_eyebrow: string;
+  research_hero_title: string;
+  research_hero_description: string;
+  research_quote: string;
+  research_quote_attribution: string;
+  research_areas_eyebrow: string;
+  research_areas_heading: string;
+  research_areas_intro: string;
+  research_projects_eyebrow: string;
+  research_projects_heading: string;
+  research_projects_intro: string;
+  research_collaboration_eyebrow: string;
+  research_collaboration_heading: string;
+  research_area_projects_eyebrow: string;
+  research_area_projects_intro: string;
+  research_boundaries_eyebrow: string;
+  research_boundaries_heading: string;
   vision: string;
   mission_one: string;
   mission_two: string;
@@ -63,7 +80,10 @@ export type FocusArea = {
   careers_intro: string;
   research_heading: string;
   research_intro: string;
+  research_question: string;
+  research_overview: string;
   career_paths: FocusDetailItem[];
+  research_themes: FocusDetailItem[];
 };
 
 export type Course = {
@@ -207,6 +227,14 @@ function focusSectionCopy(facilityHeading: string) {
   };
 }
 
+function researchThemes(titles: string[]): FocusDetailItem[] {
+  return titles.map((title, index) => ({
+    id: index + 1,
+    title,
+    description: "",
+  }));
+}
+
 const focusAreas: FocusArea[] = [
   {
     code: "DMP",
@@ -217,6 +245,16 @@ const focusAreas: FocusArea[] = [
     accent_color: "#061b2b",
     image: "/assets/focus-dmp.png",
     ...focusSectionCopy("Design & Manufacturing Lab"),
+    research_question:
+      "How can an idea become a reliable, manufacturable, and more sustainable product?",
+    research_overview:
+      "Design and Manufacturing Process research connects product development, materials, digital engineering, and production. The work moves from defining a need to modelling, making, measuring, and improving a physical solution.",
+    research_themes: researchThemes([
+      "Product and machine design",
+      "Digital engineering and simulation",
+      "Advanced and additive manufacturing",
+      "Materials recovery and circular production",
+    ]),
     career_paths: [
       { title: "Design Engineer", description: "Develop products, mechanisms, and production-ready engineering documentation." },
       { title: "Manufacturing Engineer", description: "Improve processes, tooling, quality, efficiency, and production capability." },
@@ -233,6 +271,16 @@ const focusAreas: FocusArea[] = [
     accent_color: "#dcae42",
     image: "/assets/focus-tes.png",
     ...focusSectionCopy("Thermofluid & Energy Systems Lab"),
+    research_question:
+      "How can energy and thermal systems work more efficiently in Cambodia’s climate?",
+    research_overview:
+      "Thermofluid and Energy System research investigates heat, fluids, energy conversion, and environmental control. Projects connect fundamental analysis with cooling, renewable energy, storage, and practical efficiency.",
+    research_themes: researchThemes([
+      "Thermal and fluid systems",
+      "Cooling and heat-transfer technology",
+      "Renewable energy and storage",
+      "Energy measurement and efficiency",
+    ]),
     career_paths: [
       { title: "Energy Engineer", description: "Improve energy generation, conversion, efficiency, and sustainability." },
       { title: "Power Engineer", description: "Support reliable energy and power systems across facilities and industry." },
@@ -249,6 +297,16 @@ const focusAreas: FocusArea[] = [
     accent_color: "#176ab5",
     image: "/assets/focus-mas.png",
     ...focusSectionCopy("Mechatronics & Automation Lab"),
+    research_question:
+      "How can machines sense, decide, and act with greater accuracy and autonomy?",
+    research_overview:
+      "Mechatronic and Automation System research brings mechanical systems together with electronics, control, computing, and data. The aim is to create useful intelligent machines for industry, infrastructure, and communities.",
+    research_themes: researchThemes([
+      "Mechatronic and embedded systems",
+      "Robotics and machine vision",
+      "Automation and industrial control",
+      "Intelligent monitoring and machine data",
+    ]),
     career_paths: [
       { title: "Mechatronics Engineer", description: "Create integrated electromechanical products and intelligent machines." },
       { title: "Automation Engineer", description: "Design, program, commission, and improve automated systems." },
@@ -265,6 +323,16 @@ const focusAreas: FocusArea[] = [
     accent_color: "#3e8b56",
     image: "/assets/focus-ecm.png",
     ...focusSectionCopy("Engineering Compliance & Management Lab"),
+    research_question:
+      "How can engineering solutions remain safe, dependable, compliant, and well managed?",
+    research_overview:
+      "Engineering Compliance and Management research studies the systems around successful engineering: safety, standards, quality, reliability, project delivery, and responsible decision-making across a product or facility lifecycle.",
+    research_themes: researchThemes([
+      "Safety, standards, and compliance",
+      "Quality and reliability engineering",
+      "Engineering project management",
+      "Responsible and sustainable delivery",
+    ]),
     career_paths: [
       { title: "Project Engineer", description: "Coordinate technical work, resources, risk, quality, and stakeholder delivery." },
       { title: "Quality Engineer", description: "Build systems that prevent defects and improve process capability." },
@@ -273,6 +341,15 @@ const focusAreas: FocusArea[] = [
     ],
   },
 ];
+
+// Keeps newly introduced CMS fields populated while an older production API
+// is still being upgraded. API values continue to win.
+function withFocusAreaFallbacks(areas: FocusArea[]): FocusArea[] {
+  return areas.map((area) => {
+    const fallbackArea = focusAreas.find((item) => item.code === area.code);
+    return fallbackArea ? { ...fallbackArea, ...area } : area;
+  });
+}
 
 const whyTitles = [
   ["Aligned with AUN–QA criteria", "Program quality is guided by recognized regional quality-assurance criteria.", "logo"],
@@ -319,6 +396,31 @@ const fallbackData: HomeData = {
     partners_section_heading: "Education and industry, connected.",
     partners_section_intro:
       "Our partnerships connect learning with research, industry experience, and job opportunities for ME students.",
+    research_hero_eyebrow: "Research at ME RUPP",
+    research_hero_title: "Engineering research at the interface of ideas",
+    research_hero_description:
+      "Our work connects design, energy, automation, and responsible engineering to practical challenges in Cambodia and beyond.",
+    research_quote:
+      "Mechanical engineering research is strongest where disciplines meet and useful solutions begin to take shape.",
+    research_quote_attribution:
+      "Design · Energy · Automation · Responsible engineering",
+    research_areas_eyebrow: "Explore research",
+    research_areas_heading: "Investigate our four research areas",
+    research_areas_intro:
+      "Each area organizes expertise without limiting collaboration across disciplines.",
+    research_projects_eyebrow: "Current research",
+    research_projects_heading: "Explore current research projects",
+    research_projects_intro:
+      "Open a project through its primary area to see its full context and connected disciplines.",
+    research_collaboration_eyebrow: "Research collaboration",
+    research_collaboration_heading:
+      "Good research grows through shared expertise.",
+    research_area_projects_eyebrow: "Current investigations",
+    research_area_projects_intro:
+      "Projects may also appear in another research area when the work depends on shared expertise.",
+    research_boundaries_eyebrow: "Connected by the problem",
+    research_boundaries_heading:
+      "Research areas guide collaboration. They do not limit it.",
     vision:
       "To become a leader in Mechanical Engineering Education by infusing technology and social engagement into teaching and learning, research, and innovation for the advancement of society",
     mission_one:
@@ -589,6 +691,9 @@ export async function getHomeData(): Promise<HomeData> {
         ...fallbackData.settings,
         ...data.settings,
       },
+      focus_areas: data.focus_areas?.length
+        ? withFocusAreaFallbacks(data.focus_areas)
+        : fallbackData.focus_areas,
       opportunities: data.opportunities ?? fallbackData.opportunities,
     };
   } catch {
@@ -673,12 +778,7 @@ export async function getResearchProjects(
 
       return {
         ...project,
-        focus_areas: relatedAreas.map((area) => {
-          const fallbackArea = focusAreas.find(
-            (item) => item.code === area.code,
-          );
-          return fallbackArea ? { ...fallbackArea, ...area } : area;
-        }),
+        focus_areas: withFocusAreaFallbacks(relatedAreas),
       };
     });
   }

@@ -38,6 +38,51 @@ class PublicApiTests(TestCase):
         self.assertIn("focus_areas", body)
         self.assertIn("partners", body)
         self.assertIn("opportunities", body)
+        self.assertEqual(
+            body["settings"]["research_hero_eyebrow"], "Research at ME RUPP"
+        )
+        self.assertEqual(
+            body["settings"]["research_areas_heading"],
+            "Investigate our four research areas",
+        )
+
+    def test_home_endpoint_exposes_focus_area_research_editorial(self):
+        focus = FocusArea.objects.create(
+            code="TES",
+            title="Thermofluid and Energy System",
+            slug="thermofluid-and-energy-system",
+            description="Engineer systems that use energy responsibly.",
+            research_question="How can energy systems work more efficiently?",
+            research_overview="TES research investigates heat, fluids, and energy conversion.",
+        )
+        FocusAreaDetailItem.objects.create(
+            focus_area=focus,
+            item_type="theme",
+            title="Renewable energy and storage",
+        )
+        FocusAreaDetailItem.objects.create(
+            focus_area=focus,
+            item_type="career",
+            title="Energy Engineer",
+        )
+
+        response = self.client.get(reverse("home-data"))
+        self.assertEqual(response.status_code, 200)
+        area = response.json()["focus_areas"][0]
+        self.assertEqual(
+            area["research_question"], "How can energy systems work more efficiently?"
+        )
+        self.assertEqual(
+            area["research_overview"],
+            "TES research investigates heat, fluids, and energy conversion.",
+        )
+        self.assertEqual(
+            [theme["title"] for theme in area["research_themes"]],
+            ["Renewable energy and storage"],
+        )
+        self.assertEqual(
+            [career["title"] for career in area["career_paths"]], ["Energy Engineer"]
+        )
 
     def test_home_endpoint_only_returns_current_published_opportunities(self):
         partner = Partner.objects.create(
