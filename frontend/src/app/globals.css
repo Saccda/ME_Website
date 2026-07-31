@@ -13,6 +13,32 @@
   --shell: min(1180px, calc(100vw - 48px));
   --font-sans: "Segoe UI Variable", "Segoe UI", Arial, sans-serif;
   --font-serif: Georgia, "Times New Roman", serif;
+
+  /* Brand accents: the three ME logo colors plus the hero gold.
+     `--accent-N` is the true brand color, for borders, rules and fills.
+     `--accent-N-ink` is the same hue darkened only where it has to work as
+     text on white or cream — vivid green and gold are light colors and fail
+     contrast as small text (2.05 and 1.85), so they get darker companions.
+     Red and blue already pass, so their ink values are unchanged. */
+  --accent-1: #d40909;
+  --accent-2: #0909d2;
+  --accent-3: #08d208;
+  --accent-4: #e6b84f;
+  --accent-1-ink: #d40909;
+  --accent-2-ink: #0909d2;
+  --accent-3-ink: #067a06;
+  --accent-4-ink: #8a6011;
+  --accent-1-tint: rgba(212, 9, 9, 0.1);
+  --accent-2-tint: rgba(9, 9, 210, 0.1);
+  --accent-3-tint: rgba(8, 210, 8, 0.12);
+  --accent-4-tint: rgba(230, 184, 79, 0.16);
+
+  /* Type scale */
+  --step-display: clamp(2.6rem, 5vw, 4.3rem);
+  --step-1: clamp(1.9rem, 3.6vw, 3.2rem);
+  --step-2: clamp(1.5rem, 2.2vw, 2rem);
+  --step-3: 1.25rem;
+  --step-4: 1rem;
 }
 
 * {
@@ -22,6 +48,7 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 112px;
+  scroll-padding-bottom: 106px;
 }
 
 body {
@@ -455,8 +482,8 @@ img {
 .directory-hero h1 {
   max-width: 900px;
   margin: 20px 0 24px;
-  font-size: clamp(3.3rem, 6vw, 6.2rem);
-  letter-spacing: -0.055em;
+  font-size: var(--step-display);
+  letter-spacing: -0.045em;
   line-height: 0.96;
 }
 
@@ -524,7 +551,7 @@ img {
 .person-card h3,
 .story-card h3 {
   margin: 0 0 12px;
-  font-size: 1.35rem;
+  font-size: var(--step-3);
   line-height: 1.2;
 }
 
@@ -549,9 +576,9 @@ img {
 
 .alumni-feature h2 {
   margin: 16px 0 0;
-  font-size: clamp(2.8rem, 4.8vw, 5.2rem);
-  letter-spacing: -0.05em;
-  line-height: 0.98;
+  font-size: var(--step-1);
+  letter-spacing: -0.04em;
+  line-height: 1.04;
 }
 
 .alumni-feature h2 em {
@@ -575,7 +602,7 @@ img {
 
 .content-empty-state h3 {
   margin: 0 0 8px;
-  font-size: 1.45rem;
+  font-size: var(--step-2);
 }
 
 .content-empty-state p,
@@ -660,7 +687,7 @@ img {
 
 .publication-list h3 {
   margin: 0 0 12px;
-  font-size: 1.3rem;
+  font-size: var(--step-3);
 }
 
 .publication-list p,
@@ -717,9 +744,9 @@ img {
 .hero h1 {
   max-width: 1080px;
   margin: 0;
-  font-size: clamp(3.9rem, 5.4vw, 6.4rem);
-  line-height: 0.91;
-  letter-spacing: -0.065em;
+  font-size: var(--step-display);
+  line-height: 1;
+  letter-spacing: -0.045em;
 }
 
 .hero h1 > span {
@@ -837,19 +864,19 @@ img {
 }
 
 .stat-grid > div:first-child {
-  border-top-color: #c93428;
+  border-top-color: var(--accent-1);
 }
 
 .stat-grid > div:nth-child(2) {
-  border-top-color: #2525c9;
+  border-top-color: var(--accent-2);
 }
 
 .stat-grid > div:nth-child(3) {
-  border-top-color: var(--brand-gold);
+  border-top-color: var(--accent-3);
 }
 
 .stat-grid > div:nth-child(4) {
-  border-top-color: #4caf50;
+  border-top-color: var(--accent-4);
 }
 
 .stat-grid > div:hover {
@@ -859,30 +886,30 @@ img {
 
 .stat-grid > div:first-child:hover {
   color: #fff;
-  background: #c93428;
-  border-color: #c93428;
+  background: var(--accent-1);
+  border-color: var(--accent-1);
 }
 
 .stat-grid > div:nth-child(2):hover {
   color: #fff;
-  background: #2525c9;
-  border-color: #2525c9;
+  background: var(--accent-2);
+  border-color: var(--accent-2);
 }
 
 .stat-grid > div:nth-child(3):hover {
-  color: var(--brand-navy);
-  background: var(--brand-gold);
-  border-color: var(--brand-gold);
+  color: var(--navy);
+  background: var(--accent-3);
+  border-color: var(--accent-3);
 }
 
 .stat-grid > div:nth-child(4):hover {
-  color: #fff;
-  background: #4caf50;
-  border-color: #4caf50;
+  color: var(--navy);
+  background: var(--accent-4);
+  border-color: var(--accent-4);
 }
 
 .stat-grid strong {
-  color: var(--brand-gold);
+  color: var(--accent-1-ink);
   font-family: var(--font-serif);
   font-size: clamp(1.45rem, 2.35vw, 2.18rem);
   line-height: 1;
@@ -896,15 +923,19 @@ img {
 }
 
 .stat-grid > div:first-child strong {
-  color: #c93428;
+  color: var(--accent-1-ink);
 }
 
 .stat-grid > div:nth-child(2) strong {
-  color: #2525c9;
+  color: var(--accent-2-ink);
+}
+
+.stat-grid > div:nth-child(3) strong {
+  color: var(--accent-3-ink);
 }
 
 .stat-grid > div:nth-child(4) strong {
-  color: #4caf50;
+  color: var(--accent-4-ink);
 }
 
 .stat-grid > div:last-child strong {
@@ -971,13 +1002,17 @@ img {
   color: #cbd6de;
 }
 
+.gold .eyebrow {
+  color: #294455;
+}
+
 .section-intro h2,
 .contact-section h2 {
   max-width: 780px;
   margin: 0;
-  font-size: clamp(2.65rem, 5vw, 5.3rem);
-  line-height: 0.98;
-  letter-spacing: -0.06em;
+  font-size: var(--step-1);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
 }
 
 .section-intro > p {
@@ -1013,9 +1048,9 @@ img {
 .section-masthead h2 {
   max-width: 100%;
   margin: 0;
-  font-size: clamp(2.5rem, 4vw, 4.25rem);
-  line-height: 1.01;
-  letter-spacing: -0.052em;
+  font-size: var(--step-1);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
   text-wrap: pretty;
 }
 
@@ -1028,7 +1063,7 @@ img {
 }
 
 .section-masthead > p:last-child {
-  max-width: 1120px;
+  max-width: min(68ch, 100%);
   margin: 17px 0 0;
   color: var(--muted);
   font-size: 1.04rem;
@@ -1046,8 +1081,8 @@ img {
 .impact-heading h2 {
   max-width: 820px;
   margin: 0;
-  font-size: clamp(2.7rem, 4.6vw, 4.9rem);
-  line-height: 0.98;
+  font-size: var(--step-1);
+  line-height: 1.04;
   letter-spacing: -0.055em;
 }
 
@@ -1160,9 +1195,9 @@ img {
 
 .impact-feature-title h3 {
   margin: 0;
-  font-size: clamp(2rem, 3.55vw, 3.75rem);
+  font-size: var(--step-1);
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.04;
   letter-spacing: -0.045em;
 }
 
@@ -1315,8 +1350,8 @@ img {
 .about-statement h2 {
   max-width: 420px;
   margin: 0;
-  font-size: clamp(2.2rem, 3.7vw, 4rem);
-  line-height: 1;
+  font-size: var(--step-1);
+  line-height: 1.04;
   letter-spacing: -0.05em;
 }
 
@@ -1339,8 +1374,9 @@ img {
 }
 
 .proof-card {
-  --proof-accent: #c93428;
-  --proof-tint: rgba(201, 52, 40, 0.1);
+  --proof-accent: var(--accent-1);
+  --proof-ink: var(--accent-1-ink);
+  --proof-tint: var(--accent-1-tint);
   display: flex;
   flex-direction: column;
   min-height: 560px;
@@ -1358,18 +1394,21 @@ img {
 }
 
 .proof-card:nth-child(4n + 2) {
-  --proof-accent: #2929c8;
-  --proof-tint: rgba(41, 41, 200, 0.1);
+  --proof-accent: var(--accent-2);
+  --proof-ink: var(--accent-2-ink);
+  --proof-tint: var(--accent-2-tint);
 }
 
 .proof-card:nth-child(4n + 3) {
-  --proof-accent: #c99520;
-  --proof-tint: rgba(201, 149, 32, 0.12);
+  --proof-accent: var(--accent-3);
+  --proof-ink: var(--accent-3-ink);
+  --proof-tint: var(--accent-3-tint);
 }
 
 .proof-card:nth-child(4n + 4) {
-  --proof-accent: #42a252;
-  --proof-tint: rgba(66, 162, 82, 0.11);
+  --proof-accent: var(--accent-4);
+  --proof-ink: var(--accent-4-ink);
+  --proof-tint: var(--accent-4-tint);
 }
 
 .proof-card:hover {
@@ -1391,7 +1430,7 @@ img {
   height: 52px;
   display: grid;
   place-items: center;
-  color: var(--proof-accent);
+  color: var(--proof-ink);
   background: var(--proof-tint);
   border-radius: 50%;
   font-size: 1rem;
@@ -1402,7 +1441,7 @@ img {
 .proof-card h3 {
   margin: 4px 0 0;
   color: var(--ink);
-  font-size: clamp(1.08rem, 1.5vw, 1.32rem);
+  font-size: var(--step-3);
   line-height: 1.28;
   letter-spacing: -0.025em;
 }
@@ -1608,8 +1647,8 @@ img {
 .focus-card h3 {
   max-width: 510px;
   margin: 0 0 18px;
-  font-size: clamp(1.65rem, 2.6vw, 2.7rem);
-  line-height: 1.08;
+  font-size: var(--step-2);
+  line-height: 1.15;
   letter-spacing: -0.04em;
 }
 
@@ -1665,9 +1704,9 @@ img {
 
 .year-panel h3 {
   margin: 46px 0 5px;
-  font-size: 3.2rem;
-  line-height: 1;
-  letter-spacing: -0.05em;
+  font-size: var(--step-1);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
 }
 
 .year-panel h3 strong {
@@ -1680,7 +1719,7 @@ img {
   margin: 0;
   color: var(--gold);
   font-family: var(--font-serif);
-  font-size: 1.55rem;
+  font-size: var(--step-2);
   font-style: italic;
   font-weight: 400;
 }
@@ -1768,7 +1807,7 @@ img {
 
 .semester-heading h4 {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: var(--step-4);
   font-weight: 750;
 }
 
@@ -1870,8 +1909,8 @@ img {
 
 .research-card h3 {
   margin: 12px 0;
-  font-size: clamp(1.5rem, 2vw, 2rem);
-  line-height: 1.14;
+  font-size: var(--step-2);
+  line-height: 1.15;
 }
 
 .research-card p {
@@ -1895,9 +1934,9 @@ img {
 .partner-lead h2 {
   max-width: 820px;
   margin: 0;
-  font-size: clamp(2.45rem, 3.7vw, 4.05rem);
-  line-height: 1.02;
-  letter-spacing: -0.05em;
+  font-size: var(--step-1);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
   text-wrap: balance;
 }
 
@@ -1993,7 +2032,7 @@ a.partner-logo:focus-visible {
   position: absolute;
   right: 12px;
   bottom: 9px;
-  color: #7f898f;
+  color: #6b757b;
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -2039,9 +2078,9 @@ a.partner-logo:focus-visible {
 .industry-module-header h3 {
   max-width: none;
   margin: 0;
-  font-size: clamp(2rem, 3vw, 3rem);
-  line-height: 1.04;
-  letter-spacing: -0.045em;
+  font-size: var(--step-2);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
   text-wrap: balance;
 }
 
@@ -2187,8 +2226,8 @@ a.partner-logo:focus-visible {
 
 .career-results-heading h4 {
   margin: 3px 0 0;
-  font-size: clamp(1.3rem, 2vw, 1.9rem);
-  line-height: 1.05;
+  font-size: var(--step-3);
+  line-height: 1.2;
 }
 
 .career-results-heading a,
@@ -2574,7 +2613,7 @@ a.partner-logo:focus-visible {
 
 @media (min-width: 1200px) {
   .job-board-header h3 {
-    font-size: clamp(2.25rem, 2.6vw, 2.8rem);
+    font-size: var(--step-2);
     text-wrap: nowrap;
     white-space: nowrap;
   }
@@ -2603,7 +2642,7 @@ a.partner-logo:focus-visible {
 }
 
 .opportunity-empty > div:nth-child(2) > span {
-  color: #a87615;
+  color: #8a6011;
   font-size: 0.73rem;
   font-weight: 850;
   letter-spacing: 0.08em;
@@ -2612,8 +2651,8 @@ a.partner-logo:focus-visible {
 
 .opportunity-empty h4 {
   margin: 5px 0 8px;
-  font-size: clamp(1.5rem, 2.6vw, 2.4rem);
-  line-height: 1.05;
+  font-size: var(--step-3);
+  line-height: 1.2;
 }
 
 .opportunity-empty p {
@@ -2869,9 +2908,9 @@ a.partner-logo:focus-visible {
 .focus-detail-hero h1 {
   max-width: 920px;
   margin: 25px 0 24px;
-  font-size: clamp(3.7rem, 7vw, 7.2rem);
-  line-height: 0.94;
-  letter-spacing: -0.07em;
+  font-size: var(--step-display);
+  line-height: 1;
+  letter-spacing: -0.045em;
   text-wrap: balance;
 }
 
@@ -2930,9 +2969,9 @@ a.partner-logo:focus-visible {
 
 .focus-overview-lead h2 {
   margin: 0;
-  font-size: clamp(2.5rem, 4.2vw, 4.35rem);
-  line-height: 1.01;
-  letter-spacing: -0.052em;
+  font-size: var(--step-1);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
 }
 
 .focus-overview-lead h2 em {
@@ -2943,7 +2982,7 @@ a.partner-logo:focus-visible {
 }
 
 .focus-overview-lead > p:last-child {
-  max-width: 720px;
+  max-width: min(68ch, 100%);
   margin: 17px 0 0;
   color: var(--muted);
   font-size: 1.03rem;
@@ -2971,7 +3010,7 @@ a.partner-logo:focus-visible {
 
 .outcome-grid h3 {
   margin: 42px 0 12px;
-  font-size: 1.3rem;
+  font-size: var(--step-3);
   line-height: 1.2;
 }
 
@@ -2989,9 +3028,9 @@ a.partner-logo:focus-visible {
 .detail-section-heading h2 {
   max-width: 1120px;
   margin: 0;
-  font-size: clamp(2.35rem, 3.9vw, 4rem);
-  line-height: 1.02;
-  letter-spacing: -0.05em;
+  font-size: var(--step-1);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
   text-wrap: balance;
 }
 
@@ -3023,9 +3062,9 @@ a.partner-logo:focus-visible {
 
 .equipment-section-heading h2 {
   margin: 8px 0 12px;
-  font-size: clamp(2.45rem, 4vw, 4.1rem);
-  line-height: 1;
-  letter-spacing: -0.05em;
+  font-size: var(--step-1);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
   text-wrap: balance;
 }
 
@@ -3228,8 +3267,8 @@ a.partner-logo:focus-visible {
   display: -webkit-box;
   overflow: hidden;
   margin: 0 0 12px;
-  font-size: clamp(1.22rem, 1.55vw, 1.48rem);
-  line-height: 1.17;
+  font-size: var(--step-3);
+  line-height: 1.2;
   letter-spacing: -0.025em;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -3274,7 +3313,7 @@ a.partner-logo:focus-visible {
 
 .focus-course-years header h3 {
   margin: 7px 0 0;
-  font-size: 1.5rem;
+  font-size: var(--step-2);
 }
 
 .focus-course-row {
@@ -3324,7 +3363,7 @@ a.partner-logo:focus-visible {
 
 .activity-grid h3 {
   margin: 0 0 7px;
-  font-size: 1.45rem;
+  font-size: var(--step-3);
 }
 
 .activity-grid p {
@@ -3367,8 +3406,8 @@ a.partner-logo:focus-visible {
 
 .focus-research-grid h3 {
   margin: 16px 0 13px;
-  font-size: 1.65rem;
-  line-height: 1.12;
+  font-size: var(--step-2);
+  line-height: 1.15;
 }
 
 .focus-research-grid p {
@@ -3407,7 +3446,7 @@ a.partner-logo:focus-visible {
 
 .career-path-grid h3 {
   margin: 62px 0 12px;
-  font-size: 1.35rem;
+  font-size: var(--step-3);
 }
 
 .career-path-grid p {
@@ -3430,9 +3469,9 @@ a.partner-logo:focus-visible {
 .focus-next-lead h2 {
   max-width: 760px;
   margin: 0;
-  font-size: clamp(2.3rem, 4vw, 4.2rem);
-  line-height: 1;
-  letter-spacing: -0.05em;
+  font-size: var(--step-1);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
 }
 
 .other-focus-grid {
@@ -3598,7 +3637,7 @@ a.partner-logo:focus-visible {
   justify-content: space-between;
   gap: 28px;
   padding-top: 17px;
-  color: #758097;
+  color: var(--muted);
   font-size: 0.73rem;
 }
 
@@ -4090,6 +4129,7 @@ a.partner-logo:focus-visible {
 @media (max-width: 900px) {
   html {
     scroll-padding-top: 108px;
+    scroll-padding-bottom: 96px;
   }
 
   body {
@@ -4128,7 +4168,8 @@ a.partner-logo:focus-visible {
   }
 
   .directory-hero h1 {
-    font-size: clamp(2.9rem, 14vw, 4.4rem);
+    font-size: clamp(2.25rem, 9.5vw, 3.4rem);
+    line-height: 1.04;
   }
 
   .people-grid,
@@ -4151,6 +4192,7 @@ a.partner-logo:focus-visible {
 
   html {
     scroll-padding-top: 84px;
+    scroll-padding-bottom: 84px;
   }
 
   body {
@@ -4323,7 +4365,13 @@ a.partner-logo:focus-visible {
   }
 
   .hero h1 {
-    font-size: clamp(3.5rem, 16vw, 5.4rem);
+    font-size: clamp(2.25rem, 9.5vw, 3.4rem);
+    line-height: 1.04;
+    letter-spacing: -0.04em;
+  }
+
+  .hero h1 em {
+    margin-top: 12px;
   }
 
   .hero h1 > span {
@@ -4350,7 +4398,8 @@ a.partner-logo:focus-visible {
   }
 
   .focus-detail-hero h1 {
-    font-size: clamp(3.1rem, 14vw, 5.2rem);
+    font-size: clamp(2.25rem, 9.5vw, 3.4rem);
+    line-height: 1.04;
   }
 
   .focus-detail-stats .shell {
@@ -4435,7 +4484,7 @@ a.partner-logo:focus-visible {
   }
 
   .equipment-section-heading h2 {
-    font-size: clamp(1.95rem, 8.8vw, 2.55rem);
+    font-size: var(--step-1);
     white-space: normal;
   }
 
@@ -4761,7 +4810,7 @@ a.partner-logo:focus-visible {
 .focus-research-preview h3 {
   min-height: 2.4em;
   margin: 12px 0 28px;
-  font-size: 1.42rem;
+  font-size: var(--step-3);
   line-height: 1.2;
 }
 
@@ -4946,7 +4995,7 @@ a.partner-logo:focus-visible {
   }
 
   .section-masthead h2 {
-    font-size: clamp(2.25rem, 10vw, 3.2rem);
+    font-size: var(--step-1);
   }
 
   .partner-lead {
@@ -5350,8 +5399,8 @@ a.partner-logo:focus-visible {
 
 .research-current-copy h3 {
   margin: 20px 0 15px;
-  font-size: clamp(1.55rem, 2vw, 2.2rem);
-  line-height: 1.06;
+  font-size: var(--step-2);
+  line-height: 1.15;
   letter-spacing: -0.04em;
 }
 
@@ -5399,8 +5448,8 @@ a.partner-logo:focus-visible {
 .research-boundaries-band h2 {
   max-width: 880px;
   margin: 14px 0 0;
-  font-size: clamp(2rem, 3.5vw, 3.6rem);
-  line-height: 1;
+  font-size: var(--step-1);
+  line-height: 1.04;
   letter-spacing: -0.045em;
 }
 
@@ -5879,7 +5928,7 @@ a.partner-logo:focus-visible {
   background: rgba(230, 184, 79, 0.92);
   box-decoration-break: clone;
   font-family: "Segoe UI Variable Display", "Segoe UI", Arial, sans-serif;
-  font-size: clamp(2.8rem, 4.2vw, 4.1rem);
+  font-size: var(--step-1);
   font-weight: 340;
   letter-spacing: -0.025em;
   line-height: 1.08;
@@ -6038,7 +6087,7 @@ a.partner-logo:focus-visible {
   margin: 0;
   color: var(--navy);
   font-family: "Segoe UI Variable Display", "Segoe UI", Arial, sans-serif;
-  font-size: clamp(2.2rem, 3.8vw, 3.6rem);
+  font-size: var(--step-1);
   font-weight: 390;
   letter-spacing: -0.03em;
   line-height: 1.1;
