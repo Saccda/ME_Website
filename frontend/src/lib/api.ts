@@ -90,6 +90,11 @@ export type ResearchProject = {
   focus_areas: FocusArea[];
 };
 
+type ResearchProjectApi = Omit<ResearchProject, "focus_areas"> & {
+  focus_areas?: FocusArea[];
+  focus_area?: FocusArea | null;
+};
+
 export type Partner = {
   name: string;
   partner_type: string;
@@ -651,8 +656,32 @@ export async function getResearchProjects(
   focusCode?: string,
 ): Promise<ResearchProject[]> {
   const query = focusCode ? `?focus=${encodeURIComponent(focusCode)}` : "";
-  const projects = await getCollection<ResearchProject>(`research${query}`);
-  if (projects.length > 0) return projects;
+  const projects = await getCollection<ResearchProjectApi>(`research${query}`);
+  if (projects.length > 0) {
+    return projects.map((project) => {
+      const fallbackProject = fallbackData.research.find(
+        (item) => item.slug === project.slug,
+      );
+      const relatedAreas =
+        project.focus_areas && project.focus_areas.length > 0
+          ? project.focus_areas
+          : fallbackProject?.focus_areas.length
+            ? fallbackProject.focus_areas
+            : project.focus_area
+              ? [project.focus_area]
+              : [];
+
+      return {
+        ...project,
+        focus_areas: relatedAreas.map((area) => {
+          const fallbackArea = focusAreas.find(
+            (item) => item.code === area.code,
+          );
+          return fallbackArea ? { ...fallbackArea, ...area } : area;
+        }),
+      };
+    });
+  }
   if (!focusCode) return fallbackData.research;
   return fallbackData.research.filter((project) =>
     project.focus_areas.some((area) => area.code === focusCode),
