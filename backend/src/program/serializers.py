@@ -256,9 +256,30 @@ class FocusAreaDetailSerializer(FocusAreaSerializer):
 class FacultyMemberSerializer(serializers.ModelSerializer):
     photo = serializers.SerializerMethodField()
     focus_areas = FocusAreaSerializer(many=True, read_only=True)
+    research_interests = serializers.SerializerMethodField()
+    education = serializers.SerializerMethodField()
+    courses_taught = serializers.SerializerMethodField()
+    publications = serializers.SerializerMethodField()
 
     def get_photo(self, obj):
         return image_url(obj.photo, self.context.get("request"))
+
+    @staticmethod
+    def _lines(value):
+        """Authors enter one item per line; the API returns a clean list."""
+        return [line.strip() for line in (value or "").splitlines() if line.strip()]
+
+    def get_research_interests(self, obj):
+        return self._lines(obj.research_interests)
+
+    def get_education(self, obj):
+        return self._lines(obj.education)
+
+    def get_courses_taught(self, obj):
+        return self._lines(obj.courses_taught)
+
+    def get_publications(self, obj):
+        return self._lines(obj.publications)
 
     class Meta:
         model = FacultyMember
@@ -266,9 +287,18 @@ class FacultyMemberSerializer(serializers.ModelSerializer):
             "id",
             "sort_order",
             "name",
+            "slug",
+            "credentials",
             "role",
             "bio",
             "email",
+            "phone",
+            "office",
+            "profile_url",
+            "research_interests",
+            "education",
+            "courses_taught",
+            "publications",
             "photo",
             "focus_areas",
         )

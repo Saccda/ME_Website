@@ -10,6 +10,7 @@ from .models import (
     Course,
     CurriculumYear,
     Facility,
+    FacultyMember,
     FocusArea,
     FocusAreaDetailItem,
     Inquiry,
@@ -170,6 +171,60 @@ class PublicApiTests(TestCase):
         self.assertEqual(body["research_projects"][0]["focus_areas"][0]["code"], "DMP")
 
     @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_faculty_endpoint_exposes_profile_fields_as_lists(self):
+        focus = FocusArea.objects.create(
+            code="DMP",
+            title="Design and Manufacturing Process",
+            slug="design-and-manufacturing-process",
+            description="Focus area.",
+        )
+        member = FacultyMember.objects.create(
+            name="Sok Dara",
+            credentials="Ph.D.",
+            role="Head of Mechanical Engineering",
+            bio="Teaches design and manufacturing.",
+            email="sok.dara@example.org",
+            phone="+855 12 000 000",
+            office="Engineering Building, Room 204",
+            research_interests="Additive manufacturing\n\nPrecision machining\n",
+            education="Ph.D. Mechanical Engineering, 2016\nM.Eng. Manufacturing, 2011",
+            courses_taught="Manufacturing Processes",
+            publications="Dara, S. (2023) A paper title. Journal 10:1-12.",
+            profile_url="https://scholar.example.org/dara",
+        )
+        member.focus_areas.add(focus)
+
+        response = self.client.get("/api/v1/faculty/")
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["results"][0]
+
+        self.assertEqual(body["slug"], "sok-dara")
+        self.assertEqual(body["credentials"], "Ph.D.")
+        self.assertEqual(body["office"], "Engineering Building, Room 204")
+        self.assertEqual(body["phone"], "+855 12 000 000")
+        self.assertEqual(body["profile_url"], "https://scholar.example.org/dara")
+        # Blank lines and stray whitespace must not become empty list entries.
+        self.assertEqual(
+            body["research_interests"],
+            ["Additive manufacturing", "Precision machining"],
+        )
+        self.assertEqual(len(body["education"]), 2)
+        self.assertEqual(body["courses_taught"], ["Manufacturing Processes"])
+        self.assertEqual(len(body["publications"]), 1)
+        self.assertEqual(body["focus_areas"][0]["code"], "DMP")
+
+    def test_faculty_profile_lists_default_to_empty(self):
+        FacultyMember.objects.create(name="Chan Sophea", role="Lecturer")
+        response = self.client.get("/api/v1/faculty/")
+        body = response.json()["results"][0]
+        for field in (
+            "research_interests",
+            "education",
+            "courses_taught",
+            "publications",
+        ):
+            self.assertEqual(body[field], [], field)
+
     def test_inquiry_submission(self):
         response = self.client.post(
             reverse("inquiry-create"),

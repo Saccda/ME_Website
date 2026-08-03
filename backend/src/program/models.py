@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.utils.text import slugify
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
 from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
 from wagtail.fields import RichTextField
@@ -761,10 +762,35 @@ class FocusAreaDetailItem(OrderedModel):
 
 @register_snippet
 class FacultyMember(OrderedModel):
+    LIST_HELP = "One entry per line."
+
     name = models.CharField(max_length=160)
+    slug = models.SlugField(max_length=180, blank=True)
+    credentials = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text="Post-nominal qualification, for example Ph.D. or M.Eng.",
+    )
     role = models.CharField(max_length=160)
     bio = models.TextField(blank=True)
     email = models.EmailField(blank=True)
+    phone = models.CharField(max_length=40, blank=True)
+    office = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Room or building, for example Engineering Building, Room 204.",
+    )
+    research_interests = models.TextField(blank=True, help_text=LIST_HELP)
+    education = models.TextField(
+        blank=True,
+        help_text="One qualification per line, for example: Ph.D. Mechanical Engineering, University, 2018",
+    )
+    courses_taught = models.TextField(blank=True, help_text=LIST_HELP)
+    publications = models.TextField(blank=True, help_text=LIST_HELP)
+    profile_url = models.URLField(
+        blank=True,
+        help_text="Optional external profile, for example Google Scholar or ORCID.",
+    )
     photo = models.ForeignKey(
         "wagtailimages.Image",
         null=True,
@@ -777,14 +803,43 @@ class FacultyMember(OrderedModel):
 
     panels = [
         FieldPanel("sort_order"),
-        FieldPanel("name"),
-        FieldPanel("role"),
-        FieldPanel("bio"),
-        FieldPanel("email"),
-        FieldPanel("photo"),
-        FieldPanel("focus_areas"),
+        MultiFieldPanel(
+            [
+                FieldPanel("name"),
+                FieldPanel("slug"),
+                FieldPanel("credentials"),
+                FieldPanel("role"),
+                FieldPanel("photo"),
+                FieldPanel("focus_areas"),
+            ],
+            heading="Identity",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("office"),
+                FieldPanel("email"),
+                FieldPanel("phone"),
+                FieldPanel("profile_url"),
+            ],
+            heading="Contact",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("bio"),
+                FieldPanel("research_interests"),
+                FieldPanel("education"),
+                FieldPanel("courses_taught"),
+                FieldPanel("publications"),
+            ],
+            heading="Profile",
+        ),
         FieldPanel("is_published"),
     ]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)[:180]
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
