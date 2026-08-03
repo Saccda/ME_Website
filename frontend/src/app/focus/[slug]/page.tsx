@@ -273,10 +273,11 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
                   >
                     <div className="focus-research-preview-media">
                       <img
-                        src={getResearchImage(
-                          project.title,
-                          project.image || focus.image || "",
-                        )}
+                        src={
+                          getResearchImage(project.title, project.image || "") ||
+                          focus.image ||
+                          "/assets/hero-lab.png"
+                        }
                         alt=""
                       />
                       <div className="research-focus-tags">

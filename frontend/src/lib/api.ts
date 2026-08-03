@@ -784,6 +784,27 @@ export async function getFacultyMembers(): Promise<FacultyMember[]> {
   }));
 }
 
+export type ResearchProjectLookup =
+  | { status: "found"; project: ResearchProject }
+  | { status: "not-found" }
+  | { status: "unavailable" };
+
+/**
+ * Resolved from the collection rather than a detail endpoint, so it works
+ * against the currently deployed backend without waiting on a viewset change.
+ * An empty list means the fetch failed, which is reported separately so a slow
+ * API does not present a real project as missing.
+ */
+export async function getResearchProject(
+  slug: string,
+): Promise<ResearchProjectLookup> {
+  const projects = await getResearchProjects();
+  if (projects.length === 0) return { status: "unavailable" };
+
+  const project = projects.find((item) => item.slug === slug);
+  return project ? { status: "found", project } : { status: "not-found" };
+}
+
 export type FacultyLookup =
   | { status: "found"; member: FacultyMember }
   | { status: "not-found" }

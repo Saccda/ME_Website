@@ -7,7 +7,17 @@ const focusHeroImages: Record<string, string> = {
   ECM: editorial("focus-ecm-hero"),
 };
 
-export function getResearchImage(title: string, fallback = "") {
+/**
+ * Editorial stand-in artwork for research projects, matched on title.
+ *
+ * An image chosen in the CMS always wins: this map only covers projects that
+ * have no image of their own. It used to take precedence, which meant every
+ * seeded project title matched a hard-coded file and changing the image in
+ * Wagtail had no visible effect.
+ */
+export function getResearchImage(title: string, cmsImage = "") {
+  if (cmsImage) return cmsImage;
+
   const normalized = title.toLowerCase();
   if (normalized.includes("metal recycling")) {
     return editorial("research-metal-recycling");
@@ -27,7 +37,7 @@ export function getResearchImage(title: string, fallback = "") {
   ) {
     return editorial("research-load-monitoring");
   }
-  return fallback;
+  return "";
 }
 
 export function getFocusHeroImage(code: string, fallback = "") {

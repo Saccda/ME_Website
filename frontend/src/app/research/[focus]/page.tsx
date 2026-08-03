@@ -145,10 +145,11 @@ export default async function ResearchAreaPage({
                   >
                     <div className="research-project-media">
                       <img
-                        src={getResearchImage(
-                          project.title,
-                          project.image || area.image || "",
-                        )}
+                        src={
+                          getResearchImage(project.title, project.image || "") ||
+                          area.image ||
+                          "/assets/hero-lab.png"
+                        }
                         alt=""
                       />
                       <span>{String(index + 1).padStart(2, "0")}</span>
@@ -179,6 +180,14 @@ export default async function ResearchAreaPage({
                           related publications can be added from Wagtail.
                         </p>
                       )}
+                      <p className="research-project-more">
+                        <Link
+                          className="text-link"
+                          href={`/research/projects/${project.slug}`}
+                        >
+                          Project page <span aria-hidden="true">→</span>
+                        </Link>
+                      </p>
                     </div>
                   </article>
                 ))}

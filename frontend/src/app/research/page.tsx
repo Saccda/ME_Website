@@ -147,20 +147,19 @@ export default async function ResearchPage({
             {projects.length > 0 ? (
               <div className="research-current-grid">
                 {projects.map((project, index) => {
-                  const primaryArea = project.focus_areas[0];
-                  const href = primaryArea
-                    ? `/research/${primaryArea.code.toLowerCase()}#${project.slug}`
-                    : "/research";
+                  const href = `/research/projects/${project.slug}`;
 
                   return (
                     <article className="research-current-card" key={project.slug}>
                       <Link href={href}>
                         <div className="research-current-media">
                           <img
-                            src={getResearchImage(
-                              project.title,
-                              project.image || "",
-                            )}
+                            src={
+                              getResearchImage(
+                                project.title,
+                                project.image || "",
+                              ) || "/assets/hero-lab.png"
+                            }
                             alt=""
                           />
                           <span>{String(index + 1).padStart(2, "0")}</span>
