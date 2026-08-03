@@ -1,11 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
+import Link from "next/link";
 import type { ProgramSettings } from "@/lib/api";
 
 type AdmissionBarProps = {
   settings: Pick<
     ProgramSettings,
     | "address"
-    | "application_url"
     | "email"
     | "facebook_url"
     | "linkedin_url"
@@ -17,9 +17,6 @@ type AdmissionBarProps = {
 };
 
 export default function AdmissionBar({ settings }: AdmissionBarProps) {
-  const applicationHref =
-    settings.application_url ||
-    `mailto:${settings.email}?subject=ME admission enquiry`;
   const phoneHref = `tel:${settings.phone.replace(/[^\d+]/g, "")}`;
   const contactLinks = [
     {
@@ -74,10 +71,10 @@ export default function AdmissionBar({ settings }: AdmissionBarProps) {
           <span>{settings.address}</span>
         </div>
 
-        <a className="admission-primary" href={applicationHref}>
+        <Link className="admission-primary" href="/admissions">
           Admissions
           <span aria-hidden="true">→</span>
-        </a>
+        </Link>
 
         <div className="admission-actions" aria-label="Contact and social media">
           {contactLinks.map((link) => {

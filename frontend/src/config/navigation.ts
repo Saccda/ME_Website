@@ -7,6 +7,8 @@ export type NavigationLink = {
 export type NavigationSection = {
   label: string;
   href?: string;
+  /** Mobile-only label for the section's own landing page. */
+  overviewLabel?: string;
   links: readonly NavigationLink[];
 };
 
@@ -31,29 +33,44 @@ export const navigationItems: readonly NavigationSection[] = [
     label: "Teaching & Learning",
     links: [
       { label: "Curriculum", href: "/curriculum" },
-      { label: "Faculty", href: "/people#faculty-staff" },
+      { label: "Faculty", href: "/faculty" },
       { label: "Facility", href: "/facilities" },
     ],
   },
   {
-    label: "Research",
-    href: "/research",
+    label: "Research & Collaboration",
     links: [
       {
-        label: "DMP — Design & Manufacturing",
-        href: "/research/dmp",
+        label: "Research",
+        href: "/research",
+        children: [
+          {
+            label: "DMP — Design & Manufacturing",
+            href: "/research/dmp",
+          },
+          {
+            label: "TES — Thermofluid & Energy",
+            href: "/research/tes",
+          },
+          {
+            label: "MAS — Mechatronics & Automation",
+            href: "/research/mas",
+          },
+          {
+            label: "ECM — Compliance & Management",
+            href: "/research/ecm",
+          },
+        ],
       },
       {
-        label: "TES — Thermofluid & Energy",
-        href: "/research/tes",
-      },
-      {
-        label: "MAS — Mechatronics & Automation",
-        href: "/research/mas",
-      },
-      {
-        label: "ECM — Compliance & Management",
-        href: "/research/ecm",
+        label: "Collaboration",
+        children: [
+          { label: "Partnership", href: "/partnership" },
+          { label: "Academic partners", href: "/partnership#academic" },
+          { label: "Industry partners", href: "/partnership#industry" },
+          { label: "Government partners", href: "/partnership#government" },
+          { label: "Society partners", href: "/partnership#society" },
+        ],
       },
     ],
   },

@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getFocusArea, getHomeData, type FocusCourse } from "@/lib/api";
@@ -52,6 +53,12 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
         className="focus-detail-page"
         style={{ "--focus-accent": focus.accent_color } as React.CSSProperties}
       >
+        <Breadcrumbs
+          trail={[
+            { label: "Areas of focus", href: "/#focus" },
+            { label: `${focus.code} — ${focus.title}` },
+          ]}
+        />
         <section className="focus-detail-hero">
           <img
             src={getFocusHeroImage(

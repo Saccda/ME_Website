@@ -146,9 +146,18 @@ export type Opportunity = {
 export type FacultyMember = {
   id: number;
   name: string;
+  slug: string;
+  credentials: string;
   role: string;
   bio: string;
   email: string;
+  phone: string;
+  office: string;
+  profile_url: string;
+  research_interests: string[];
+  education: string[];
+  courses_taught: string[];
+  publications: string[];
   photo: string | null;
   focus_areas: FocusArea[];
 };
@@ -392,10 +401,10 @@ const fallbackData: HomeData = {
     why_section_heading: "Nine reasons. One future-ready program.",
     why_section_intro:
       "Our learning model brings technology, social responsibility, and active practice together so graduates leave ready to contribute from day one.",
-    partners_section_eyebrow: "Partnership",
-    partners_section_heading: "Education and industry, connected.",
+    partners_section_eyebrow: "Quadruple helix partnership",
+    partners_section_heading: "Four partners. One engineering ecosystem.",
     partners_section_intro:
-      "Our partnerships connect learning with research, industry experience, and job opportunities for ME students.",
+      "Academia, government, industry, and society each shape what engineering is for. ME works across all four so our teaching, research, and graduates answer real national needs.",
     research_hero_eyebrow: "Research at ME RUPP",
     research_hero_title: "Engineering research at the interface of ideas",
     research_hero_description:
@@ -428,7 +437,7 @@ const fallbackData: HomeData = {
     mission_two:
       "To collaborate with university partners on mechanical engineering to enforce proactive research activities that lead to an advancement of research and innovation.",
     program_years: 4,
-    credit_hours: 140,
+    credit_hours: 120,
     address:
       "Faculty of Engineering, Royal University of Phnom Penh, Russian Federation Boulevard (110), Phnom Penh, Cambodia",
     email: "me.fe.rupp@gmail.com",
@@ -745,8 +754,66 @@ async function getCollection<T>(path: string): Promise<T[]> {
   }
 }
 
-export function getFacultyMembers(): Promise<FacultyMember[]> {
-  return getCollection<FacultyMember>("faculty");
+/**
+ * Profile fields were added after the first release, so a backend that has not
+ * yet run migration 0009 omits them. Normalising here keeps every consumer able
+ * to read the arrays and strings without guarding each one.
+ */
+export async function getFacultyMembers(): Promise<FacultyMember[]> {
+  const members = await getCollection<Partial<FacultyMember>>("faculty");
+  const list = (value: unknown): string[] =>
+    Array.isArray(value) ? value.filter((item): item is string => !!item) : [];
+
+  return members.map((member, index) => ({
+    id: member.id ?? index,
+    name: member.name ?? "",
+    slug: member.slug || slugifyName(member.name ?? String(index)),
+    credentials: member.credentials ?? "",
+    role: member.role ?? "",
+    bio: member.bio ?? "",
+    email: member.email ?? "",
+    phone: member.phone ?? "",
+    office: member.office ?? "",
+    profile_url: member.profile_url ?? "",
+    research_interests: list(member.research_interests),
+    education: list(member.education),
+    courses_taught: list(member.courses_taught),
+    publications: list(member.publications),
+    photo: member.photo ?? null,
+    focus_areas: member.focus_areas ?? [],
+  }));
+}
+
+export type FacultyLookup =
+  | { status: "found"; member: FacultyMember }
+  | { status: "not-found" }
+  | { status: "unavailable" };
+
+/**
+ * Looked up from the list rather than a detail endpoint: `slug` only exists on
+ * the backend once migration 0009 is applied, and the normaliser above derives
+ * one from the name until then, so this keeps profile links working either way.
+ *
+ * An empty list means the fetch failed or timed out — a site with no faculty
+ * would not be linking to a profile — so that case is reported as unavailable
+ * rather than not-found. Otherwise a slow API would tell visitors that a real
+ * member of staff does not exist.
+ */
+export async function getFacultyMember(slug: string): Promise<FacultyLookup> {
+  const members = await getFacultyMembers();
+  if (members.length === 0) return { status: "unavailable" };
+
+  const member = members.find((item) => item.slug === slug);
+  return member ? { status: "found", member } : { status: "not-found" };
+}
+
+function slugifyName(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 export function getNewsEvents(): Promise<NewsEvent[]> {

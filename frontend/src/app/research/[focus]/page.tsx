@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getHomeData, getResearchProjects } from "@/lib/api";
@@ -57,6 +58,13 @@ export default async function ResearchAreaPage({
           } as React.CSSProperties
         }
       >
+        <Breadcrumbs
+          trail={[
+            { label: "Research & Collaboration" },
+            { label: "Research", href: "/research" },
+            { label: `${area.code} — ${area.title}` },
+          ]}
+        />
         <section className="research-area-showcase-hero">
           <img
             className="research-showcase-background"

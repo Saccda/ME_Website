@@ -2,9 +2,11 @@
 import Link from "next/link";
 import ImpactStory from "@/components/ImpactStory";
 import JobOpportunities from "@/components/IndustryCareers";
+import QuadrupleHelix from "@/components/QuadrupleHelix";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
-import { getHomeData } from "@/lib/api";
+import { getHomeData, getNewsEvents } from "@/lib/api";
+import { selectDispatches } from "@/lib/homeDispatches";
 import { impactProjects } from "@/lib/impactProjects";
 
 export const dynamic = "force-dynamic";
@@ -25,9 +27,10 @@ function EditorialSectionHeading({ text }: { text: string }) {
 }
 
 export default async function Home() {
-  const data = await getHomeData();
+  const [data, newsEvents] = await Promise.all([getHomeData(), getNewsEvents()]);
   const program = data.settings;
   const partners = [...data.partners, ...data.partners];
+  const dispatches = selectDispatches(newsEvents);
 
   return (
     <>
@@ -59,21 +62,21 @@ export default async function Home() {
           </div>
           <div className="hero-stats">
             <div className="shell stat-grid">
-              <div>
+              <div className="stat-card">
                 <strong>{program.program_years}</strong>
                 <span>Year program</span>
               </div>
-              <div>
+              <div className="stat-card">
                 <strong>{data.focus_areas.length}</strong>
                 <span>Areas of focus</span>
               </div>
-              <div>
-                <strong>{program.credit_hours}+</strong>
-                <span>Credit hours</span>
-              </div>
-              <div>
+              <div className="stat-card stat-card-phrase">
                 <strong>Theory + Practice</strong>
                 <span>Balanced learning</span>
+              </div>
+              <div className="stat-card">
+                <strong>{program.credit_hours}+</strong>
+                <span>Credit hours</span>
               </div>
             </div>
           </div>
@@ -150,19 +153,17 @@ export default async function Home() {
         </section>
 
         <section className="section gold partners" id="partners">
+          <QuadrupleHelix />
           <div className="shell partner-lead">
             <div className="partner-lead-copy">
               <p className="eyebrow">{program.partners_section_eyebrow}</p>
-              <h2>{program.partners_section_heading}</h2>
+              <EditorialSectionHeading text={program.partners_section_heading} />
               <p>{program.partners_section_intro}</p>
             </div>
             <div className="partner-lead-action">
-              <a
-                className="button button-navy"
-                href={`mailto:${program.email}?subject=ME partnership enquiry`}
-              >
-                Start a partnership <span>↗</span>
-              </a>
+              <Link className="button button-navy" href="/partnership">
+                Learn more about partnering with ME <span>↗</span>
+              </Link>
             </div>
           </div>
           <div className="marquee" aria-label="ME Program partners">
@@ -212,6 +213,51 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {dispatches.length > 0 ? (
+          <section className="section cream" id="latest">
+            <div className="shell">
+              <div className="section-masthead">
+                <p className="eyebrow">News &amp; events</p>
+                <EditorialSectionHeading text="What is happening now. Read and join in." />
+              </div>
+
+              <div className="dispatch-grid">
+                {dispatches.map((entry) => (
+                  <article
+                    className={`dispatch-card${entry.kind === "event" ? " is-event" : ""}`}
+                    key={entry.item.id}
+                  >
+                    {entry.item.image ? (
+                      <div className="dispatch-media">
+                        <img
+                          src={entry.item.image}
+                          alt={entry.item.title}
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : null}
+                    <div className="dispatch-body">
+                      <p className="dispatch-kicker">
+                        <strong>{entry.label}</strong>
+                        {entry.date ? <span>{entry.date}</span> : null}
+                      </p>
+                      <h3>{entry.item.title}</h3>
+                      <p>{entry.item.excerpt}</p>
+                      <Link
+                        className="dispatch-link"
+                        href={`/news-events#${entry.item.slug}`}
+                      >
+                        {entry.kind === "event" ? "Event details" : "Read article"}{" "}
+                        <span aria-hidden="true">→</span>
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
 
       </main>
 

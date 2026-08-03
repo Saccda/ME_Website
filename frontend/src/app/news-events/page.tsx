@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import Breadcrumbs from "@/components/Breadcrumbs";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getHomeData, getNewsEvents, type NewsEvent } from "@/lib/api";
@@ -47,6 +48,7 @@ export default async function NewsEventsPage() {
     <>
       <SiteHeader settings={home.settings} />
       <main id="main-content" className="editorial-page">
+        <Breadcrumbs trail={[{ label: "News & Events" }]} />
         <section className="directory-hero">
           <div className="shell">
             <p className="eyebrow light">News & events</p>

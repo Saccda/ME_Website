@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import Breadcrumbs from "@/components/Breadcrumbs";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getFacilities, getHomeData } from "@/lib/api";
@@ -15,6 +16,9 @@ export default async function FacilitiesPage() {
     <>
       <SiteHeader settings={home.settings} />
       <main id="main-content" className="editorial-page">
+        <Breadcrumbs
+          trail={[{ label: "Teaching & Learning" }, { label: "Facilities" }]}
+        />
         <section className="directory-hero">
           <div className="shell">
             <p className="eyebrow light">Teaching & learning</p>

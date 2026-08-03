@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getFacultyMembers, getHomeData } from "@/lib/api";
@@ -16,6 +17,7 @@ export default async function PeoplePage() {
     <>
       <SiteHeader settings={home.settings} />
       <main id="main-content" className="editorial-page">
+        <Breadcrumbs trail={[{ label: "People" }]} />
         <section className="directory-hero">
           <div className="shell">
             <p className="eyebrow light">People</p>

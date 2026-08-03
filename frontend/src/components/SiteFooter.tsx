@@ -54,6 +54,7 @@ export default function SiteFooter({
 
         <nav aria-label="Program footer links">
           <h2>About</h2>
+          <Link href="/admissions">Admissions</Link>
           <Link href="/#what-is-me">What is mechanical engineering?</Link>
           <Link href="/#why-me">Why choose ME</Link>
           <Link href="/about">Program profile</Link>

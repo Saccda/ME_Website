@@ -1,4 +1,5 @@
 import CurriculumTabs from "@/components/CurriculumTabs";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getHomeData } from "@/lib/api";
@@ -12,6 +13,9 @@ export default async function CurriculumPage() {
     <>
       <SiteHeader settings={home.settings} />
       <main id="main-content" className="editorial-page">
+        <Breadcrumbs
+          trail={[{ label: "Teaching & Learning" }, { label: "Curriculum" }]}
+        />
         <section className="directory-hero">
           <div className="shell">
             <p className="eyebrow light">Academics</p>

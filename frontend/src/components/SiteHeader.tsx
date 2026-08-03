@@ -15,10 +15,17 @@ function DesktopNavigationLink({ item }: { item: NavigationLink }) {
   if (item.children) {
     return (
       <div className="nav-submenu">
-        <button type="button" aria-haspopup="true">
-          {item.label}
-          <span className="nav-submenu-chevron" aria-hidden="true" />
-        </button>
+        {item.href ? (
+          <Link className="nav-submenu-trigger" href={item.href} aria-haspopup="true">
+            {item.label}
+            <span className="nav-submenu-chevron" aria-hidden="true" />
+          </Link>
+        ) : (
+          <button type="button" aria-haspopup="true">
+            {item.label}
+            <span className="nav-submenu-chevron" aria-hidden="true" />
+          </button>
+        )}
         <div className="nav-submenu-menu">
           {item.children.map((child) => (
             <Link href={child.href || "/"} key={`${child.label}-${child.href}`}>
@@ -42,6 +49,11 @@ function MobileNavigationLink({ item }: { item: NavigationLink }) {
           <span aria-hidden="true">+</span>
         </summary>
         <div>
+          {item.href ? (
+            <Link className="mobile-nav-overview" href={item.href}>
+              {item.label} overview
+            </Link>
+          ) : null}
           {item.children.map((child) => (
             <Link href={child.href || "/"} key={`${child.label}-${child.href}`}>
               {child.label}
@@ -136,7 +148,7 @@ export default function SiteHeader({ settings }: SiteHeaderProps) {
                   <div>
                     {item.href ? (
                       <Link className="mobile-nav-overview" href={item.href}>
-                        Research landing page
+                        {item.overviewLabel ?? `${item.label} overview`}
                       </Link>
                     ) : null}
                     {item.links.map((link) => (

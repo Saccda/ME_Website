@@ -1,5 +1,7 @@
+import Breadcrumbs from "@/components/Breadcrumbs";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
+import VisionMark from "@/components/VisionMark";
 import { getHomeData } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +14,7 @@ export default async function AboutPage() {
     <>
       <SiteHeader settings={program} />
       <main id="main-content" className="editorial-page">
+        <Breadcrumbs trail={[{ label: "About the program" }]} />
         <section className="directory-hero">
           <div className="shell">
             <p className="eyebrow light">About the program</p>
@@ -27,12 +30,16 @@ export default async function AboutPage() {
         </section>
 
         <section className="section white about-vision" id="vision">
-          <div className="shell about-statement">
-            <div>
+          <div className="shell vision-statement">
+            <div className="vision-statement-head">
               <p className="eyebrow">Our vision</p>
-              <h2>The future we are working toward.</h2>
+              <VisionMark />
             </div>
             <blockquote>“{program.vision}.”</blockquote>
+            <p className="vision-attribution">
+              {program.program_name} · Faculty of Engineering, Royal University
+              of Phnom Penh
+            </p>
           </div>
         </section>
 

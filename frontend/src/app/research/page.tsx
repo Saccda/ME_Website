@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getHomeData, getResearchProjects } from "@/lib/api";
@@ -46,6 +47,9 @@ export default async function ResearchPage({
     <>
       <SiteHeader settings={home.settings} />
       <main id="main-content" className="editorial-page research-hub-page">
+        <Breadcrumbs
+          trail={[{ label: "Research & Collaboration" }, { label: "Research" }]}
+        />
         <section className="research-showcase-hero">
           <img
             className="research-showcase-background"
