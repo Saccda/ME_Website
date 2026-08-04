@@ -772,6 +772,15 @@ class FacultyMember(OrderedModel):
         help_text="Post-nominal qualification, for example Ph.D. or M.Eng.",
     )
     role = models.CharField(max_length=160)
+    statement = models.TextField(
+        blank=True,
+        help_text=(
+            "One sentence shown as the large heading on the profile page, "
+            "for example: Sophy Soun connects engineering theory with "
+            "experimentation and practical laboratory learning. "
+            "Left blank, the first sentence of the biography is used."
+        ),
+    )
     bio = models.TextField(blank=True)
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=40, blank=True)
@@ -825,6 +834,7 @@ class FacultyMember(OrderedModel):
         ),
         MultiFieldPanel(
             [
+                FieldPanel("statement"),
                 FieldPanel("bio"),
                 FieldPanel("research_interests"),
                 FieldPanel("education"),

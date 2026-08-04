@@ -290,6 +290,7 @@ class FacultyMemberSerializer(serializers.ModelSerializer):
             "slug",
             "credentials",
             "role",
+            "statement",
             "bio",
             "email",
             "phone",

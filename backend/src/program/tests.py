@@ -1,6 +1,8 @@
-from django.core import mail
+import tempfile
 from datetime import timedelta
 
+from django.core import mail
+from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -14,6 +16,7 @@ from .models import (
     FocusArea,
     FocusAreaDetailItem,
     Inquiry,
+    NewsEvent,
     Opportunity,
     Partner,
     ProgramSettings,
@@ -254,3 +257,40 @@ class PublicApiTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(Inquiry.objects.count(), 0)
+
+
+class SeedNewsEventsTests(TestCase):
+    """The homepage news and events bands are fed by seeded starter entries."""
+
+    def run_seed(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                call_command("seed_me_content", verbosity=0)
+
+    def test_seed_creates_starter_news_and_events(self):
+        self.run_seed()
+
+        news = NewsEvent.objects.filter(content_type="news")
+        events = NewsEvent.objects.filter(content_type="event")
+        self.assertEqual(news.count(), 3)
+        self.assertEqual(events.count(), 3)
+
+        # Every seeded event must still be ahead of the seed run, otherwise the
+        # homepage would open with a band of events that have already happened.
+        now = timezone.now()
+        for event in events:
+            self.assertIsNotNone(event.event_date)
+            self.assertGreater(event.event_date, now)
+
+    def test_reseeding_keeps_author_edits(self):
+        self.run_seed()
+
+        entry = NewsEvent.objects.filter(content_type="news").first()
+        entry.title = "Rewritten by an author in Wagtail"
+        entry.save()
+
+        self.run_seed()
+
+        entry.refresh_from_db()
+        self.assertEqual(entry.title, "Rewritten by an author in Wagtail")
+        self.assertEqual(NewsEvent.objects.filter(content_type="news").count(), 3)
