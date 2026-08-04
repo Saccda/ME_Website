@@ -43,3 +43,19 @@ export function getResearchImage(title: string, cmsImage = "") {
 export function getFocusHeroImage(code: string, fallback = "") {
   return focusHeroImages[code] || fallback;
 }
+
+/**
+ * Laboratory artwork for the teaching side of a focus area. Deliberately
+ * different from `focusHeroImages` so a card about teaching and one about
+ * research can sit side by side without repeating the same picture.
+ */
+const focusTeachingImages: Record<string, string> = {
+  DMP: editorial("dmp-cnc"),
+  TES: editorial("tes-fluid-bench"),
+  MAS: editorial("mas-robot-vision"),
+  ECM: editorial("ecm-project-workspace"),
+};
+
+export function getFocusTeachingImage(code: string, fallback = "") {
+  return focusTeachingImages[code] || fallback;
+}

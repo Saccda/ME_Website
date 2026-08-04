@@ -6,7 +6,10 @@ import QuadrupleHelix from "@/components/QuadrupleHelix";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getHomeData, getNewsEvents } from "@/lib/api";
-import { selectDispatches } from "@/lib/homeDispatches";
+import {
+  selectLatestNews,
+  selectUpcomingEvents,
+} from "@/lib/homeDispatches";
 import { impactProjects } from "@/lib/impactProjects";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +33,8 @@ export default async function Home() {
   const [data, newsEvents] = await Promise.all([getHomeData(), getNewsEvents()]);
   const program = data.settings;
   const partners = [...data.partners, ...data.partners];
-  const dispatches = selectDispatches(newsEvents);
+  const latestNews = selectLatestNews(newsEvents);
+  const upcomingEvents = selectUpcomingEvents(newsEvents);
 
   return (
     <>
@@ -214,44 +218,78 @@ export default async function Home() {
           </div>
         </section>
 
-        {dispatches.length > 0 ? (
-          <section className="section cream" id="latest">
+        {latestNews.length > 0 ? (
+          <section className="section cream home-feed" id="latest-news">
             <div className="shell">
-              <div className="section-masthead">
-                <p className="eyebrow">News &amp; events</p>
-                <EditorialSectionHeading text="What is happening now. Read and join in." />
-              </div>
+              <header className="home-feed-head">
+                <h2>Latest news</h2>
+                <Link className="home-feed-all" href="/news-events">
+                  View all news
+                </Link>
+              </header>
 
-              <div className="dispatch-grid">
-                {dispatches.map((entry) => (
-                  <article
-                    className={`dispatch-card${entry.kind === "event" ? " is-event" : ""}`}
-                    key={entry.item.id}
-                  >
+              <div className="home-feed-grid">
+                {latestNews.map((entry) => (
+                  <article className="news-card" key={entry.item.id}>
                     {entry.item.image ? (
-                      <div className="dispatch-media">
-                        <img
-                          src={entry.item.image}
-                          alt={entry.item.title}
-                          loading="lazy"
-                        />
+                      <div className="news-card-media">
+                        <img src={entry.item.image} alt="" loading="lazy" />
                       </div>
                     ) : null}
-                    <div className="dispatch-body">
-                      <p className="dispatch-kicker">
-                        <strong>{entry.label}</strong>
-                        {entry.date ? <span>{entry.date}</span> : null}
-                      </p>
-                      <h3>{entry.item.title}</h3>
-                      <p>{entry.item.excerpt}</p>
-                      <Link
-                        className="dispatch-link"
-                        href={`/news-events#${entry.item.slug}`}
-                      >
-                        {entry.kind === "event" ? "Event details" : "Read article"}{" "}
-                        <span aria-hidden="true">→</span>
-                      </Link>
+                    <div className="news-card-body">
+                      <p className="news-card-kicker">News</p>
+                      {/* Only the title is a link; it stretches over the card so
+                          the row exposes one target per article. */}
+                      <h3>
+                        <Link href={`/news-events#${entry.item.slug}`}>
+                          {entry.item.title}
+                        </Link>
+                      </h3>
+                      <p className="news-card-excerpt">{entry.item.excerpt}</p>
+                      {entry.date ? (
+                        <p className="news-card-date">{entry.date}</p>
+                      ) : null}
                     </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {upcomingEvents.length > 0 ? (
+          <section className="section white home-feed" id="upcoming-events">
+            <div className="shell">
+              <header className="home-feed-head">
+                <h2>Upcoming events</h2>
+                <Link className="home-feed-all" href="/news-events">
+                  View all events
+                </Link>
+              </header>
+
+              <div className="home-feed-grid">
+                {upcomingEvents.map((entry) => (
+                  <article className="event-card" key={entry.item.id}>
+                    {entry.item.image ? (
+                      <div className="event-card-media">
+                        <img src={entry.item.image} alt="" loading="lazy" />
+                      </div>
+                    ) : null}
+                    <p className="event-card-badge">
+                      {entry.isUpcoming ? "Upcoming event" : "Recent event"}
+                    </p>
+                    <h3>{entry.item.title}</h3>
+                    {entry.date ? (
+                      <p className="event-card-date">{entry.date}</p>
+                    ) : null}
+                    <p className="event-card-excerpt">{entry.item.excerpt}</p>
+                    <Link
+                      className="event-card-action"
+                      href={`/news-events#${entry.item.slug}`}
+                      aria-label={`Event details: ${entry.item.title}`}
+                    >
+                      Event details
+                    </Link>
                   </article>
                 ))}
               </div>

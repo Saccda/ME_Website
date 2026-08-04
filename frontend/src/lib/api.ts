@@ -149,6 +149,7 @@ export type FacultyMember = {
   slug: string;
   credentials: string;
   role: string;
+  statement: string;
   bio: string;
   email: string;
   phone: string;
@@ -736,22 +737,34 @@ export async function getFocusArea(
   }
 }
 
-async function getCollection<T>(path: string): Promise<T[]> {
+/**
+ * Returns null when the request could not be completed, and an array — possibly
+ * empty — when it could.
+ *
+ * The distinction matters: an empty result is a truthful answer ("this area has
+ * no projects") and must not be replaced with sample content, while a failed
+ * request is the case fallbacks exist for.
+ */
+async function fetchCollection<T>(path: string): Promise<T[] | null> {
   try {
     const [pathname, query] = path.split("?", 2);
     const response = await fetch(
       `${API_BASE_URL}/${pathname}/${query ? `?${query}` : ""}`,
       {
-      cache: "no-store",
-      signal: AbortSignal.timeout(2500),
+        cache: "no-store",
+        signal: AbortSignal.timeout(2500),
       },
     );
-    if (!response.ok) return [];
+    if (!response.ok) return null;
     const data = (await response.json()) as T[] | { results?: T[] };
     return Array.isArray(data) ? data : data.results ?? [];
   } catch {
-    return [];
+    return null;
   }
+}
+
+async function getCollection<T>(path: string): Promise<T[]> {
+  return (await fetchCollection<T>(path)) ?? [];
 }
 
 /**
@@ -759,8 +772,10 @@ async function getCollection<T>(path: string): Promise<T[]> {
  * yet run migration 0009 omits them. Normalising here keeps every consumer able
  * to read the arrays and strings without guarding each one.
  */
-export async function getFacultyMembers(): Promise<FacultyMember[]> {
-  const members = await getCollection<Partial<FacultyMember>>("faculty");
+async function fetchFacultyMembers(): Promise<FacultyMember[] | null> {
+  const members = await fetchCollection<Partial<FacultyMember>>("faculty");
+  if (members === null) return null;
+
   const list = (value: unknown): string[] =>
     Array.isArray(value) ? value.filter((item): item is string => !!item) : [];
 
@@ -770,6 +785,7 @@ export async function getFacultyMembers(): Promise<FacultyMember[]> {
     slug: member.slug || slugifyName(member.name ?? String(index)),
     credentials: member.credentials ?? "",
     role: member.role ?? "",
+    statement: member.statement ?? "",
     bio: member.bio ?? "",
     email: member.email ?? "",
     phone: member.phone ?? "",
@@ -782,6 +798,10 @@ export async function getFacultyMembers(): Promise<FacultyMember[]> {
     photo: member.photo ?? null,
     focus_areas: member.focus_areas ?? [],
   }));
+}
+
+export async function getFacultyMembers(): Promise<FacultyMember[]> {
+  return (await fetchFacultyMembers()) ?? [];
 }
 
 export type ResearchProjectLookup =
@@ -798,11 +818,28 @@ export type ResearchProjectLookup =
 export async function getResearchProject(
   slug: string,
 ): Promise<ResearchProjectLookup> {
-  const projects = await getResearchProjects();
-  if (projects.length === 0) return { status: "unavailable" };
+  const projects = await fetchCollection<ResearchProjectApi>("research");
+  if (projects === null) return { status: "unavailable" };
 
   const project = projects.find((item) => item.slug === slug);
-  return project ? { status: "found", project } : { status: "not-found" };
+  if (!project) return { status: "not-found" };
+
+  const fallbackProject = fallbackData.research.find(
+    (item) => item.slug === project.slug,
+  );
+  const relatedAreas =
+    project.focus_areas && project.focus_areas.length > 0
+      ? project.focus_areas
+      : fallbackProject?.focus_areas.length
+        ? fallbackProject.focus_areas
+        : project.focus_area
+          ? [project.focus_area]
+          : [];
+
+  return {
+    status: "found",
+    project: { ...project, focus_areas: withFocusAreaFallbacks(relatedAreas) },
+  };
 }
 
 export type FacultyLookup =
@@ -821,8 +858,8 @@ export type FacultyLookup =
  * member of staff does not exist.
  */
 export async function getFacultyMember(slug: string): Promise<FacultyLookup> {
-  const members = await getFacultyMembers();
-  if (members.length === 0) return { status: "unavailable" };
+  const members = await fetchFacultyMembers();
+  if (members === null) return { status: "unavailable" };
 
   const member = members.find((item) => item.slug === slug);
   return member ? { status: "found", member } : { status: "not-found" };
@@ -849,29 +886,33 @@ export async function getResearchProjects(
   focusCode?: string,
 ): Promise<ResearchProject[]> {
   const query = focusCode ? `?focus=${encodeURIComponent(focusCode)}` : "";
-  const projects = await getCollection<ResearchProjectApi>(`research${query}`);
-  if (projects.length > 0) {
-    return projects.map((project) => {
-      const fallbackProject = fallbackData.research.find(
-        (item) => item.slug === project.slug,
-      );
-      const relatedAreas =
-        project.focus_areas && project.focus_areas.length > 0
-          ? project.focus_areas
-          : fallbackProject?.focus_areas.length
-            ? fallbackProject.focus_areas
-            : project.focus_area
-              ? [project.focus_area]
-              : [];
+  const projects = await fetchCollection<ResearchProjectApi>(`research${query}`);
 
-      return {
-        ...project,
-        focus_areas: withFocusAreaFallbacks(relatedAreas),
-      };
-    });
+  // Only substitute sample content when the request itself failed. A focus area
+  // that genuinely has no published projects must report zero, not borrow one.
+  if (projects === null) {
+    if (!focusCode) return fallbackData.research;
+    return fallbackData.research.filter((project) =>
+      project.focus_areas.some((area) => area.code === focusCode),
+    );
   }
-  if (!focusCode) return fallbackData.research;
-  return fallbackData.research.filter((project) =>
-    project.focus_areas.some((area) => area.code === focusCode),
-  );
+
+  return projects.map((project) => {
+    const fallbackProject = fallbackData.research.find(
+      (item) => item.slug === project.slug,
+    );
+    const relatedAreas =
+      project.focus_areas && project.focus_areas.length > 0
+        ? project.focus_areas
+        : fallbackProject?.focus_areas.length
+          ? fallbackProject.focus_areas
+          : project.focus_area
+            ? [project.focus_area]
+            : [];
+
+    return {
+      ...project,
+      focus_areas: withFocusAreaFallbacks(relatedAreas),
+    };
+  });
 }

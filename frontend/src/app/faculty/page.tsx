@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import FocusIcon, { type FocusCode } from "@/components/FocusIcon";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getFacultyMembers, getHomeData, type FacultyMember } from "@/lib/api";
@@ -15,14 +16,15 @@ export const metadata: Metadata = {
 };
 
 /**
- * Expertise chips. Research interests are the readable signal, but they only
- * exist once migration 0009 is deployed, so focus-area codes carry the card
- * until then. Capped at three so a well-filled profile cannot unbalance the row.
+ * One line of substance under the role. The whole biography is passed through
+ * and clamped in CSS rather than cut here, so the break lands on a line boundary
+ * at whatever width the card ends up.
  */
-function tagsFor(member: FacultyMember): string[] {
-  const interests = member.research_interests.slice(0, 2);
-  const codes = member.focus_areas.map((area) => area.code);
-  return [...interests, ...codes].slice(0, 3);
+function cardSummary(member: FacultyMember): string {
+  if (member.research_interests.length > 0) {
+    return member.research_interests.join(" · ");
+  }
+  return member.bio;
 }
 
 function initials(name: string) {
@@ -51,7 +53,14 @@ export default async function FacultyPage() {
         <section className="section white faculty-listing">
           <div className="shell">
             <header className="faculty-listing-head">
-              <p className="eyebrow">Our faculty</p>
+              <p className="eyebrow">
+                Our faculty
+                {faculty.length > 0 ? (
+                  <span className="faculty-listing-count">
+                    {faculty.length} members
+                  </span>
+                ) : null}
+              </p>
               <h1>
                 Meet the people <em>shaping future engineers.</em>
               </h1>
@@ -65,7 +74,10 @@ export default async function FacultyPage() {
               <ul className="faculty-card-grid">
                 {faculty.map((member) => (
                   <li key={member.id}>
-                    <article className="faculty-card">
+                    <article
+                      className="faculty-card"
+                      data-focus={member.focus_areas[0]?.code}
+                    >
                       <div className="faculty-card-media">
                         {member.photo ? (
                           <img src={member.photo} alt="" loading="lazy" />
@@ -80,13 +92,32 @@ export default async function FacultyPage() {
                           <Link href={`/faculty/${member.slug}`}>
                             {member.name}
                           </Link>
+                          {member.credentials ? (
+                            <span className="faculty-card-credentials">
+                              , {member.credentials}
+                            </span>
+                          ) : null}
                         </h2>
                         <p className="faculty-card-role">{member.role}</p>
 
-                        {tagsFor(member).length > 0 ? (
-                          <ul className="faculty-card-tags">
-                            {tagsFor(member).map((tag) => (
-                              <li key={tag}>{tag}</li>
+                        {cardSummary(member) ? (
+                          <p className="faculty-card-summary">
+                            {cardSummary(member)}
+                          </p>
+                        ) : null}
+
+                        {/* The focus areas are the programme's own taxonomy, so
+                            they carry the icon set rather than a plain chip. */}
+                        {member.focus_areas.length > 0 ? (
+                          <ul className="faculty-card-focus">
+                            {member.focus_areas.map((area) => (
+                              <li key={area.code}>
+                                <FocusIcon
+                                  code={area.code as FocusCode}
+                                  title={`${area.code} — ${area.title}`}
+                                />
+                                <span>{area.code}</span>
+                              </li>
                             ))}
                           </ul>
                         ) : null}

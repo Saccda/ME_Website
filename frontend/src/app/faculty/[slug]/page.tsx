@@ -2,11 +2,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import EngineeringMotif from "@/components/EngineeringMotif";
-import ProfileDetailRow from "@/components/ProfileDetailRow";
+import FocusIcon, { type FocusCode } from "@/components/FocusIcon";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
-import { getFacultyMember, getHomeData, type FacultyMember } from "@/lib/api";
+import {
+  getFacultyMember,
+  getHomeData,
+  getResearchProjects,
+  type FacultyMember,
+  type ResearchProject,
+} from "@/lib/api";
+import {
+  getFocusHeroImage,
+  getFocusTeachingImage,
+  getResearchImage,
+} from "@/lib/editorialImages";
 
 export const dynamic = "force-dynamic";
 
@@ -42,10 +52,197 @@ function toSentenceList(items: string[]) {
   return `${lower.slice(0, -1).join(", ")}, and ${lower[lower.length - 1]}`;
 }
 
-function chipsFor(member: FacultyMember) {
-  const interests = member.research_interests.slice(0, 4);
-  const codes = member.focus_areas.map((area) => area.code);
-  return interests.length > 0 ? interests : codes;
+function tagsFor(member: FacultyMember) {
+  return member.research_interests.length > 0
+    ? member.research_interests.slice(0, 4)
+    : member.focus_areas.map((area) => area.code);
+}
+
+/** Titles and qualifications end in a full stop without ending a sentence. */
+const ABBREVIATION =
+  /(?:^|\s)(?:Dr|Mr|Mrs|Ms|Prof|Assoc|Asst|Eng|Sr|Jr|St|No|vs|approx|Ph\.D|D\.Eng|M\.Eng|M\.Sc|B\.Sc|B\.Eng|e\.g|i\.e)\.$/i;
+
+function sentences(text: string): string[] {
+  const parts = text.split(/(?<=[.!?])\s+/);
+  const out: string[] = [];
+  for (const part of parts) {
+    const previous = out[out.length - 1];
+    if (previous && ABBREVIATION.test(previous)) {
+      out[out.length - 1] = `${previous} ${part}`;
+    } else {
+      out.push(part);
+    }
+  }
+  return out.filter(Boolean);
+}
+
+/**
+ * The profile section is a large statement followed by a short description.
+ *
+ * `statement` is an authored CMS field, but a member with only a biography
+ * still needs the section to read correctly, so the opening sentence is
+ * promoted to the statement and the remainder becomes the description. The
+ * whole biography is kept when it is a single sentence — splitting it would
+ * leave the description empty.
+ */
+function profileCopy(member: FacultyMember): {
+  statement: string;
+  paragraphs: string[];
+} {
+  const blocks = member.bio
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  if (member.statement.trim()) {
+    return { statement: member.statement.trim(), paragraphs: blocks };
+  }
+  if (blocks.length === 0) return { statement: "", paragraphs: [] };
+
+  const [lead, ...rest] = sentences(blocks[0]);
+  const remainder = rest.join(" ");
+  if (!remainder) return { statement: blocks[0], paragraphs: blocks.slice(1) };
+
+  return { statement: lead, paragraphs: [remainder, ...blocks.slice(1)] };
+}
+
+/** The gold-ruled facts under the description. */
+function profilePoints(member: FacultyMember) {
+  const research =
+    member.research_interests.length > 0
+      ? member.research_interests
+      : member.focus_areas.map((area) => area.title);
+
+  return [
+    member.courses_taught.length > 0
+      ? { label: "Teaching", value: member.courses_taught.join(" · ") }
+      : null,
+    research.length > 0
+      ? { label: "Research", value: research.join(" · ") }
+      : null,
+    member.publications.length > 0
+      ? {
+          label: "Selected publications",
+          value: member.publications.join(" · "),
+        }
+      : null,
+  ].filter(Boolean) as Array<{ label: string; value: string }>;
+}
+
+/** Projects from any of this member's focus areas, de-duplicated. */
+async function relatedProjects(
+  member: FacultyMember,
+): Promise<ResearchProject[]> {
+  if (member.focus_areas.length === 0) return [];
+
+  const groups = await Promise.all(
+    member.focus_areas.map((area) => getResearchProjects(area.code)),
+  );
+
+  const seen = new Set<string>();
+  const projects: ResearchProject[] = [];
+  for (const group of groups) {
+    for (const project of group) {
+      if (seen.has(project.slug)) continue;
+      seen.add(project.slug);
+      projects.push(project);
+    }
+  }
+  return projects;
+}
+
+type WorkCard = {
+  key: string;
+  badge: string;
+  meta: string;
+  title: string;
+  summary: string;
+  href: string;
+  image: string;
+  cta: string;
+};
+
+/**
+ * A member's work is not only research, so the row mixes the kinds of work the
+ * CMS actually holds: published projects, the research themes of their focus
+ * areas, and the teaching those areas are taught through. One of each is taken
+ * first so the three cards are varied, then any remaining slot is backfilled
+ * from whichever pool still has entries.
+ */
+function buildWorkCards(
+  member: FacultyMember,
+  projects: ResearchProject[],
+): WorkCard[] {
+  const projectCards: WorkCard[] = projects.map((project) => ({
+    key: `project-${project.slug}`,
+    badge: "Research project",
+    meta: project.focus_areas.map((area) => area.code).join(" · "),
+    title: project.title,
+    summary: project.summary,
+    href: `/research/projects/${project.slug}`,
+    image:
+      getResearchImage(project.title, project.image || "") ||
+      getFocusHeroImage(project.focus_areas[0]?.code ?? "") ||
+      "/assets/hero-lab.png",
+    cta: "Explore the project",
+  }));
+
+  // Research themes are optional in the CMS, so an area without any still
+  // contributes a card — the area itself — rather than leaving a gap.
+  const themeCards: WorkCard[] = member.focus_areas.flatMap((area) => {
+    const image = getFocusHeroImage(area.code, area.image || "/assets/hero-lab.png");
+    if (area.research_themes.length === 0) {
+      return [
+        {
+          key: `area-${area.code}`,
+          badge: "Research area",
+          meta: area.code,
+          title: area.research_question || area.title,
+          summary: area.research_overview || area.description,
+          href: `/research/${area.code.toLowerCase()}`,
+          image,
+          cta: "Explore the research",
+        },
+      ];
+    }
+    return area.research_themes.map((theme, index) => ({
+      key: `theme-${area.code}-${index}`,
+      badge: "Research theme",
+      meta: area.title,
+      title: theme.title,
+      summary: theme.description,
+      href: `/research/${area.code.toLowerCase()}`,
+      image,
+      cta: "Explore the work",
+    }));
+  });
+
+  const teachingCards: WorkCard[] = member.focus_areas
+    .filter((area) => area.learning_heading)
+    .map((area) => ({
+      key: `teaching-${area.code}`,
+      badge: "Teaching & research",
+      meta: area.title,
+      title: area.learning_heading,
+      summary: area.learning_intro,
+      href: `/focus/${area.slug}`,
+      image: getFocusTeachingImage(
+        area.code,
+        area.image || "/assets/hero-lab.png",
+      ),
+      cta: "Explore the teaching",
+    }));
+
+  const pools = [projectCards, themeCards, teachingCards];
+  const picked: WorkCard[] = [];
+  for (const pool of pools) {
+    const card = pool.shift();
+    if (card) picked.push(card);
+  }
+  for (const pool of pools) {
+    while (picked.length < 3 && pool.length > 0) picked.push(pool.shift()!);
+  }
+  return picked.slice(0, 3);
 }
 
 export default async function FacultyProfilePage({ params }: ProfilePageProps) {
@@ -85,7 +282,11 @@ export default async function FacultyProfilePage({ params }: ProfilePageProps) {
   }
 
   const member = lookup.member;
-  const chips = chipsFor(member);
+  const projects = await relatedProjects(member);
+  const workCards = buildWorkCards(member, projects);
+  const { statement, paragraphs } = profileCopy(member);
+  const points = profilePoints(member);
+  const tags = tagsFor(member);
   const summary =
     member.research_interests.length > 0
       ? `Specialising in ${toSentenceList(member.research_interests.slice(0, 4))}.`
@@ -97,169 +298,274 @@ export default async function FacultyProfilePage({ params }: ProfilePageProps) {
     .filter(Boolean)
     .join(" · ");
 
+  const contactActions = [
+    member.email
+      ? {
+          key: "email",
+          href: `mailto:${member.email}`,
+          label: "Email",
+          aria: `Email ${member.name}`,
+          external: false,
+          icon: (
+            <>
+              <path d="M4 7h24v18H4z" />
+              <path d="m5 9 11 9L27 9" />
+            </>
+          ),
+        }
+      : null,
+    member.phone
+      ? {
+          key: "phone",
+          href: `tel:${member.phone.replace(/[^\d+]/g, "")}`,
+          label: "Phone",
+          aria: `Call ${member.name}`,
+          external: false,
+          icon: (
+            <>
+              <path d="M7 4h6l3 7-4 2a14 14 0 0 0 7 7l2-4 7 3v6a2 2 0 0 1-2 2C13 27 5 19 5 6a2 2 0 0 1 2-2z" />
+            </>
+          ),
+        }
+      : null,
+    member.profile_url
+      ? {
+          key: "scholar",
+          href: member.profile_url,
+          label: "Scholar",
+          aria: `View ${member.name}'s research profile`,
+          external: true,
+          icon: (
+            <>
+              <path d="m3 13 13-8 13 8-13 8z" />
+              <path d="M8 17v7c5 4 11 4 16 0v-7M29 13v9" />
+            </>
+          ),
+        }
+      : null,
+  ].filter(Boolean) as Array<{
+    key: string;
+    href: string;
+    label: string;
+    aria: string;
+    external: boolean;
+    icon: React.ReactNode;
+  }>;
+
   return (
     <>
       <SiteHeader settings={home.settings} />
-      <main id="main-content" className="profile-page">
-        <EngineeringMotif side="left" />
-        <EngineeringMotif side="right" />
-
-        <div className="shell profile-shell">
-          <nav className="profile-crumb" aria-label="Breadcrumb">
+      <main id="main-content" className="faculty-detail">
+        <div className="shell">
+          <nav className="faculty-crumb" aria-label="Breadcrumb">
             <Link href="/faculty">Faculty</Link>
             <span aria-hidden="true">/</span>
             <span aria-current="page">{member.name}</span>
           </nav>
+        </div>
 
-          <section className="profile-hero">
-            <div className="profile-portrait">
-              {member.photo ? (
-                <img src={member.photo} alt={member.name} />
-              ) : (
-                <span aria-hidden="true">{initials(member.name)}</span>
-              )}
+        <section className="shell faculty-hero" aria-labelledby="profile-title">
+          <figure className="faculty-hero-portrait">
+            {member.photo ? (
+              <img
+                src={member.photo}
+                alt={`${member.name}, ${member.role}`}
+              />
+            ) : (
+              <span aria-hidden="true">{initials(member.name)}</span>
+            )}
+          </figure>
+
+          <div className="faculty-hero-identity">
+            <p className="faculty-hero-eyebrow">Faculty profile</p>
+            <h1 id="profile-title">
+              {member.name}
+              {member.credentials ? (
+                <span className="faculty-hero-credentials">
+                  , {member.credentials}
+                </span>
+              ) : null}
+            </h1>
+            <p className="faculty-hero-role">{member.role}</p>
+            <p className="faculty-hero-affiliation">{affiliation}</p>
+
+            {summary ? (
+              <p className="faculty-hero-summary">{summary}</p>
+            ) : null}
+
+            {tags.length > 0 ? (
+              <ul className="faculty-hero-tags">
+                {tags.map((tag) => (
+                  <li key={tag}>{tag}</li>
+                ))}
+              </ul>
+            ) : null}
+
+            <div className="faculty-academic">
+              <div>
+                <h2>Research interests</h2>
+                {member.research_interests.length > 0 ? (
+                  <ul>
+                    {member.research_interests.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>
+                    Research interests will be added from the faculty record.
+                  </p>
+                )}
+              </div>
+              <div>
+                <h2>Education</h2>
+                {member.education.length > 0 ? (
+                  <ul>
+                    {member.education.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>Education details will be added from the faculty record.</p>
+                )}
+              </div>
             </div>
 
-            <div className="profile-intro">
-              <p className="profile-eyebrow">Faculty profile</p>
-              <h1>
-                {member.name}
-                {member.credentials ? (
-                  <span className="profile-credentials">
-                    , {member.credentials}
-                  </span>
-                ) : null}
-              </h1>
-              <p className="profile-role">{member.role}</p>
-              <p className="profile-affiliation">{affiliation}</p>
+            <div
+              className="faculty-contact-band"
+              aria-label="Contact and areas of focus"
+            >
+              {contactActions.map((action) => (
+                <div className="faculty-contact-item" key={action.key}>
+                  <a
+                    className="faculty-contact-action"
+                    href={action.href}
+                    aria-label={action.aria}
+                    target={action.external ? "_blank" : undefined}
+                    rel={action.external ? "noopener noreferrer" : undefined}
+                  >
+                    <svg viewBox="0 0 32 32" aria-hidden="true">
+                      {action.icon}
+                    </svg>
+                    <span>{action.label}</span>
+                  </a>
+                </div>
+              ))}
 
-              <span className="profile-rule" aria-hidden="true" />
-
-              {summary ? <p className="profile-summary">{summary}</p> : null}
-
-              {chips.length > 0 ? (
-                <ul className="profile-chips">
-                  {chips.map((chip) => (
-                    <li key={chip}>{chip}</li>
-                  ))}
-                </ul>
-              ) : null}
-
-              {member.email || member.phone || member.profile_url ? (
-                <div className="profile-contact-card">
-                  <p className="profile-contact-label">Contact</p>
-                  <div className="profile-contact-rows">
-                    {member.email ? (
-                      <p>
-                        <span className="profile-contact-value">
-                          <svg
-                            className="profile-contact-icon"
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                          >
-                            <path d="M3 6h18v12H3z" />
-                            <path d="M3 7l9 6 9-6" />
-                          </svg>
-                          {member.email}
-                        </span>
-                        <a href={`mailto:${member.email}`}>
-                          Send an email <span aria-hidden="true">→</span>
-                        </a>
-                      </p>
-                    ) : null}
-                    {member.phone ? (
-                      <p>
-                        <span>{member.phone}</span>
-                        <a href={`tel:${member.phone.replace(/[^\d+]/g, "")}`}>
-                          Call <span aria-hidden="true">→</span>
-                        </a>
-                      </p>
-                    ) : null}
-                    {member.profile_url ? (
-                      <p>
-                        <a
-                          className="profile-contact-external"
-                          href={member.profile_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Research profile <span aria-hidden="true">↗</span>
-                        </a>
-                      </p>
-                    ) : null}
+              {member.focus_areas.length > 0 ? (
+                <div className="faculty-contact-item faculty-contact-focus">
+                  <small>Associated areas of focus</small>
+                  <div className="faculty-focus-row">
+                    {member.focus_areas.map((area) => (
+                      <Link
+                        className="faculty-focus-link"
+                        href={`/research/${area.code.toLowerCase()}`}
+                        key={area.code}
+                      >
+                        <FocusIcon
+                          code={area.code as FocusCode}
+                          title={`${area.code} — ${area.title}`}
+                        />
+                        <span>{area.code}</span>
+                      </Link>
+                    ))}
                   </div>
                 </div>
               ) : null}
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section className="profile-body">
-            <div className="profile-about">
-              <h2>About {member.name}</h2>
-              {member.bio ? (
-                <p>{member.bio}</p>
-              ) : (
-                <p className="profile-about-empty">
+        <section className="faculty-about" id="about">
+          <div className="shell">
+            <p className="faculty-section-label">Profile</p>
+            {statement ? (
+              <h2 className="faculty-statement">{statement}</h2>
+            ) : null}
+            <div className="faculty-narrative">
+              {paragraphs.length > 0 ? (
+                paragraphs.map((paragraph) => (
+                  <p key={paragraph.slice(0, 48)}>{paragraph}</p>
+                ))
+              ) : statement ? null : (
+                <p className="faculty-narrative-empty">
                   A biography for this member of staff has not been published
                   yet.
                 </p>
               )}
-
-              {member.publications.length > 0 ? (
-                <div className="profile-publications-block">
-                  <h2>Selected publications</h2>
-                  <ul>
-                    {member.publications.map((entry) => (
-                      <li key={entry}>{entry}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
             </div>
 
-            <aside className="profile-details" aria-label="Profile details">
-              <h2>Profile details</h2>
-              {member.research_interests.length > 0 ||
-              member.education.length > 0 ||
-              member.courses_taught.length > 0 ||
-              member.office ? (
-                <div className="profile-detail-rows">
-                  <ProfileDetailRow
-                    icon="expertise"
-                    label="Areas of expertise"
-                    items={member.research_interests}
-                  />
-                  <ProfileDetailRow
-                    icon="education"
-                    label="Education"
-                    items={member.education}
-                  />
-                  <ProfileDetailRow
-                    icon="courses"
-                    label="Courses taught"
-                    items={member.courses_taught}
-                  />
-                  <ProfileDetailRow
-                    icon="office"
-                    label="Office"
-                    items={member.office ? [member.office] : []}
-                  />
-                </div>
-              ) : (
-                <p className="profile-details-empty">
-                  Expertise, education, and teaching details will appear here
-                  once they are added in the programme CMS.
-                </p>
-              )}
-            </aside>
-          </section>
+            {points.length > 0 ? (
+              <div className="faculty-points">
+                {points.map((point) => (
+                  <div className="faculty-point" key={point.label}>
+                    <strong>{point.label}</strong>
+                    <span>{point.value}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </section>
 
-          <p className="profile-back">
-            <Link className="text-link" href="/faculty">
-              <span aria-hidden="true">←</span> All faculty
-            </Link>
-          </p>
-        </div>
+        {workCards.length > 0 ? (
+          <section className="faculty-work" id="work">
+            <div className="shell">
+              <header className="faculty-work-head">
+                <div>
+                  <p className="faculty-section-label">Selected work</p>
+                  {/* Named rather than "his work": the same template renders for
+                      every member, and a pronoun would be a guess. */}
+                  <h2>Learn more about {member.name}&rsquo;s work</h2>
+                </div>
+                <p>
+                  Research projects, research themes, and teaching from the
+                  focus areas this member of staff works in.
+                </p>
+              </header>
+
+              <div className="faculty-work-grid">
+                {workCards.map((card) => (
+                  <Link
+                    className="faculty-work-card"
+                    href={card.href}
+                    key={card.key}
+                  >
+                    <div className="faculty-work-media">
+                      <span>{card.badge}</span>
+                      <img src={card.image} alt="" />
+                    </div>
+                    {card.meta ? (
+                      <p className="faculty-work-meta">{card.meta}</p>
+                    ) : null}
+                    <h3>{card.title}</h3>
+                    <p>{card.summary}</p>
+                    <span className="faculty-work-more">
+                      {card.cta} <span aria-hidden="true">→</span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        <section className="faculty-cta">
+          <div className="shell faculty-cta-inner">
+            <div>
+              <h2>Interested in collaborating?</h2>
+              <p>
+                Contact the Mechanical Engineering programme to discuss
+                research, teaching, or industry collaboration.
+              </p>
+            </div>
+            <a
+              className="button button-navy"
+              href={`mailto:${member.email || home.settings.email}`}
+            >
+              Send an email <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </section>
       </main>
       <SiteFooter focusAreas={home.focus_areas} settings={home.settings} />
     </>
