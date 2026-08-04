@@ -8,20 +8,27 @@ from django.db import migrations, models
 
 
 def richtext_to_stream(apps, schema_editor):
-    """Keep any body written before the switch to blocks.
+    """Rewrite every body as valid JSON before the column becomes a StreamField.
 
-    The column stores rich-text HTML today and StreamField JSON afterwards, so
-    existing copy is wrapped in a single paragraph block rather than left as
-    text a StreamField cannot parse. Runs before the field is altered, while
-    the historical model still treats the column as plain text.
+    The column stores rich-text HTML today and StreamField JSON afterwards. A
+    StreamField is JSON-backed, and SQLite enforces that with a
+    CHECK (JSON_VALID(...)) constraint, so *every* row has to be converted --
+    including the empty ones, since "" is not valid JSON and the table rebuild
+    fails on it. Existing copy is wrapped in a single text block so nothing an
+    author wrote is lost.
+
+    Runs before the field is altered, while the historical model still treats
+    the column as plain text.
     """
     NewsEvent = apps.get_model("program", "NewsEvent")
-    for entry in NewsEvent.objects.exclude(body=""):
+    for entry in NewsEvent.objects.all():
         body = (entry.body or "").strip()
-        if not body or body.startswith("["):
+        if body.startswith("[") or body.startswith("{"):
             continue
-        entry.body = json.dumps(
-            [{"type": "paragraph", "value": body, "id": str(uuid.uuid4())}]
+        entry.body = (
+            json.dumps([{"type": "paragraph", "value": body, "id": str(uuid.uuid4())}])
+            if body
+            else "[]"
         )
         entry.save(update_fields=["body"])
 
