@@ -1,4 +1,3 @@
-import tempfile
 from datetime import timedelta
 
 from django.core import mail
@@ -263,9 +262,8 @@ class SeedNewsEventsTests(TestCase):
     """The homepage news and events bands are fed by seeded starter entries."""
 
     def run_seed(self):
-        with tempfile.TemporaryDirectory() as media_root:
-            with override_settings(MEDIA_ROOT=media_root):
-                call_command("seed_me_content", verbosity=0)
+        """The targeted command, which is what the deployed backend can run."""
+        call_command("seed_news_events", verbosity=0)
 
     def test_seed_creates_starter_news_and_events(self):
         self.run_seed()
