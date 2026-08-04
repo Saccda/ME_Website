@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 
 from django.core import mail
@@ -300,6 +301,65 @@ class FacultyWorkItemTests(TestCase):
 
         response = self.client.get(reverse("faculty-list"))
         self.assertEqual(response.json()["results"][0]["work_items"], [])
+
+
+class StoryBodyTests(TestCase):
+    """Story bodies are sent as typed blocks, not one slab of HTML."""
+
+    def test_body_blocks_are_serialized_by_type(self):
+        NewsEvent.objects.create(
+            content_type="news",
+            category="Projects & Community",
+            title="From site assessment to long-term support",
+            slug="site-assessment-to-long-term-support",
+            excerpt="Working with a farm to install an automated system.",
+            body=json.dumps(
+                [
+                    {"type": "heading", "value": "What we built"},
+                    {"type": "paragraph", "value": "<p>An automated system.</p>"},
+                    {
+                        "type": "quote",
+                        "value": {
+                            "text": "The students handled the commissioning.",
+                            "attribution": "Site supervisor",
+                        },
+                    },
+                    {
+                        "type": "video",
+                        "value": {
+                            "url": "https://www.youtube.com/watch?v=abc123",
+                            "caption": "Commissioning day",
+                        },
+                    },
+                ]
+            ),
+        )
+
+        response = self.client.get(reverse("news-list"))
+        self.assertEqual(response.status_code, 200)
+        story = response.json()["results"][0]
+        self.assertEqual(story["category"], "Projects & Community")
+
+        blocks = story["body"]
+        self.assertEqual(
+            [block["type"] for block in blocks],
+            ["heading", "paragraph", "quote", "video"],
+        )
+        self.assertEqual(blocks[0]["value"], "What we built")
+        self.assertIn("An automated system.", blocks[1]["value"])
+        self.assertEqual(blocks[2]["attribution"], "Site supervisor")
+        self.assertEqual(blocks[3]["caption"], "Commissioning day")
+
+    def test_empty_body_serializes_as_an_empty_list(self):
+        NewsEvent.objects.create(
+            content_type="event",
+            title="Laboratory open house",
+            slug="laboratory-open-house",
+            excerpt="Tour the laboratories.",
+        )
+
+        response = self.client.get(reverse("news-list"))
+        self.assertEqual(response.json()["results"][0]["body"], [])
 
 
 class SeedNewsEventsTests(TestCase):

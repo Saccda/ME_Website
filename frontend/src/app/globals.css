@@ -2110,6 +2110,41 @@ img {
   margin-bottom: clamp(28px, 3.4vw, 44px);
 }
 
+/* Centred masthead for a section that carries more than one kind of story:
+   an eyebrow, a display heading, and one line of introduction. */
+.home-feed-head.centred {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: clamp(34px, 4vw, 56px);
+  text-align: center;
+}
+
+.home-feed-head.centred .eyebrow {
+  margin: 0 0 14px;
+}
+
+.home-feed-head.centred h2 {
+  max-width: 20ch;
+  font-size: var(--step-1);
+  text-wrap: balance;
+}
+
+.home-feed-intro {
+  margin: 18px 0 0;
+  max-width: 64ch;
+  color: var(--muted);
+  font-size: 1.06rem;
+  line-height: 1.6;
+}
+
+.home-feed-action {
+  margin: clamp(34px, 4vw, 52px) 0 0;
+  display: flex;
+  justify-content: center;
+}
+
 .home-feed-head h2 {
   margin: 0;
   font-size: var(--step-2);
@@ -2229,6 +2264,29 @@ img {
   font-size: 0.88rem;
 }
 
+.news-card-cue {
+  margin: auto 0 0;
+  padding-top: 18px;
+  color: var(--brand-navy);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.news-card-cue span {
+  margin-left: 8px;
+  display: inline-block;
+  transition: transform 240ms ease;
+}
+
+.news-card:hover .news-card-cue span {
+  transform: translateX(4px);
+}
+
+/* The kicker is the section's only categorisation, so it carries the gold. */
+.news-card-kicker {
+  color: #8a6011;
+}
+
 /* Events */
 .event-card {
   display: flex;
@@ -2304,6 +2362,200 @@ img {
 .event-card-action:focus-visible {
   color: var(--white);
   background: var(--brand-navy);
+}
+
+/* Story detail page: one column, generous measure, blocks from Wagtail. */
+.story-page {
+  background: var(--white);
+}
+
+.story-header {
+  padding: clamp(36px, 4.5vw, 68px) 0 clamp(24px, 3vw, 36px);
+  text-align: center;
+}
+
+.story-kicker {
+  margin: 0 0 18px;
+  color: #8a6011;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.story-header h1 {
+  margin: 0 auto;
+  max-width: 22ch;
+  font-size: var(--step-1);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.story-standfirst {
+  margin: 22px auto 0;
+  max-width: 62ch;
+  color: var(--muted);
+  font-size: 1.16rem;
+  line-height: 1.6;
+}
+
+.story-date {
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.story-lead-media {
+  margin-bottom: clamp(28px, 3.5vw, 48px);
+}
+
+.story-lead-media img {
+  width: 100%;
+  max-height: 560px;
+  display: block;
+  object-fit: cover;
+}
+
+.story-content {
+  padding-bottom: clamp(48px, 6vw, 88px);
+}
+
+/* The body is narrower than the lead image: prose wants a readable measure
+   even when the picture above it runs the full width of the page. */
+.story-body,
+.story-body-empty {
+  margin: 0 auto;
+  max-width: 72ch;
+}
+
+.story-body-empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.story-body > * + * {
+  margin-top: 26px;
+}
+
+.story-body h2 {
+  margin-top: 46px;
+  font-size: clamp(1.4rem, 2.2vw, 1.85rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.story-rich-text p {
+  margin: 0 0 18px;
+  color: var(--ink);
+  font-size: 1.1rem;
+  line-height: 1.75;
+}
+
+.story-rich-text p:last-child {
+  margin-bottom: 0;
+}
+
+.story-rich-text ul,
+.story-rich-text ol {
+  margin: 0 0 18px;
+  padding-left: 22px;
+  color: var(--ink);
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.story-rich-text li + li {
+  margin-top: 8px;
+}
+
+.story-rich-text a {
+  color: var(--brand-navy);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.story-figure {
+  margin: 44px 0;
+}
+
+.story-figure img {
+  width: 100%;
+  display: block;
+}
+
+.story-figure figcaption {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.story-video {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--cream);
+}
+
+.story-video iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.story-quote {
+  margin: 40px 0;
+  padding: 4px 0 4px 26px;
+  border-left: 4px solid var(--brand-gold);
+}
+
+.story-quote p {
+  margin: 0;
+  color: var(--brand-navy);
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  font-weight: 450;
+  line-height: 1.4;
+}
+
+.story-quote cite {
+  margin-top: 12px;
+  display: block;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-style: normal;
+}
+
+.story-document {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
+  padding: 18px 22px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  text-decoration: none;
+}
+
+.story-document:hover {
+  border-color: var(--brand-navy);
+}
+
+.story-document-label {
+  color: var(--brand-navy);
+  font-weight: 800;
+}
+
+.story-document-file {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.story-related h2 {
+  margin: 0 0 clamp(24px, 3vw, 38px);
+  font-size: var(--step-2);
+  letter-spacing: -0.03em;
 }
 
 /* Breadcrumb bar: sits directly under the fixed header, above each page hero. */

@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
@@ -26,7 +27,9 @@ function StoryCard({ item }: { item: NewsEvent }) {
         <time dateTime={item.event_date || item.published_at}>
           {formatDate(item.event_date || item.published_at)}
         </time>
-        <h3>{item.title}</h3>
+        <h3>
+          <Link href={`/news-events/${item.slug}`}>{item.title}</Link>
+        </h3>
         <p>{item.excerpt}</p>
       </div>
     </article>

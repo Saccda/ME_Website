@@ -21,6 +21,10 @@ export type ProgramSettings = {
   partners_section_eyebrow: string;
   partners_section_heading: string;
   partners_section_intro: string;
+  news_section_eyebrow: string;
+  news_section_heading: string;
+  news_section_intro: string;
+  news_section_cta_label: string;
   research_hero_eyebrow: string;
   research_hero_title: string;
   research_hero_description: string;
@@ -175,12 +179,22 @@ export type FacultyMember = {
   work_items: FacultyWorkItem[];
 };
 
+export type StoryBlock =
+  | { type: "heading"; value: string }
+  | { type: "paragraph"; value: string }
+  | { type: "image"; url: string; caption: string; alt_text: string }
+  | { type: "quote"; value: string; attribution: string }
+  | { type: "video"; url: string; caption: string }
+  | { type: "document"; url: string; label: string; filename: string };
+
 export type NewsEvent = {
   id: number;
   content_type: "news" | "event";
+  category: string;
   title: string;
   slug: string;
   excerpt: string;
+  body: StoryBlock[];
   image: string | null;
   event_date: string | null;
   published_at: string;
@@ -418,6 +432,11 @@ const fallbackData: HomeData = {
     partners_section_heading: "Four partners. One engineering ecosystem.",
     partners_section_intro:
       "Academia, government, industry, and society each shape what engineering is for. ME works across all four so our teaching, research, and graduates answer real national needs.",
+    news_section_eyebrow: "Latest news & activities",
+    news_section_heading: "Mechanical Engineering in action",
+    news_section_intro:
+      "Explore our latest projects, learning experiences, partnerships, and contributions to industry and the community.",
+    news_section_cta_label: "View all stories",
     research_hero_eyebrow: "Research at ME RUPP",
     research_hero_title: "Engineering research at the interface of ideas",
     research_hero_description:
@@ -896,8 +915,45 @@ function slugifyName(value: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+async function fetchNewsEvents(): Promise<NewsEvent[] | null> {
+  const items = await fetchCollection<Partial<NewsEvent>>("news");
+  if (items === null) return null;
+
+  return items.map((item, index) => ({
+    id: item.id ?? index,
+    content_type: item.content_type ?? "news",
+    category: item.category ?? "",
+    title: item.title ?? "",
+    slug: item.slug ?? "",
+    excerpt: item.excerpt ?? "",
+    // `body` was rich-text HTML before it became a list of blocks; anything
+    // that is not already a list is ignored rather than rendered as a string.
+    body: Array.isArray(item.body) ? item.body : [],
+    image: item.image ?? null,
+    event_date: item.event_date ?? null,
+    published_at: item.published_at ?? "",
+  }));
+}
+
 export function getNewsEvents(): Promise<NewsEvent[]> {
-  return getCollection<NewsEvent>("news");
+  return fetchNewsEvents().then((items) => items ?? []);
+}
+
+export type NewsEventLookup =
+  | { status: "found"; story: NewsEvent }
+  | { status: "not-found" }
+  | { status: "unavailable" };
+
+/**
+ * An empty list means the fetch failed rather than that the story is missing,
+ * so a slow API reports a temporary problem instead of a 404 for real content.
+ */
+export async function getNewsEvent(slug: string): Promise<NewsEventLookup> {
+  const items = await fetchNewsEvents();
+  if (items === null) return { status: "unavailable" };
+
+  const story = items.find((item) => item.slug === slug);
+  return story ? { status: "found", story } : { status: "not-found" };
 }
 
 export function getFacilities(): Promise<Facility[]> {

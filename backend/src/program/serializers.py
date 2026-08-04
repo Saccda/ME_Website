@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from wagtail.rich_text import expand_db_html
 
 from .models import (
     Course,
@@ -331,7 +332,71 @@ class FacultyMemberSerializer(serializers.ModelSerializer):
 
 class NewsEventSerializer(ImageSerializerMixin, serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
+    body = serializers.SerializerMethodField()
     image_field = "image"
+
+    def get_body(self, obj):
+        """Flatten the StreamField into blocks the frontend can render.
+
+        Sent as typed data rather than a slab of HTML so each block keeps its
+        own markup and styling on the page, and images and documents arrive as
+        resolved URLs.
+        """
+        request = self.context.get("request")
+        blocks = []
+
+        for child in obj.body:
+            value = child.value
+
+            if child.block_type == "heading":
+                blocks.append({"type": "heading", "value": str(value)})
+            elif child.block_type == "paragraph":
+                blocks.append(
+                    {"type": "paragraph", "value": expand_db_html(value.source)}
+                )
+            elif child.block_type == "image":
+                image = value.get("image")
+                if not image:
+                    continue
+                blocks.append(
+                    {
+                        "type": "image",
+                        "url": image_url(image, request),
+                        "caption": value.get("caption", ""),
+                        "alt_text": value.get("alt_text", ""),
+                    }
+                )
+            elif child.block_type == "quote":
+                blocks.append(
+                    {
+                        "type": "quote",
+                        "value": value.get("text", ""),
+                        "attribution": value.get("attribution", ""),
+                    }
+                )
+            elif child.block_type == "video":
+                blocks.append(
+                    {
+                        "type": "video",
+                        "url": value.get("url", ""),
+                        "caption": value.get("caption", ""),
+                    }
+                )
+            elif child.block_type == "document":
+                document = value.get("document")
+                if not document:
+                    continue
+                url = document.url
+                blocks.append(
+                    {
+                        "type": "document",
+                        "url": request.build_absolute_uri(url) if request else url,
+                        "label": value.get("label", "") or document.title,
+                        "filename": document.filename,
+                    }
+                )
+
+        return blocks
 
     class Meta:
         model = NewsEvent
@@ -339,6 +404,7 @@ class NewsEventSerializer(ImageSerializerMixin, serializers.ModelSerializer):
             "id",
             "sort_order",
             "content_type",
+            "category",
             "title",
             "slug",
             "excerpt",

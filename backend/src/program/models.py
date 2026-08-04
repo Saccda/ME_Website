@@ -5,9 +5,11 @@ from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
 from wagtail.admin.panels import FieldPanel, InlinePanel, MultiFieldPanel
 from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
-from wagtail.fields import RichTextField
+from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Orderable
 from wagtail.snippets.models import register_snippet
+
+from .blocks import StoryBodyBlock
 
 
 class OrderedModel(models.Model):
@@ -95,6 +97,24 @@ class ProgramSettings(BaseSiteSetting):
             "Our partnerships connect learning with research, industry "
             "experience, and job opportunities for ME students."
         )
+    )
+    news_section_eyebrow = models.CharField(
+        max_length=120,
+        default="Latest news & activities",
+    )
+    news_section_heading = models.CharField(
+        max_length=220,
+        default="Mechanical Engineering in action",
+    )
+    news_section_intro = models.TextField(
+        default=(
+            "Explore our latest projects, learning experiences, partnerships, "
+            "and contributions to industry and the community."
+        )
+    )
+    news_section_cta_label = models.CharField(
+        max_length=60,
+        default="View all stories",
     )
     research_hero_eyebrow = models.CharField(
         max_length=120,
@@ -260,6 +280,15 @@ class ProgramSettings(BaseSiteSetting):
                 FieldPanel("partners_section_intro"),
             ],
             heading="Homepage: Partnership",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("news_section_eyebrow"),
+                FieldPanel("news_section_heading"),
+                FieldPanel("news_section_intro"),
+                FieldPanel("news_section_cta_label"),
+            ],
+            heading="Homepage: News & activities",
         ),
         MultiFieldPanel(
             [
@@ -942,10 +971,26 @@ class NewsEvent(OrderedModel):
     CONTENT_TYPES = (("news", "News"), ("event", "Event"))
 
     content_type = models.CharField(max_length=10, choices=CONTENT_TYPES, default="news")
+    category = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text=(
+            "Small gold label above the title, for example Projects & "
+            "Community or International Engagement. Free text, so the section "
+            "can carry more than news."
+        ),
+    )
     title = models.CharField(max_length=220)
     slug = models.SlugField(max_length=240, unique=True)
     excerpt = models.TextField()
-    body = RichTextField(blank=True)
+    body = StreamField(
+        StoryBodyBlock(),
+        blank=True,
+        help_text=(
+            "The story itself. Add blocks, and drag them by the handle at the "
+            "top right of each block to rearrange."
+        ),
+    )
     image = models.ForeignKey(
         "wagtailimages.Image",
         null=True,
@@ -960,6 +1005,7 @@ class NewsEvent(OrderedModel):
     panels = [
         FieldPanel("sort_order"),
         FieldPanel("content_type"),
+        FieldPanel("category"),
         FieldPanel("title"),
         FieldPanel("slug"),
         FieldPanel("excerpt"),

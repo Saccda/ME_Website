@@ -221,11 +221,13 @@ export default async function Home() {
         {latestNews.length > 0 ? (
           <section className="section cream home-feed" id="latest-news">
             <div className="shell">
-              <header className="home-feed-head">
-                <h2>Latest news</h2>
-                <Link className="home-feed-all" href="/news-events">
-                  View all news
-                </Link>
+              {/* Centred masthead: the section carries projects, community
+                  work and partnerships as well as news, so it is introduced
+                  as a whole rather than labelled with a single content type. */}
+              <header className="home-feed-head centred">
+                <p className="eyebrow">{program.news_section_eyebrow}</p>
+                <h2>{program.news_section_heading}</h2>
+                <p className="home-feed-intro">{program.news_section_intro}</p>
               </header>
 
               <div className="home-feed-grid">
@@ -237,22 +239,31 @@ export default async function Home() {
                       </div>
                     ) : null}
                     <div className="news-card-body">
-                      <p className="news-card-kicker">News</p>
+                      <p className="news-card-kicker">
+                        {entry.item.category || "News"}
+                      </p>
                       {/* Only the title is a link; it stretches over the card so
                           the row exposes one target per article. */}
                       <h3>
-                        <Link href={`/news-events#${entry.item.slug}`}>
+                        <Link href={`/news-events/${entry.item.slug}`}>
                           {entry.item.title}
                         </Link>
                       </h3>
                       <p className="news-card-excerpt">{entry.item.excerpt}</p>
-                      {entry.date ? (
-                        <p className="news-card-date">{entry.date}</p>
-                      ) : null}
+                      <span className="news-card-cue" aria-hidden="true">
+                        Read story <span>→</span>
+                      </span>
                     </div>
                   </article>
                 ))}
               </div>
+
+              <p className="home-feed-action">
+                <Link className="button button-navy" href="/news-events">
+                  {program.news_section_cta_label}{" "}
+                  <span aria-hidden="true">→</span>
+                </Link>
+              </p>
             </div>
           </section>
         ) : null}
@@ -276,7 +287,8 @@ export default async function Home() {
                       </div>
                     ) : null}
                     <p className="event-card-badge">
-                      {entry.isUpcoming ? "Upcoming event" : "Recent event"}
+                      {entry.item.category ||
+                        (entry.isUpcoming ? "Upcoming event" : "Recent event")}
                     </p>
                     <h3>{entry.item.title}</h3>
                     {entry.date ? (
@@ -285,7 +297,7 @@ export default async function Home() {
                     <p className="event-card-excerpt">{entry.item.excerpt}</p>
                     <Link
                       className="event-card-action"
-                      href={`/news-events#${entry.item.slug}`}
+                      href={`/news-events/${entry.item.slug}`}
                       aria-label={`Event details: ${entry.item.title}`}
                     >
                       Event details

@@ -21,6 +21,7 @@ NEWS_ITEMS = [
         "first-year students starting their introduction to workshop practice "
         "and laboratory safety.",
         "DMP",
+        "Teaching & Learning",
     ),
     (
         "Focus-area laboratories expand their teaching equipment",
@@ -28,6 +29,7 @@ NEWS_ITEMS = [
         "Additional equipment is being commissioned for practical teaching, "
         "giving students more hands-on time with the systems they study.",
         None,
+        "Facilities",
     ),
     (
         "Mechanical Engineering strengthens its industry partnerships",
@@ -35,6 +37,7 @@ NEWS_ITEMS = [
         "The programme continues to develop its relationships with industry, "
         "supporting internships, capstone projects, and applied research.",
         "MAS",
+        "Industry & Partners",
     ),
 ]
 
@@ -45,6 +48,7 @@ EVENT_ITEMS = [
         "Prospective students and their families are invited to tour the "
         "focus-area laboratories and meet the teaching staff.",
         None,
+        "Open House",
     ),
     (
         "Industry and academic partnership day",
@@ -52,6 +56,7 @@ EVENT_ITEMS = [
         "Partners and programme staff meet to review internship placements "
         "and capstone project briefs for the year ahead.",
         "ECM",
+        "Industry & Partners",
     ),
     (
         "Student capstone project showcase",
@@ -59,6 +64,7 @@ EVENT_ITEMS = [
         "Final-year students present their capstone work to staff, partners, "
         "and the wider faculty.",
         "TES",
+        "Experiential Learning",
     ),
 ]
 
@@ -80,7 +86,9 @@ def seed_news_events():
     now = timezone.now()
     created_count = 0
 
-    def create(index, content_type, title, offset, excerpt, focus_code, is_event):
+    def create(
+        index, content_type, title, offset, excerpt, focus_code, category, is_event
+    ):
         nonlocal created_count
         moment = now + timedelta(days=offset)
         _, created = NewsEvent.objects.get_or_create(
@@ -88,6 +96,7 @@ def seed_news_events():
             defaults={
                 "sort_order": index,
                 "content_type": content_type,
+                "category": category,
                 "title": title,
                 "excerpt": excerpt,
                 "image": focus_images.get(focus_code, default_image),
@@ -99,13 +108,15 @@ def seed_news_events():
         if created:
             created_count += 1
 
-    for index, (title, offset, excerpt, focus_code) in enumerate(NEWS_ITEMS, start=1):
-        create(index, "news", title, offset, excerpt, focus_code, False)
+    for index, (title, offset, excerpt, focus_code, category) in enumerate(
+        NEWS_ITEMS, start=1
+    ):
+        create(index, "news", title, offset, excerpt, focus_code, category, False)
 
-    for index, (title, offset, excerpt, focus_code) in enumerate(
+    for index, (title, offset, excerpt, focus_code, category) in enumerate(
         EVENT_ITEMS, start=len(NEWS_ITEMS) + 1
     ):
-        create(index, "event", title, offset, excerpt, focus_code, True)
+        create(index, "event", title, offset, excerpt, focus_code, category, True)
 
     return created_count
 
