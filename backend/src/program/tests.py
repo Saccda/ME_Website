@@ -1,4 +1,5 @@
 import json
+import tempfile
 from datetime import timedelta
 
 from django.core import mail
@@ -6,6 +7,8 @@ from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from wagtail.images import get_image_model
+from wagtail.images.tests.utils import get_test_image_file
 from wagtail.models import Site
 
 from .models import (
@@ -349,6 +352,35 @@ class StoryBodyTests(TestCase):
         self.assertIn("An automated system.", blocks[1]["value"])
         self.assertEqual(blocks[2]["attribution"], "Site supervisor")
         self.assertEqual(blocks[3]["caption"], "Commissioning day")
+
+    def test_card_and_lead_images_are_sized_renditions(self):
+        """Cards must not be served the full-size original.
+
+        Uploads and renditions go to a temporary directory so the suite does
+        not leave test images behind in the project's media folder.
+        """
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                image = get_image_model().objects.create(
+                    title="Laboratory",
+                    file=get_test_image_file(size=(3000, 2000)),
+                )
+                NewsEvent.objects.create(
+                    content_type="news",
+                    title="A story with a photograph",
+                    slug="story-with-a-photograph",
+                    excerpt="It has a picture.",
+                    image=image,
+                )
+
+                story = self.client.get(reverse("news-list")).json()["results"][0]
+                self.assertNotIn("original_images", story["image"])
+                self.assertNotIn("original_images", story["image_wide"])
+                self.assertNotEqual(story["image"], story["image_wide"])
+
+                card = image.get_rendition("fill-900x563")
+                self.assertEqual((card.width, card.height), (900, 563))
+                self.assertEqual(image.get_rendition("width-2400").width, 2400)
 
     def test_gallery_without_images_is_dropped(self):
         NewsEvent.objects.create(

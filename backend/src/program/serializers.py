@@ -26,6 +26,31 @@ def image_url(image, request=None):
     return request.build_absolute_uri(url) if request else url
 
 
+# Sizes matched to the boxes these images actually land in. Serving the
+# original means a 5712px photograph is downloaded to fill a 460px card, and
+# the browser does the cropping the CMS should have done.
+CARD_IMAGE = "fill-900x563"  # 16:10, the news and event card crop
+WIDE_IMAGE = "width-2400"  # full-bleed story lead
+BODY_IMAGE = "width-1600"  # a figure inside the story band
+ROW_IMAGE = "fill-1200x800"  # 3:2, the image-row crop
+
+
+def rendition_url(image, spec, request=None):
+    """A resized copy, generated and cached by Wagtail on first request.
+
+    Falls back to the original if the source cannot be processed -- a missing
+    file or a format Pillow cannot open -- so a bad upload degrades to a large
+    image rather than a broken one.
+    """
+    if not image:
+        return None
+    try:
+        url = image.get_rendition(spec).url
+    except (OSError, ValueError):
+        return image_url(image, request)
+    return request.build_absolute_uri(url) if request else url
+
+
 class ImageSerializerMixin:
     def get_image(self, obj):
         request = self.context.get("request")
@@ -330,10 +355,16 @@ class FacultyMemberSerializer(serializers.ModelSerializer):
         )
 
 
-class NewsEventSerializer(ImageSerializerMixin, serializers.ModelSerializer):
+class NewsEventSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
+    image_wide = serializers.SerializerMethodField()
     body = serializers.SerializerMethodField()
-    image_field = "image"
+
+    def get_image(self, obj):
+        return rendition_url(obj.image, CARD_IMAGE, self.context.get("request"))
+
+    def get_image_wide(self, obj):
+        return rendition_url(obj.image, WIDE_IMAGE, self.context.get("request"))
 
     def get_body(self, obj):
         """Flatten the StreamField into blocks the frontend can render.
@@ -361,7 +392,7 @@ class NewsEventSerializer(ImageSerializerMixin, serializers.ModelSerializer):
                 blocks.append(
                     {
                         "type": "image",
-                        "url": image_url(image, request),
+                        "url": rendition_url(image, BODY_IMAGE, request),
                         "caption": value.get("caption", ""),
                         "alt_text": value.get("alt_text", ""),
                     }
@@ -369,7 +400,7 @@ class NewsEventSerializer(ImageSerializerMixin, serializers.ModelSerializer):
             elif child.block_type == "gallery":
                 images = [
                     {
-                        "url": image_url(entry.get("image"), request),
+                        "url": rendition_url(entry.get("image"), ROW_IMAGE, request),
                         "alt_text": entry.get("alt_text", ""),
                     }
                     for entry in value.get("images", [])
@@ -429,6 +460,7 @@ class NewsEventSerializer(ImageSerializerMixin, serializers.ModelSerializer):
             "excerpt",
             "body",
             "image",
+            "image_wide",
             "event_date",
             "published_at",
         )

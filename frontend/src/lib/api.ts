@@ -201,7 +201,9 @@ export type NewsEvent = {
   author: string;
   excerpt: string;
   body: StoryBlock[];
+  /** Card-sized crop. `image_wide` is the same photograph for a full-bleed lead. */
   image: string | null;
+  image_wide: string | null;
   event_date: string | null;
   published_at: string;
 };
@@ -937,6 +939,7 @@ async function fetchNewsEvents(): Promise<NewsEvent[] | null> {
     // that is not already a list is ignored rather than rendered as a string.
     body: Array.isArray(item.body) ? item.body : [],
     image: item.image ?? null,
+    image_wide: item.image_wide ?? item.image ?? null,
     event_date: item.event_date ?? null,
     published_at: item.published_at ?? "",
   }));

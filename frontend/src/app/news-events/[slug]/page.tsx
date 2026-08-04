@@ -83,9 +83,9 @@ export default async function StoryPage({ params }: StoryPageProps) {
 
         {/* The lead image runs to the window edge, ahead of the headline, so
             the story opens on the photograph rather than on type. */}
-        {story.image ? (
+        {story.image_wide || story.image ? (
           <div className="story-lead-media">
-            <img src={story.image} alt="" />
+            <img src={(story.image_wide || story.image) as string} alt="" />
           </div>
         ) : null}
 
