@@ -366,6 +366,24 @@ class NewsEventSerializer(ImageSerializerMixin, serializers.ModelSerializer):
                         "alt_text": value.get("alt_text", ""),
                     }
                 )
+            elif child.block_type == "gallery":
+                images = [
+                    {
+                        "url": image_url(entry.get("image"), request),
+                        "alt_text": entry.get("alt_text", ""),
+                    }
+                    for entry in value.get("images", [])
+                    if entry.get("image")
+                ]
+                if not images:
+                    continue
+                blocks.append(
+                    {
+                        "type": "gallery",
+                        "images": images,
+                        "caption": value.get("caption", ""),
+                    }
+                )
             elif child.block_type == "quote":
                 blocks.append(
                     {
@@ -407,6 +425,7 @@ class NewsEventSerializer(ImageSerializerMixin, serializers.ModelSerializer):
             "category",
             "title",
             "slug",
+            "author",
             "excerpt",
             "body",
             "image",

@@ -982,6 +982,14 @@ class NewsEvent(OrderedModel):
     )
     title = models.CharField(max_length=220)
     slug = models.SlugField(max_length=240, unique=True)
+    author = models.CharField(
+        max_length=160,
+        blank=True,
+        help_text=(
+            "Byline shown under the headline, for example "
+            "Sok Dara, Communications Officer."
+        ),
+    )
     excerpt = models.TextField()
     body = StreamField(
         StoryBodyBlock(),
@@ -1008,6 +1016,7 @@ class NewsEvent(OrderedModel):
         FieldPanel("category"),
         FieldPanel("title"),
         FieldPanel("slug"),
+        FieldPanel("author"),
         FieldPanel("excerpt"),
         FieldPanel("body"),
         FieldPanel("image"),

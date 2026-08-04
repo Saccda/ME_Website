@@ -69,6 +69,25 @@ export default function StoryBody({ blocks }: { blocks: StoryBlock[] }) {
               </figure>
             );
 
+          case "gallery":
+            return (
+              <figure className="story-gallery" key={key}>
+                <div data-count={block.images.length}>
+                  {block.images.map((entry) => (
+                    <img
+                      alt={entry.alt_text}
+                      key={entry.url}
+                      loading="lazy"
+                      src={entry.url}
+                    />
+                  ))}
+                </div>
+                {block.caption ? (
+                  <figcaption>{block.caption}</figcaption>
+                ) : null}
+              </figure>
+            );
+
           case "quote":
             return (
               <blockquote className="story-quote" key={key}>

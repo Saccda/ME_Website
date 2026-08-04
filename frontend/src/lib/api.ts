@@ -183,6 +183,11 @@ export type StoryBlock =
   | { type: "heading"; value: string }
   | { type: "paragraph"; value: string }
   | { type: "image"; url: string; caption: string; alt_text: string }
+  | {
+      type: "gallery";
+      images: { url: string; alt_text: string }[];
+      caption: string;
+    }
   | { type: "quote"; value: string; attribution: string }
   | { type: "video"; url: string; caption: string }
   | { type: "document"; url: string; label: string; filename: string };
@@ -193,6 +198,7 @@ export type NewsEvent = {
   category: string;
   title: string;
   slug: string;
+  author: string;
   excerpt: string;
   body: StoryBlock[];
   image: string | null;
@@ -925,6 +931,7 @@ async function fetchNewsEvents(): Promise<NewsEvent[] | null> {
     category: item.category ?? "",
     title: item.title ?? "",
     slug: item.slug ?? "",
+    author: item.author ?? "",
     excerpt: item.excerpt ?? "",
     // `body` was rich-text HTML before it became a list of blocks; anything
     // that is not already a list is ignored rather than rendered as a string.

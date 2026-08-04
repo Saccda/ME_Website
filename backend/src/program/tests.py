@@ -350,6 +350,24 @@ class StoryBodyTests(TestCase):
         self.assertEqual(blocks[2]["attribution"], "Site supervisor")
         self.assertEqual(blocks[3]["caption"], "Commissioning day")
 
+    def test_gallery_without_images_is_dropped(self):
+        NewsEvent.objects.create(
+            content_type="news",
+            title="A story with an unfilled image row",
+            slug="story-with-unfilled-image-row",
+            excerpt="The author added the block but chose no pictures.",
+            body=json.dumps(
+                [
+                    {"type": "gallery", "value": {"images": [], "caption": "Row"}},
+                    {"type": "heading", "value": "Still here"},
+                ]
+            ),
+        )
+
+        response = self.client.get(reverse("news-list"))
+        blocks = response.json()["results"][0]["body"]
+        self.assertEqual([block["type"] for block in blocks], ["heading"])
+
     def test_empty_body_serializes_as_an_empty_list(self):
         NewsEvent.objects.create(
             content_type="event",

@@ -33,6 +33,30 @@ class ImageBlock(blocks.StructBlock):
         label = "Image"
 
 
+class GalleryBlock(blocks.StructBlock):
+    """Two or three images across one row, as a set rather than one after another."""
+
+    images = blocks.ListBlock(
+        blocks.StructBlock(
+            [
+                ("image", ImageChooserBlock()),
+                ("alt_text", blocks.CharBlock(required=False, max_length=250)),
+            ]
+        ),
+        min_num=2,
+        max_num=3,
+    )
+    caption = blocks.CharBlock(
+        required=False,
+        max_length=250,
+        help_text="Shown under the row.",
+    )
+
+    class Meta:
+        icon = "image"
+        label = "Image row"
+
+
 class QuoteBlock(blocks.StructBlock):
     text = blocks.TextBlock()
     attribution = blocks.CharBlock(required=False, max_length=160)
@@ -76,6 +100,7 @@ class StoryBodyBlock(blocks.StreamBlock):
         label="Text",
     )
     image = ImageBlock()
+    gallery = GalleryBlock()
     quote = QuoteBlock()
     video = VideoBlock()
     document = DocumentBlock()

@@ -2401,18 +2401,31 @@ img {
   background: var(--brand-navy);
 }
 
-/* Story detail page: one column, generous measure, blocks from Wagtail. */
+/* Story detail page.
+   Two measures, not one: prose sits on a column narrow enough to read, while
+   pictures, video and image rows run out to the full width of the band. That
+   difference is what makes a story page feel like a magazine spread rather
+   than a document. */
 .story-page {
+  --shell: min(1440px, calc(100vw - clamp(24px, 5vw, 80px)));
+  --story-measure: min(1080px, 100%);
   background: var(--white);
 }
 
+/* Edge to edge, ahead of the headline. */
+.story-lead-media img {
+  width: 100%;
+  height: clamp(260px, 46vw, 680px);
+  display: block;
+  object-fit: cover;
+}
+
 .story-header {
-  padding: clamp(36px, 4.5vw, 68px) 0 clamp(24px, 3vw, 36px);
-  text-align: center;
+  padding: clamp(38px, 4.5vw, 72px) 0 clamp(20px, 2.4vw, 34px);
 }
 
 .story-kicker {
-  margin: 0 0 18px;
+  margin: 0 0 20px;
   color: #8a6011;
   font-size: 0.78rem;
   font-weight: 850;
@@ -2421,49 +2434,39 @@ img {
 }
 
 .story-header h1 {
-  margin: 0 auto;
-  max-width: 22ch;
-  font-size: var(--step-1);
+  margin: 0;
+  max-width: var(--story-measure);
+  font-size: clamp(2.1rem, 4.2vw, 3.65rem);
   line-height: 1.08;
   letter-spacing: -0.035em;
   text-wrap: balance;
 }
 
+.story-byline {
+  margin: 24px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.98rem;
+}
+
 .story-standfirst {
-  margin: 22px auto 0;
-  max-width: 62ch;
-  color: var(--muted);
-  font-size: 1.16rem;
-  line-height: 1.6;
-}
-
-.story-date {
-  margin: 22px 0 0;
-  color: var(--muted);
-  font-size: 0.92rem;
-}
-
-.story-lead-media {
-  margin-bottom: clamp(28px, 3.5vw, 48px);
-}
-
-.story-lead-media img {
-  width: 100%;
-  max-height: 560px;
-  display: block;
-  object-fit: cover;
+  margin: 26px 0 0;
+  max-width: var(--story-measure);
+  color: var(--ink);
+  font-size: clamp(1.1rem, 1.35vw, 1.28rem);
+  line-height: 1.55;
 }
 
 .story-content {
   padding-bottom: clamp(48px, 6vw, 88px);
 }
 
-/* The body is narrower than the lead image: prose wants a readable measure
-   even when the picture above it runs the full width of the page. */
-.story-body,
+/* Text keeps the reading measure; media overrides it below. */
+.story-body > *,
 .story-body-empty {
-  margin: 0 auto;
-  max-width: 72ch;
+  max-width: var(--story-measure);
 }
 
 .story-body-empty {
@@ -2472,20 +2475,20 @@ img {
 }
 
 .story-body > * + * {
-  margin-top: 26px;
+  margin-top: 28px;
 }
 
 .story-body h2 {
-  margin-top: 46px;
-  font-size: clamp(1.4rem, 2.2vw, 1.85rem);
+  margin-top: 52px;
+  font-size: clamp(1.45rem, 2.2vw, 2rem);
   line-height: 1.2;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 
 .story-rich-text p {
-  margin: 0 0 18px;
+  margin: 0 0 20px;
   color: var(--ink);
-  font-size: 1.1rem;
+  font-size: 1.09rem;
   line-height: 1.75;
 }
 
@@ -2495,10 +2498,10 @@ img {
 
 .story-rich-text ul,
 .story-rich-text ol {
-  margin: 0 0 18px;
-  padding-left: 22px;
+  margin: 0 0 20px;
+  padding-left: 24px;
   color: var(--ink);
-  font-size: 1.1rem;
+  font-size: 1.09rem;
   line-height: 1.7;
 }
 
@@ -2512,8 +2515,11 @@ img {
   text-underline-offset: 3px;
 }
 
-.story-figure {
-  margin: 44px 0;
+/* Media runs the full band, wider than the prose it sits between. */
+.story-figure,
+.story-gallery {
+  margin: clamp(40px, 4.5vw, 68px) 0;
+  max-width: 100%;
 }
 
 .story-figure img {
@@ -2521,11 +2527,32 @@ img {
   display: block;
 }
 
-.story-figure figcaption {
-  margin-top: 12px;
+.story-figure figcaption,
+.story-gallery figcaption {
+  margin-top: 14px;
+  max-width: var(--story-measure);
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   line-height: 1.5;
+}
+
+/* Two or three pictures abreast, each cropped to a shared ratio so the row
+   has one clean baseline whatever the originals were shot at. */
+.story-gallery > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(14px, 1.6vw, 24px);
+}
+
+.story-gallery > div[data-count="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.story-gallery img {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  display: block;
+  object-fit: cover;
 }
 
 .story-video {
@@ -2543,24 +2570,25 @@ img {
 }
 
 .story-quote {
-  margin: 40px 0;
-  padding: 4px 0 4px 26px;
+  margin: clamp(40px, 4.5vw, 64px) 0;
+  padding: 4px 0 4px 28px;
   border-left: 4px solid var(--brand-gold);
 }
 
 .story-quote p {
   margin: 0;
   color: var(--brand-navy);
-  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  font-size: clamp(1.25rem, 2.1vw, 1.75rem);
+  font-style: italic;
   font-weight: 450;
-  line-height: 1.4;
+  line-height: 1.38;
 }
 
 .story-quote cite {
-  margin-top: 12px;
+  margin-top: 16px;
   display: block;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.94rem;
   font-style: normal;
 }
 
@@ -2589,10 +2617,30 @@ img {
   font-size: 0.86rem;
 }
 
+.story-foot {
+  margin: clamp(40px, 4.5vw, 64px) 0 0;
+  padding-top: 26px;
+  border-top: 1px solid var(--line);
+}
+
+.story-top-link {
+  color: var(--brand-navy);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 .story-related h2 {
   margin: 0 0 clamp(24px, 3vw, 38px);
   font-size: var(--step-2);
   letter-spacing: -0.03em;
+}
+
+@media (max-width: 680px) {
+  .story-gallery > div,
+  .story-gallery > div[data-count="3"] {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Breadcrumb bar: sits directly under the fixed header, above each page hero. */

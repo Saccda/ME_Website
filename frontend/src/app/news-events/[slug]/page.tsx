@@ -81,6 +81,14 @@ export default async function StoryPage({ params }: StoryPageProps) {
           ]}
         />
 
+        {/* The lead image runs to the window edge, ahead of the headline, so
+            the story opens on the photograph rather than on type. */}
+        {story.image ? (
+          <div className="story-lead-media">
+            <img src={story.image} alt="" />
+          </div>
+        ) : null}
+
         <article>
           <header className="story-header">
             <div className="shell">
@@ -88,30 +96,29 @@ export default async function StoryPage({ params }: StoryPageProps) {
                 {story.category || (isEvent ? "Event" : "News")}
               </p>
               <h1>{story.title}</h1>
+              {date || story.author ? (
+                <p className="story-byline">
+                  {date ? (
+                    <time
+                      dateTime={
+                        (isEvent ? story.event_date : story.published_at) ??
+                        undefined
+                      }
+                    >
+                      {isEvent ? `Taking place ${date}` : date}
+                    </time>
+                  ) : null}
+                  {date && story.author ? (
+                    <span aria-hidden="true">|</span>
+                  ) : null}
+                  {story.author ? <span>By {story.author}</span> : null}
+                </p>
+              ) : null}
               {story.excerpt ? (
                 <p className="story-standfirst">{story.excerpt}</p>
               ) : null}
-              {date ? (
-                <p className="story-date">
-                  {isEvent ? "Taking place " : "Published "}
-                  <time
-                    dateTime={
-                      (isEvent ? story.event_date : story.published_at) ??
-                      undefined
-                    }
-                  >
-                    {date}
-                  </time>
-                </p>
-              ) : null}
             </div>
           </header>
-
-          {story.image ? (
-            <div className="shell story-lead-media">
-              <img src={story.image} alt="" />
-            </div>
-          ) : null}
 
           <div className="shell story-content">
             {story.body.length > 0 ? (
@@ -121,6 +128,12 @@ export default async function StoryPage({ params }: StoryPageProps) {
                 The full story is being written. Check back shortly.
               </p>
             )}
+
+            <p className="story-foot">
+              <a className="story-top-link" href="#main-content">
+                Back to top <span aria-hidden="true">↑</span>
+              </a>
+            </p>
           </div>
         </article>
 
