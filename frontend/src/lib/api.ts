@@ -143,6 +143,17 @@ export type Opportunity = {
   is_featured: boolean;
 };
 
+export type FacultyWorkItem = {
+  id: number;
+  badge: string;
+  title: string;
+  meta: string;
+  summary: string;
+  image: string | null;
+  link_url: string;
+  link_label: string;
+};
+
 export type FacultyMember = {
   id: number;
   name: string;
@@ -161,6 +172,7 @@ export type FacultyMember = {
   publications: string[];
   photo: string | null;
   focus_areas: FocusArea[];
+  work_items: FacultyWorkItem[];
 };
 
 export type NewsEvent = {
@@ -797,6 +809,16 @@ async function fetchFacultyMembers(): Promise<FacultyMember[] | null> {
     publications: list(member.publications),
     photo: member.photo ?? null,
     focus_areas: member.focus_areas ?? [],
+    work_items: (member.work_items ?? []).map((item, position) => ({
+      id: item.id ?? position,
+      badge: item.badge ?? "",
+      title: item.title ?? "",
+      meta: item.meta ?? "",
+      summary: item.summary ?? "",
+      image: item.image ?? null,
+      link_url: item.link_url ?? "",
+      link_label: item.link_label ?? "",
+    })),
   }));
 }
 

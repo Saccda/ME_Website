@@ -12,6 +12,7 @@ from .models import (
     CurriculumYear,
     Facility,
     FacultyMember,
+    FacultyWorkItem,
     FocusArea,
     FocusAreaDetailItem,
     Inquiry,
@@ -256,6 +257,49 @@ class PublicApiTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(Inquiry.objects.count(), 0)
+
+
+class FacultyWorkItemTests(TestCase):
+    """Selected work cards are authored per member and exposed in order."""
+
+    def test_work_items_are_serialized_in_sort_order(self):
+        member = FacultyMember.objects.create(
+            name="Sok Dara",
+            role="Lecturer",
+        )
+        FacultyWorkItem.objects.create(
+            member=member,
+            sort_order=2,
+            badge="Mentorship",
+            title="Supervising final-year capstone teams",
+            meta="Teaching · Supervision",
+            summary="Guiding student teams through the capstone process.",
+            link_url="/curriculum",
+            link_label="See the curriculum",
+        )
+        FacultyWorkItem.objects.create(
+            member=member,
+            sort_order=1,
+            badge="Research project",
+            title="Automated cooling",
+            link_url="https://example.org/project",
+        )
+
+        response = self.client.get(reverse("faculty-list"))
+        self.assertEqual(response.status_code, 200)
+        items = response.json()["results"][0]["work_items"]
+        self.assertEqual(
+            [item["title"] for item in items],
+            ["Automated cooling", "Supervising final-year capstone teams"],
+        )
+        self.assertEqual(items[1]["badge"], "Mentorship")
+        self.assertEqual(items[1]["link_label"], "See the curriculum")
+
+    def test_member_without_work_items_returns_an_empty_list(self):
+        FacultyMember.objects.create(name="Chan Sopheak", role="Lecturer")
+
+        response = self.client.get(reverse("faculty-list"))
+        self.assertEqual(response.json()["results"][0]["work_items"], [])
 
 
 class SeedNewsEventsTests(TestCase):

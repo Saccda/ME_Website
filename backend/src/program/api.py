@@ -155,7 +155,12 @@ class FacultyMemberViewSet(PublicReadOnlyViewSet):
     queryset = (
         FacultyMember.objects.filter(is_published=True)
         .select_related("photo")
-        .prefetch_related("focus_areas", "focus_areas__image")
+        .prefetch_related(
+            "focus_areas",
+            "focus_areas__image",
+            "work_items",
+            "work_items__image",
+        )
     )
     serializer_class = FacultyMemberSerializer
     search_fields = ("name", "role", "bio", "focus_areas__code")

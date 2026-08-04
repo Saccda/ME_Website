@@ -5,6 +5,7 @@ from .models import (
     CurriculumYear,
     Facility,
     FacultyMember,
+    FacultyWorkItem,
     FocusArea,
     FocusAreaDetailItem,
     Inquiry,
@@ -253,8 +254,30 @@ class FocusAreaDetailSerializer(FocusAreaSerializer):
         )
 
 
+class FacultyWorkItemSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    def get_image(self, obj):
+        return image_url(obj.image, self.context.get("request"))
+
+    class Meta:
+        model = FacultyWorkItem
+        fields = (
+            "id",
+            "sort_order",
+            "badge",
+            "title",
+            "meta",
+            "summary",
+            "image",
+            "link_url",
+            "link_label",
+        )
+
+
 class FacultyMemberSerializer(serializers.ModelSerializer):
     photo = serializers.SerializerMethodField()
+    work_items = FacultyWorkItemSerializer(many=True, read_only=True)
     focus_areas = FocusAreaSerializer(many=True, read_only=True)
     research_interests = serializers.SerializerMethodField()
     education = serializers.SerializerMethodField()
@@ -300,6 +323,7 @@ class FacultyMemberSerializer(serializers.ModelSerializer):
             "education",
             "courses_taught",
             "publications",
+            "work_items",
             "photo",
             "focus_areas",
         )

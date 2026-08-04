@@ -162,17 +162,42 @@ type WorkCard = {
   cta: string;
 };
 
+/** Cards written on the member's own record in Wagtail. */
+function authoredWorkCards(member: FacultyMember): WorkCard[] {
+  return member.work_items
+    .filter((item) => item.title)
+    .map((item) => ({
+      key: `item-${item.id}`,
+      badge: item.badge,
+      meta: item.meta,
+      title: item.title,
+      summary: item.summary,
+      href: item.link_url,
+      image:
+        item.image ||
+        getFocusHeroImage(member.focus_areas[0]?.code ?? "") ||
+        "/assets/hero-lab.png",
+      cta: item.link_label,
+    }));
+}
+
 /**
- * A member's work is not only research, so the row mixes the kinds of work the
- * CMS actually holds: published projects, the research themes of their focus
- * areas, and the teaching those areas are taught through. One of each is taken
- * first so the three cards are varied, then any remaining slot is backfilled
- * from whichever pool still has entries.
+ * Cards authored on the member's record win outright — an author who has filled
+ * the Selected work panel in gets exactly what they wrote, in their order.
+ *
+ * Otherwise the row is assembled, because a member's work is not only research:
+ * it mixes the kinds of work the CMS already holds — published projects, the
+ * research themes of their focus areas, and the teaching those areas are taught
+ * through. One of each is taken first so the three cards are varied, then any
+ * remaining slot is backfilled from whichever pool still has entries.
  */
 function buildWorkCards(
   member: FacultyMember,
   projects: ResearchProject[],
 ): WorkCard[] {
+  const authored = authoredWorkCards(member);
+  if (authored.length > 0) return authored;
+
   const projectCards: WorkCard[] = projects.map((project) => ({
     key: `project-${project.slug}`,
     badge: "Research project",
@@ -524,26 +549,58 @@ export default async function FacultyProfilePage({ params }: ProfilePageProps) {
               </header>
 
               <div className="faculty-work-grid">
-                {workCards.map((card) => (
-                  <Link
-                    className="faculty-work-card"
-                    href={card.href}
-                    key={card.key}
-                  >
-                    <div className="faculty-work-media">
-                      <span>{card.badge}</span>
-                      <img src={card.image} alt="" />
-                    </div>
-                    {card.meta ? (
-                      <p className="faculty-work-meta">{card.meta}</p>
-                    ) : null}
-                    <h3>{card.title}</h3>
-                    <p>{card.summary}</p>
-                    <span className="faculty-work-more">
-                      {card.cta} <span aria-hidden="true">→</span>
-                    </span>
-                  </Link>
-                ))}
+                {workCards.map((card) => {
+                  const body = (
+                    <>
+                      <div className="faculty-work-media">
+                        {card.badge ? <span>{card.badge}</span> : null}
+                        <img src={card.image} alt="" />
+                      </div>
+                      {card.meta ? (
+                        <p className="faculty-work-meta">{card.meta}</p>
+                      ) : null}
+                      <h3>{card.title}</h3>
+                      {card.summary ? <p>{card.summary}</p> : null}
+                      {card.cta ? (
+                        <span className="faculty-work-more">
+                          {card.cta} <span aria-hidden="true">→</span>
+                        </span>
+                      ) : null}
+                    </>
+                  );
+
+                  // An authored card may have no destination, or point off
+                  // site; neither can go through the internal router.
+                  if (!card.href) {
+                    return (
+                      <article className="faculty-work-card" key={card.key}>
+                        {body}
+                      </article>
+                    );
+                  }
+                  if (/^https?:\/\//i.test(card.href)) {
+                    return (
+                      <a
+                        className="faculty-work-card"
+                        href={card.href}
+                        key={card.key}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {body}
+                      </a>
+                    );
+                  }
+                  return (
+                    <Link
+                      className="faculty-work-card"
+                      href={card.href}
+                      key={card.key}
+                    >
+                      {body}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </section>

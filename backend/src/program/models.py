@@ -1,9 +1,12 @@
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
-from wagtail.admin.panels import FieldPanel, MultiFieldPanel
+from modelcluster.fields import ParentalKey
+from modelcluster.models import ClusterableModel
+from wagtail.admin.panels import FieldPanel, InlinePanel, MultiFieldPanel
 from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
 from wagtail.fields import RichTextField
+from wagtail.models import Orderable
 from wagtail.snippets.models import register_snippet
 
 
@@ -761,7 +764,7 @@ class FocusAreaDetailItem(OrderedModel):
 
 
 @register_snippet
-class FacultyMember(OrderedModel):
+class FacultyMember(ClusterableModel, OrderedModel):
     LIST_HELP = "One entry per line."
 
     name = models.CharField(max_length=160)
@@ -843,8 +846,24 @@ class FacultyMember(OrderedModel):
             ],
             heading="Profile",
         ),
+        InlinePanel(
+            "work_items",
+            heading="Selected work",
+            label="Card",
+            help_text=(
+                "Cards shown in the Selected work row on this member's profile "
+                "page. Leave empty to build the row automatically from the "
+                "research projects, research themes, and teaching of the focus "
+                "areas above."
+            ),
+        ),
         FieldPanel("is_published"),
     ]
+
+    # ClusterableModel comes first in the bases, so its empty Meta would
+    # otherwise win and the directory would lose its sort order.
+    class Meta(OrderedModel.Meta):
+        pass
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -853,6 +872,69 @@ class FacultyMember(OrderedModel):
 
     def __str__(self):
         return self.name
+
+
+class FacultyWorkItem(Orderable):
+    """One card in the Selected work row of a faculty profile page.
+
+    A member's work is not only research, so the badge is free text rather than
+    a fixed list: an author can label a card Research project, Mentorship,
+    Industry collaboration, or anything else that describes it honestly.
+    """
+
+    member = ParentalKey(
+        FacultyMember,
+        on_delete=models.CASCADE,
+        related_name="work_items",
+    )
+    badge = models.CharField(
+        max_length=40,
+        default="Research project",
+        help_text="Label on the gold tab, for example Teaching & research.",
+    )
+    title = models.CharField(max_length=180)
+    summary = models.TextField(blank=True)
+    meta = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Small underlined line above the title, for example "
+        "Automation · Environmental control.",
+    )
+    image = models.ForeignKey(
+        "wagtailimages.Image",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    link_url = models.CharField(
+        max_length=300,
+        blank=True,
+        help_text="Where the card goes. A path on this site such as "
+        "/research/projects/metal-recycling, or a full external address.",
+    )
+    link_label = models.CharField(
+        max_length=60,
+        blank=True,
+        default="Explore the work",
+        help_text="Text of the link at the foot of the card.",
+    )
+
+    panels = [
+        FieldPanel("badge"),
+        FieldPanel("title"),
+        FieldPanel("meta"),
+        FieldPanel("summary"),
+        FieldPanel("image"),
+        FieldPanel("link_url"),
+        FieldPanel("link_label"),
+    ]
+
+    class Meta(Orderable.Meta):
+        verbose_name = "Faculty work card"
+
+    def __str__(self):
+        return f"{self.member.name} — {self.title}"
 
 
 @register_snippet
