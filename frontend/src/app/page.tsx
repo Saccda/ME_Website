@@ -251,7 +251,7 @@ export default async function Home() {
                       </h3>
                       <p className="news-card-excerpt">{entry.item.excerpt}</p>
                       <span className="news-card-cue" aria-hidden="true">
-                        Read story <span>→</span>
+                        Read Story <span>→</span>
                       </span>
                     </div>
                   </article>
