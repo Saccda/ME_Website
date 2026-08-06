@@ -33,6 +33,7 @@ CARD_IMAGE = "fill-900x563"  # 16:10, the news and event card crop
 WIDE_IMAGE = "width-2400"  # full-bleed story lead
 BODY_IMAGE = "width-1600"  # a figure inside the story band
 ROW_IMAGE = "fill-1200x800"  # 3:2, the image-row crop
+THUMB_IMAGE = "fill-600x400"  # 3:2, a gallery thumbnail
 
 
 def rendition_url(image, spec, request=None):
@@ -358,6 +359,8 @@ class FacultyMemberSerializer(serializers.ModelSerializer):
 class NewsEventSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     image_wide = serializers.SerializerMethodField()
+    card_media = serializers.SerializerMethodField()
+    has_video = serializers.SerializerMethodField()
     body = serializers.SerializerMethodField()
 
     def get_image(self, obj):
@@ -365,6 +368,47 @@ class NewsEventSerializer(serializers.ModelSerializer):
 
     def get_image_wide(self, obj):
         return rendition_url(obj.image, WIDE_IMAGE, self.context.get("request"))
+
+    def get_card_media(self, obj):
+        """Stills for the card slideshow, drawn from the story itself.
+
+        Taken from the lead image and then the pictures in the body, so an
+        author gets a slideshow by writing the story rather than by filling in
+        a second set of fields. Capped, because a card is a preview.
+        """
+        request = self.context.get("request")
+        urls = []
+
+        def add(image):
+            url = rendition_url(image, CARD_IMAGE, request)
+            if url and url not in urls:
+                urls.append(url)
+
+        add(obj.image)
+        for child in obj.body:
+            if len(urls) >= 5:
+                break
+            if child.block_type == "image":
+                add(child.value.get("image"))
+            elif child.block_type == "gallery":
+                for entry in child.value.get("images", []):
+                    add(entry.get("image"))
+            elif child.block_type == "media_gallery":
+                for item in child.value.get("items", []):
+                    if item.block_type == "image":
+                        add(item.value.get("image"))
+
+        return urls[:5]
+
+    def get_has_video(self, obj):
+        for child in obj.body:
+            if child.block_type == "video":
+                return True
+            if child.block_type == "media_gallery":
+                for item in child.value.get("items", []):
+                    if item.block_type == "video":
+                        return True
+        return False
 
     def get_body(self, obj):
         """Flatten the StreamField into blocks the frontend can render.
@@ -429,6 +473,47 @@ class NewsEventSerializer(serializers.ModelSerializer):
                         "type": "video",
                         "url": value.get("url", ""),
                         "caption": value.get("caption", ""),
+                        "poster": rendition_url(
+                            value.get("poster"), BODY_IMAGE, request
+                        ),
+                    }
+                )
+            elif child.block_type == "media_gallery":
+                items = []
+                for item in value.get("items", []):
+                    if item.block_type == "image":
+                        image = item.value.get("image")
+                        if not image:
+                            continue
+                        items.append(
+                            {
+                                "kind": "image",
+                                "thumb": rendition_url(image, THUMB_IMAGE, request),
+                                "url": rendition_url(image, BODY_IMAGE, request),
+                                "caption": item.value.get("caption", ""),
+                                "alt_text": item.value.get("alt_text", ""),
+                            }
+                        )
+                    elif item.block_type == "video":
+                        items.append(
+                            {
+                                "kind": "video",
+                                "url": item.value.get("url", ""),
+                                "thumb": rendition_url(
+                                    item.value.get("poster"), THUMB_IMAGE, request
+                                ),
+                                "caption": item.value.get("caption", ""),
+                                "alt_text": "",
+                            }
+                        )
+                if not items:
+                    continue
+                blocks.append(
+                    {
+                        "type": "media_gallery",
+                        "heading": value.get("heading", ""),
+                        "caption": value.get("caption", ""),
+                        "items": items,
                     }
                 )
             elif child.block_type == "document":
@@ -461,6 +546,8 @@ class NewsEventSerializer(serializers.ModelSerializer):
             "body",
             "image",
             "image_wide",
+            "card_media",
+            "has_video",
             "event_date",
             "published_at",
         )

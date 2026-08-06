@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import CardMedia from "@/components/CardMedia";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import StoryBody from "@/components/StoryBody";
@@ -144,11 +145,10 @@ export default async function StoryPage({ params }: StoryPageProps) {
               <div className="home-feed-grid">
                 {related.map((item) => (
                   <article className="news-card" key={item.id}>
-                    {item.image ? (
-                      <div className="news-card-media">
-                        <img src={item.image} alt="" loading="lazy" />
-                      </div>
-                    ) : null}
+                    <CardMedia
+                      hasVideo={item.has_video}
+                      slides={item.card_media}
+                    />
                     <div className="news-card-body">
                       <p className="news-card-kicker">
                         {item.category ||

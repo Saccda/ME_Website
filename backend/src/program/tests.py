@@ -382,6 +382,79 @@ class StoryBodyTests(TestCase):
                 self.assertEqual((card.width, card.height), (900, 563))
                 self.assertEqual(image.get_rendition("width-2400").width, 2400)
 
+    def test_media_gallery_and_card_media(self):
+        """Galleries carry images and videos; cards get stills from the story."""
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                Image = get_image_model()
+                lead = Image.objects.create(
+                    title="Lead", file=get_test_image_file(size=(2000, 1400))
+                )
+                shot = Image.objects.create(
+                    title="Day one", file=get_test_image_file(size=(2000, 1400))
+                )
+                NewsEvent.objects.create(
+                    content_type="news",
+                    title="A three day activity",
+                    slug="a-three-day-activity",
+                    excerpt="It ran over several days.",
+                    image=lead,
+                    body=json.dumps(
+                        [
+                            {
+                                "type": "media_gallery",
+                                "value": {
+                                    "heading": "Day one",
+                                    "caption": "The whole set.",
+                                    "items": [
+                                        {
+                                            "type": "image",
+                                            "value": {
+                                                "image": shot.pk,
+                                                "caption": "Setting up",
+                                                "alt_text": "Students setting up",
+                                            },
+                                        },
+                                        {
+                                            "type": "video",
+                                            "value": {
+                                                "url": "https://youtu.be/abc123",
+                                                "caption": "Time lapse",
+                                            },
+                                        },
+                                    ],
+                                },
+                            }
+                        ]
+                    ),
+                )
+
+                story = self.client.get(reverse("news-list")).json()["results"][0]
+
+                gallery = story["body"][0]
+                self.assertEqual(gallery["type"], "media_gallery")
+                self.assertEqual(gallery["heading"], "Day one")
+                self.assertEqual(
+                    [item["kind"] for item in gallery["items"]], ["image", "video"]
+                )
+                self.assertIsNotNone(gallery["items"][0]["thumb"])
+                self.assertEqual(gallery["items"][1]["url"], "https://youtu.be/abc123")
+
+                # The card slideshow picks up the lead plus the gallery still.
+                self.assertEqual(len(story["card_media"]), 2)
+                self.assertTrue(story["has_video"])
+
+    def test_story_without_video_is_not_flagged(self):
+        NewsEvent.objects.create(
+            content_type="news",
+            title="A story with no video",
+            slug="a-story-with-no-video",
+            excerpt="Text only.",
+        )
+        story = self.client.get(reverse("news-list")).json()["results"][0]
+        self.assertFalse(story["has_video"])
+        self.assertEqual(story["card_media"], [])
+
     def test_gallery_without_images_is_dropped(self):
         NewsEvent.objects.create(
             content_type="news",

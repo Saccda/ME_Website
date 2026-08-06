@@ -179,6 +179,14 @@ export type FacultyMember = {
   work_items: FacultyWorkItem[];
 };
 
+export type GalleryItem = {
+  kind: "image" | "video";
+  url: string;
+  thumb: string | null;
+  caption: string;
+  alt_text: string;
+};
+
 export type StoryBlock =
   | { type: "heading"; value: string }
   | { type: "paragraph"; value: string }
@@ -189,7 +197,13 @@ export type StoryBlock =
       caption: string;
     }
   | { type: "quote"; value: string; attribution: string }
-  | { type: "video"; url: string; caption: string }
+  | {
+      type: "media_gallery";
+      heading: string;
+      caption: string;
+      items: GalleryItem[];
+    }
+  | { type: "video"; url: string; caption: string; poster: string | null }
   | { type: "document"; url: string; label: string; filename: string };
 
 export type NewsEvent = {
@@ -204,6 +218,9 @@ export type NewsEvent = {
   /** Card-sized crop. `image_wide` is the same photograph for a full-bleed lead. */
   image: string | null;
   image_wide: string | null;
+  /** Stills for the card slideshow, drawn from the story's own pictures. */
+  card_media: string[];
+  has_video: boolean;
   event_date: string | null;
   published_at: string;
 };
@@ -940,6 +957,10 @@ async function fetchNewsEvents(): Promise<NewsEvent[] | null> {
     body: Array.isArray(item.body) ? item.body : [],
     image: item.image ?? null,
     image_wide: item.image_wide ?? item.image ?? null,
+    card_media: Array.isArray(item.card_media)
+      ? item.card_media.filter((url): url is string => !!url)
+      : [item.image].filter((url): url is string => !!url),
+    has_video: item.has_video ?? false,
     event_date: item.event_date ?? null,
     published_at: item.published_at ?? "",
   }));

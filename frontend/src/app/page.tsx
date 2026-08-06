@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
+import CardMedia from "@/components/CardMedia";
 import ImpactStory from "@/components/ImpactStory";
 import JobOpportunities from "@/components/IndustryCareers";
 import QuadrupleHelix from "@/components/QuadrupleHelix";
@@ -233,11 +234,10 @@ export default async function Home() {
               <div className="home-feed-grid">
                 {latestNews.map((entry) => (
                   <article className="news-card" key={entry.item.id}>
-                    {entry.item.image ? (
-                      <div className="news-card-media">
-                        <img src={entry.item.image} alt="" loading="lazy" />
-                      </div>
-                    ) : null}
+                    <CardMedia
+                      hasVideo={entry.item.has_video}
+                      slides={entry.item.card_media}
+                    />
                     <div className="news-card-body">
                       <p className="news-card-kicker">
                         {entry.item.category || "News"}
@@ -281,11 +281,10 @@ export default async function Home() {
               <div className="home-feed-grid">
                 {upcomingEvents.map((entry) => (
                   <article className="event-card" key={entry.item.id}>
-                    {entry.item.image ? (
-                      <div className="event-card-media">
-                        <img src={entry.item.image} alt="" loading="lazy" />
-                      </div>
-                    ) : null}
+                    <CardMedia
+                      hasVideo={entry.item.has_video}
+                      slides={entry.item.card_media}
+                    />
                     <p className="event-card-badge">
                       {entry.item.category ||
                         (entry.isUpcoming ? "Upcoming event" : "Recent event")}

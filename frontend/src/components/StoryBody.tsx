@@ -1,40 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import type { StoryBlock } from "@/lib/api";
-
-/**
- * Turns a watch link into an embeddable one.
- *
- * Authors paste the address from the browser bar, which is not the address a
- * player accepts. An unrecognised host returns null and the block falls back to
- * a plain link rather than an iframe that would silently refuse to load.
- */
-function embedUrl(url: string): string | null {
-  try {
-    const parsed = new URL(url);
-    const host = parsed.hostname.replace(/^www\./, "");
-
-    if (host === "youtu.be") {
-      const id = parsed.pathname.slice(1);
-      return id ? `https://www.youtube.com/embed/${id}` : null;
-    }
-    if (host === "youtube.com" || host === "m.youtube.com") {
-      const id = parsed.searchParams.get("v");
-      if (id) return `https://www.youtube.com/embed/${id}`;
-      if (parsed.pathname.startsWith("/embed/")) return url;
-      return null;
-    }
-    if (host === "vimeo.com") {
-      const id = parsed.pathname.split("/").filter(Boolean)[0];
-      return id ? `https://player.vimeo.com/video/${id}` : null;
-    }
-    if (host === "facebook.com" || host === "fb.watch") {
-      return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}`;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
+import { videoEmbedUrl } from "@/lib/video";
+import MediaGallery from "./MediaGallery";
 
 export default function StoryBody({ blocks }: { blocks: StoryBlock[] }) {
   if (blocks.length === 0) return null;
@@ -88,6 +55,16 @@ export default function StoryBody({ blocks }: { blocks: StoryBlock[] }) {
               </figure>
             );
 
+          case "media_gallery":
+            return (
+              <MediaGallery
+                caption={block.caption}
+                heading={block.heading}
+                items={block.items}
+                key={key}
+              />
+            );
+
           case "quote":
             return (
               <blockquote className="story-quote" key={key}>
@@ -97,7 +74,7 @@ export default function StoryBody({ blocks }: { blocks: StoryBlock[] }) {
             );
 
           case "video": {
-            const src = embedUrl(block.url);
+            const src = videoEmbedUrl(block.url);
             return (
               <figure className="story-figure" key={key}>
                 {src ? (

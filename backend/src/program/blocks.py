@@ -69,10 +69,41 @@ class QuoteBlock(blocks.StructBlock):
 class VideoBlock(blocks.StructBlock):
     url = blocks.URLBlock(help_text="A YouTube, Vimeo, or Facebook video link.")
     caption = blocks.CharBlock(required=False, max_length=250)
+    poster = ImageChooserBlock(
+        required=False,
+        help_text=(
+            "Still shown before the video is played. YouTube links use their "
+            "own thumbnail when this is empty."
+        ),
+    )
 
     class Meta:
         icon = "media"
         label = "Video"
+
+
+class MediaGalleryBlock(blocks.StructBlock):
+    """A whole set of media, for an activity that ran over several days.
+
+    Images and videos sit in one stream so they can be interleaved in the order
+    things happened, rather than forcing an author to keep them in separate
+    blocks. There is no maximum: the grid reflows and the page opens each item
+    full size on click.
+    """
+
+    heading = blocks.CharBlock(required=False, max_length=200)
+    items = blocks.StreamBlock(
+        [
+            ("image", ImageBlock()),
+            ("video", VideoBlock()),
+        ],
+        min_num=1,
+    )
+    caption = blocks.CharBlock(required=False, max_length=250)
+
+    class Meta:
+        icon = "image"
+        label = "Gallery (images and videos)"
 
 
 class DocumentBlock(blocks.StructBlock):
@@ -101,6 +132,7 @@ class StoryBodyBlock(blocks.StreamBlock):
     )
     image = ImageBlock()
     gallery = GalleryBlock()
+    media_gallery = MediaGalleryBlock()
     quote = QuoteBlock()
     video = VideoBlock()
     document = DocumentBlock()

@@ -2226,22 +2226,85 @@ img {
   box-shadow: 0 20px 42px rgba(6, 26, 42, 0.13);
 }
 
+/* A stack, not a single picture: the slides crossfade in place so a card can
+   preview a multi-day activity without changing size or shifting the text. */
 .news-card-media {
+  position: relative;
   aspect-ratio: 16 / 10;
   overflow: hidden;
   background: var(--cream);
 }
 
 .news-card-media img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   display: block;
   object-fit: cover;
-  transition: transform 420ms ease;
+  opacity: 0;
+  transition:
+    opacity 700ms ease,
+    transform 420ms ease;
 }
 
-.news-card:hover .news-card-media img {
+.news-card-media img.is-current {
+  opacity: 1;
+}
+
+.news-card:hover .news-card-media img.is-current {
   transform: scale(1.04);
+}
+
+/* Marks a story that contains video. The player itself lives on the story
+   page: three embeds on a homepage is a slow page on a mobile connection. */
+.news-card-video {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  background: rgba(6, 26, 42, 0.72);
+  border-radius: 50%;
+}
+
+.news-card-video::after {
+  width: 0;
+  height: 0;
+  margin-left: 3px;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 11px solid var(--white);
+  content: "";
+}
+
+.news-card-dots {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  display: flex;
+  gap: 6px;
+}
+
+.news-card-dots i {
+  width: 7px;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(6, 26, 42, 0.25);
+  transition: background 300ms ease;
+}
+
+.news-card-dots i.is-current {
+  background: var(--white);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .news-card-media img {
+    transition: none;
+  }
 }
 
 .news-card-body {
@@ -2330,19 +2393,6 @@ img {
   height: 100%;
   flex-direction: column;
   gap: 12px;
-}
-
-.event-card-media {
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  background: var(--cream);
-}
-
-.event-card-media img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
 }
 
 .event-card-badge {
@@ -2553,6 +2603,201 @@ img {
   aspect-ratio: 3 / 2;
   display: block;
   object-fit: cover;
+}
+
+/* Gallery: a whole set of media from one activity. Thumbnails run the full
+   band and open full size, so a week of photographs does not become a page of
+   full-width images the reader has to scroll past. */
+.story-media-gallery {
+  margin: clamp(40px, 4.5vw, 68px) 0;
+  max-width: 100%;
+}
+
+.story-media-gallery h3 {
+  margin: 0 0 20px;
+  font-size: clamp(1.2rem, 1.7vw, 1.5rem);
+  letter-spacing: -0.02em;
+}
+
+.story-media-grid {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+  gap: clamp(10px, 1.2vw, 16px);
+  list-style: none;
+}
+
+.story-media-grid button {
+  position: relative;
+  width: 100%;
+  padding: 0;
+  display: block;
+  overflow: hidden;
+  background: var(--cream);
+  border: 0;
+  cursor: pointer;
+}
+
+.story-media-grid img {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  display: block;
+  object-fit: cover;
+  transition: transform 380ms ease;
+}
+
+.story-media-grid button:hover img {
+  transform: scale(1.05);
+}
+
+.story-media-grid button:focus-visible {
+  outline: 3px solid var(--brand-gold);
+  outline-offset: 2px;
+}
+
+.story-media-placeholder {
+  display: block;
+  aspect-ratio: 3 / 2;
+  background: var(--cream);
+}
+
+.story-media-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  background: rgba(6, 26, 42, 0.66);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.story-media-play::after {
+  width: 0;
+  height: 0;
+  margin-left: 4px;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-left: 15px solid var(--white);
+  content: "";
+}
+
+.story-media-caption {
+  margin: 14px 0 0;
+  max-width: var(--story-measure);
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+/* Viewer */
+.story-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: clamp(16px, 4vw, 48px);
+  background: rgba(6, 18, 30, 0.94);
+}
+
+.story-lightbox figure {
+  margin: 0;
+  grid-column: 2;
+  justify-self: center;
+  max-width: min(1200px, 100%);
+}
+
+.story-lightbox img {
+  max-width: 100%;
+  max-height: 78vh;
+  display: block;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.story-lightbox .story-video {
+  width: min(1100px, 82vw);
+  background: transparent;
+}
+
+.story-lightbox figcaption {
+  margin-top: 16px;
+  color: #d9e2ec;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.story-lightbox button {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.12);
+  border: 0;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background 200ms ease;
+}
+
+.story-lightbox button:hover,
+.story-lightbox button:focus-visible {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.story-lightbox-prev {
+  grid-column: 1;
+}
+
+.story-lightbox-next {
+  grid-column: 3;
+}
+
+.story-lightbox-close {
+  position: absolute;
+  top: clamp(14px, 2vw, 26px);
+  right: clamp(14px, 2vw, 26px);
+}
+
+.story-lightbox-count {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(14px, 2vw, 26px);
+  margin: 0;
+  color: #9fb2c4;
+  font-size: 0.86rem;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 680px) {
+  .story-lightbox {
+    grid-template-columns: 1fr;
+  }
+
+  .story-lightbox figure {
+    grid-column: 1;
+  }
+
+  .story-lightbox-prev,
+  .story-lightbox-next {
+    position: absolute;
+    bottom: clamp(48px, 9vw, 70px);
+  }
+
+  .story-lightbox-prev {
+    left: 16px;
+  }
+
+  .story-lightbox-next {
+    right: 16px;
+  }
 }
 
 .story-video {
