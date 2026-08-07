@@ -22,13 +22,10 @@ export default async function FacilitiesPage() {
         <section className="directory-hero">
           <div className="shell">
             <p className="eyebrow light">Teaching & learning</p>
-            <h1>
-              Facilities for
-              <em>learning by doing.</em>
-            </h1>
+            <h1>Facilities</h1>
             <p>
-              Explore the laboratories, machines, and engineering systems that
-              support teaching, prototyping, testing, and applied research.
+              Laboratories, machines, and engineering systems used for
+              teaching, prototyping, testing, and applied research.
             </p>
           </div>
         </section>
@@ -38,7 +35,7 @@ export default async function FacilitiesPage() {
             <div className="equipment-section-heading">
               <div>
                 <p className="eyebrow">Program facilities</p>
-                <h2>Machines & systems</h2>
+                <h2>Laboratory equipment</h2>
                 <p className="equipment-intro">
                   Equipment across design, manufacturing, energy, automation,
                   testing, compliance, and engineering services.

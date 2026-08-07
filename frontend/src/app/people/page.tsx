@@ -21,13 +21,10 @@ export default async function PeoplePage() {
         <section className="directory-hero">
           <div className="shell">
             <p className="eyebrow light">People</p>
-            <h1>
-              The people behind
-              <em>Mechanical Engineering.</em>
-            </h1>
+            <h1>People</h1>
             <p>
-              Meet the educators, specialists, graduates, and collaborators
-              shaping practical engineering education at RUPP.
+              The educators, specialists, graduates, and collaborators of the
+              Mechanical Engineering program at RUPP.
             </p>
           </div>
         </section>
@@ -37,7 +34,7 @@ export default async function PeoplePage() {
             <div className="detail-section-heading">
               <div>
                 <p className="eyebrow">Faculty & staff</p>
-                <h2>Teaching, mentoring and building together.</h2>
+                <h2>Faculty and teaching staff</h2>
               </div>
               <p>
                 Our team connects disciplinary knowledge with laboratories,
@@ -75,7 +72,7 @@ export default async function PeoplePage() {
               </div>
             ) : (
               <div className="content-empty-state">
-                <h3>Faculty profiles are being prepared.</h3>
+                <h3>No faculty profiles have been published yet</h3>
                 <p>
                   Profiles can be published from the Faculty members section
                   in the ME content management system.
@@ -89,10 +86,7 @@ export default async function PeoplePage() {
           <div className="shell alumni-feature">
             <div>
               <p className="eyebrow">Alumni</p>
-              <h2>
-                Engineering careers,
-                <em>connected back to RUPP.</em>
-              </h2>
+              <h2>Graduate careers</h2>
             </div>
             <div>
               <p>

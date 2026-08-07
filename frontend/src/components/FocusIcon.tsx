@@ -3,7 +3,7 @@
  *
  * Drawn from engineering-drawing vocabulary — dimension lines, witness ticks,
  * limit lines, centre marks — rather than generic pictograms, so the set reads
- * as this programme's own and matches the technical motifs used elsewhere.
+ * as this program's own and matches the technical motifs used elsewhere.
  *
  * Design rules held across all four, so they behave as a family:
  *  - one idea per icon, legible down to 24px

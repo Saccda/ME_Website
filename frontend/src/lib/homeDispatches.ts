@@ -44,7 +44,7 @@ export function selectLatestNews(items: NewsEvent[], limit = 3): NewsEntry[] {
 /**
  * Events still to come, soonest first.
  *
- * A programme with nothing scheduled would otherwise show an empty band, so any
+ * A program with nothing scheduled would otherwise show an empty band, so any
  * remaining places are filled with the most recent past events — flagged, so a
  * card never implies a date that has already gone. `now` is injected to make the
  * boundary verifiable rather than dependent on the clock.

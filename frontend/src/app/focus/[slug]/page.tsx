@@ -305,7 +305,7 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
             <div className="focus-next-lead">
               <div>
                 <p className="eyebrow">Continue exploring</p>
-                <h2>Compare the other areas of focus.</h2>
+                <h2>Other areas of focus</h2>
               </div>
               <Link
                 className="button button-navy"

@@ -18,13 +18,10 @@ export default async function AboutPage() {
         <section className="directory-hero">
           <div className="shell">
             <p className="eyebrow light">About the program</p>
-            <h1>
-              Engineering education
-              <em>with purpose.</em>
-            </h1>
+            <h1>About the Program</h1>
             <p>
-              Our vision and mission guide how Mechanical Engineering at RUPP
-              connects technology, learning, research, and service to society.
+              The vision, mission, and intended graduate outcomes of Mechanical
+              Engineering at the Royal University of Phnom Penh.
             </p>
           </div>
         </section>
@@ -48,10 +45,7 @@ export default async function AboutPage() {
             <div className="section-intro compact">
               <div>
                 <p className="eyebrow">Our mission</p>
-                <h2>
-                  Education with
-                  <em>purpose and momentum.</em>
-                </h2>
+                <h2>How we deliver the vision</h2>
               </div>
             </div>
             <div className="mission-grid">
@@ -75,7 +69,7 @@ export default async function AboutPage() {
             <div className="detail-section-heading">
               <div>
                 <p className="eyebrow">Program Educational Objectives</p>
-                <h2>What graduates are prepared to achieve.</h2>
+                <h2>What graduates are prepared to achieve</h2>
               </div>
               <p>
                 The approved PEO statements from the Mechanical Engineering
@@ -90,7 +84,7 @@ export default async function AboutPage() {
             <div className="detail-section-heading">
               <div>
                 <p className="eyebrow">Program Learning Outcomes</p>
-                <h2>What every graduate will know and be able to do.</h2>
+                <h2>What every graduate will know and be able to do</h2>
               </div>
               <p>
                 The approved PLO statements from the Mechanical Engineering

@@ -29,7 +29,7 @@ export default async function AdmissionsPage() {
           <div className="shell admissions-hero-grid">
             <div className="admissions-hero-copy">
               <p className="admissions-kicker">Undergraduate admissions</p>
-              <h1>Mechanical Engineering admissions.</h1>
+              <h1>Mechanical Engineering admissions</h1>
               <p>
                 Follow the admission calendar, prepare for the entrance
                 examination, and review the information requested on the
@@ -101,7 +101,7 @@ export default async function AdmissionsPage() {
           <div className="shell">
             <header className="admissions-section-heading light">
               <p>02 · Entrance examination</p>
-              <h2>Three subjects</h2>
+              <h2>Entrance examination subjects</h2>
               <span>
                 The ME entrance examination covers Mathematics, Physics, and
                 Logic.
@@ -226,7 +226,7 @@ export default async function AdmissionsPage() {
           <div className="shell">
             <div>
               <p>Need to confirm this intake?</p>
-              <h2>Contact the ME Program before applying.</h2>
+              <h2>Contact the ME Program before applying</h2>
             </div>
             <div className="admissions-help-actions">
               <a href={`mailto:${settings.email}`}>{settings.email}</a>

@@ -55,13 +55,10 @@ export default async function NewsEventsPage() {
         <section className="directory-hero">
           <div className="shell">
             <p className="eyebrow light">News & events</p>
-            <h1>
-              Ideas, activities and
-              <em>program life.</em>
-            </h1>
+            <h1>News &amp; Events</h1>
             <p>
-              Follow laboratory open houses, seminar series, student work,
-              publications, partnerships, and Mechanical Engineering news.
+              Open houses, seminar series, student work, publications,
+              partnerships, and Mechanical Engineering program news.
             </p>
           </div>
         </section>
@@ -71,7 +68,7 @@ export default async function NewsEventsPage() {
             <div className="detail-section-heading">
               <div>
                 <p className="eyebrow">Latest</p>
-                <h2>News from the ME community.</h2>
+                <h2>News from the program</h2>
               </div>
             </div>
             {stories.length > 0 ? (
@@ -82,10 +79,10 @@ export default async function NewsEventsPage() {
               </div>
             ) : (
               <div className="content-empty-state">
-                <h3>News and event posts are coming soon.</h3>
+                <h3>No posts have been published yet</h3>
                 <p>
-                  Lab open houses, seminars and program news can be published
-                  from the ME content management system.
+                  Open houses, seminars, and program news are published from
+                  the ME content management system.
                 </p>
               </div>
             )}
@@ -96,8 +93,8 @@ export default async function NewsEventsPage() {
           <div className="shell">
             <div className="detail-section-heading">
               <div>
-                <p className="eyebrow">Upcoming events</p>
-                <h2>Open houses, seminars and program activities.</h2>
+                <p className="eyebrow">Upcoming</p>
+                <h2>Events and open houses</h2>
               </div>
             </div>
             {events.length > 0 ? (
@@ -119,8 +116,8 @@ export default async function NewsEventsPage() {
           <div className="shell">
             <div className="detail-section-heading inverse">
               <div>
-                <p className="eyebrow light">Seminars & publications</p>
-                <h2>Knowledge shared beyond the classroom.</h2>
+                <p className="eyebrow light">Knowledge sharing</p>
+                <h2>Seminars and publications</h2>
               </div>
             </div>
             {publications.length > 0 ? (

@@ -123,7 +123,7 @@ export default function JobOpportunities({
       <div className="industry-module-header job-board-header">
         <div>
           <p className="industry-kicker">Job opportunities</p>
-          <h3>Current job openings from our partner network</h3>
+          <h3>Current openings from partner organizations</h3>
           <p className="job-board-intro">
             Explore jobs, internships, scholarships, and professional training
             shared with the ME community.

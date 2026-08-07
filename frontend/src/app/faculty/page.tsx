@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Faculty | Mechanical Engineering RUPP",
   description:
-    "Teaching staff of the Mechanical Engineering programme at the Royal University of Phnom Penh.",
+    "Teaching staff of the Mechanical Engineering program at the Royal University of Phnom Penh.",
 };
 
 /**
@@ -61,12 +61,10 @@ export default async function FacultyPage() {
                   </span>
                 ) : null}
               </p>
-              <h1>
-                Meet the people <em>shaping future engineers.</em>
-              </h1>
+              <h1>Faculty</h1>
               <p>
-                Our teaching staff combine academic expertise, laboratory
-                practice, and applied research across the four ME focus areas.
+                Teaching staff across the four ME focus areas, combining
+                academic expertise, laboratory practice, and applied research.
               </p>
             </header>
 
@@ -106,7 +104,7 @@ export default async function FacultyPage() {
                           </p>
                         ) : null}
 
-                        {/* The focus areas are the programme's own taxonomy, so
+                        {/* The focus areas are the program's own taxonomy, so
                             they carry the icon set rather than a plain chip. */}
                         {member.focus_areas.length > 0 ? (
                           <ul className="faculty-card-focus">
@@ -132,9 +130,9 @@ export default async function FacultyPage() {
               </ul>
             ) : (
               <div className="content-empty-state">
-                <h2>Faculty profiles are being published.</h2>
+                <h2>No faculty profiles have been published yet</h2>
                 <p>
-                  Staff profiles are maintained in the programme CMS and will
+                  Staff profiles are maintained in the program CMS and will
                   appear here once entries are added.
                 </p>
               </div>

@@ -183,7 +183,7 @@ export default async function ResearchPage({
               </div>
             ) : (
               <div className="content-empty-state">
-                <h3>Research projects are being prepared.</h3>
+                <h3>No research projects have been published yet</h3>
                 <p>
                   Published projects will appear here after they are added in
                   Wagtail.

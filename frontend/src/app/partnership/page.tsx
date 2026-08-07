@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Partnership | Mechanical Engineering RUPP",
   description:
-    "Academic, industry, government, and society partnerships with the Mechanical Engineering programme at the Royal University of Phnom Penh.",
+    "Academic, industry, government, and society partnerships with the Mechanical Engineering program at the Royal University of Phnom Penh.",
 };
 
 export default async function PartnershipPage() {
@@ -32,10 +32,7 @@ export default async function PartnershipPage() {
         <section className="directory-hero">
           <div className="shell">
             <p className="eyebrow light">Partnership</p>
-            <h1>
-              Partnering with
-              <em>Mechanical Engineering.</em>
-            </h1>
+            <h1>Partnership</h1>
             <p>
               We work with academic institutions, industry, government, and the
               communities around us so that teaching, research, and graduates
@@ -48,7 +45,7 @@ export default async function PartnershipPage() {
           <div className="shell">
             <div className="section-masthead">
               <p className="eyebrow">Quadruple helix</p>
-              <h2>Four partners. One engineering ecosystem.</h2>
+              <h2>The quadruple helix model</h2>
               <p>
                 No single institution improves engineering practice on its own.
                 The quadruple helix model puts academia, industry, government,
@@ -101,7 +98,7 @@ export default async function PartnershipPage() {
                 </ul>
                 <p className="partner-type-note">
                   A dedicated page for {strand.title.toLowerCase()} partners is
-                  in preparation. Until then, contact the programme directly to
+                  in preparation. Until then, contact the program directly to
                   discuss a collaboration.
                 </p>
               </div>
@@ -114,11 +111,11 @@ export default async function PartnershipPage() {
           <div className="shell">
             <div className="section-masthead">
               <p className="eyebrow">Current partners</p>
-              <h2>Organisations we already work with.</h2>
+              <h2>Partner organizations</h2>
               <p>
                 These institutions and companies support teaching, research,
                 equipment, internships, and graduate opportunities across the
-                programme.
+                program.
               </p>
             </div>
 
@@ -156,9 +153,9 @@ export default async function PartnershipPage() {
               </div>
             ) : (
               <div className="content-empty-state">
-                <h3>Partner organisations are being published.</h3>
+                <h3>No partner organizations have been published yet</h3>
                 <p>
-                  The partner directory is maintained in the programme CMS and
+                  The partner directory is maintained in the program CMS and
                   will appear here once entries are added.
                 </p>
               </div>
@@ -169,10 +166,10 @@ export default async function PartnershipPage() {
         <section className="section navy partnership-cta">
           <div className="shell">
             <p className="eyebrow light">Start a conversation</p>
-            <h2>Tell us what you want to build.</h2>
+            <h2>Discuss a collaboration</h2>
             <p>
               Whether you are an institution, a company, a public agency, or a
-              community organisation, the programme office can scope a
+              community organization, the program office can scope a
               collaboration with you.
             </p>
             <div className="partnership-cta-actions">
@@ -180,7 +177,7 @@ export default async function PartnershipPage() {
                 className="button button-gold"
                 href={`mailto:${program.email}?subject=ME partnership enquiry`}
               >
-                Email the programme <span>↗</span>
+                Email the program <span>↗</span>
               </a>
               {program.phone ? (
                 <a className="text-link light" href={`tel:${program.phone}`}>

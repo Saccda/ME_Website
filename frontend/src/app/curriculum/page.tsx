@@ -19,12 +19,9 @@ export default async function CurriculumPage() {
         <section className="directory-hero">
           <div className="shell">
             <p className="eyebrow light">Academics</p>
-            <h1>
-              The curriculum
-              <em>journey.</em>
-            </h1>
+            <h1>Curriculum</h1>
             <p>
-              Explore the four-year progression from scientific foundations to
+              The four-year study plan, from scientific foundations to
               integrated design, industry experience, and professional
               engineering practice.
             </p>
@@ -36,10 +33,7 @@ export default async function CurriculumPage() {
             <div className="section-intro">
               <div>
                 <p className="eyebrow">Four-year study plan</p>
-                <h2>
-                  Foundations to
-                  <em>professional practice.</em>
-                </h2>
+                <h2>Courses by year and semester</h2>
               </div>
               <p>
                 Select a year to review its theme, credit count, and courses by

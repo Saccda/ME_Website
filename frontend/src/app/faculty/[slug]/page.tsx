@@ -611,7 +611,7 @@ export default async function FacultyProfilePage({ params }: ProfilePageProps) {
             <div>
               <h2>Interested in collaborating?</h2>
               <p>
-                Contact the Mechanical Engineering programme to discuss
+                Contact the Mechanical Engineering program to discuss
                 research, teaching, or industry collaboration.
               </p>
             </div>
