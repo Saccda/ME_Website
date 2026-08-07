@@ -59,6 +59,233 @@ class ImageSerializerMixin:
         return image_url(image, request)
 
 
+def story_blocks(stream_value, request=None):
+    """Flatten a StreamField into typed blocks the frontend can render.
+
+    Sent as typed data rather than a slab of HTML, so each block keeps its own
+    markup and styling on the page and images and documents arrive as resolved
+    URLs. Shared by news stories and research projects; the structured blocks
+    at the end only ever appear in a research body.
+    """
+    blocks = []
+
+    for child in stream_value:
+        value = child.value
+        kind = child.block_type
+
+        if kind == "heading":
+            blocks.append({"type": "heading", "value": str(value)})
+
+        elif kind == "paragraph":
+            blocks.append({"type": "paragraph", "value": expand_db_html(value.source)})
+
+        elif kind == "image":
+            image = value.get("image")
+            if not image:
+                continue
+            blocks.append(
+                {
+                    "type": "image",
+                    "url": rendition_url(image, BODY_IMAGE, request),
+                    "caption": value.get("caption", ""),
+                    "alt_text": value.get("alt_text", ""),
+                }
+            )
+
+        elif kind == "gallery":
+            images = [
+                {
+                    "url": rendition_url(entry.get("image"), ROW_IMAGE, request),
+                    "alt_text": entry.get("alt_text", ""),
+                }
+                for entry in value.get("images", [])
+                if entry.get("image")
+            ]
+            if not images:
+                continue
+            blocks.append(
+                {
+                    "type": "gallery",
+                    "images": images,
+                    "caption": value.get("caption", ""),
+                }
+            )
+
+        elif kind == "media_gallery":
+            items = []
+            for item in value.get("items", []):
+                if item.block_type == "image":
+                    image = item.value.get("image")
+                    if not image:
+                        continue
+                    items.append(
+                        {
+                            "kind": "image",
+                            "thumb": rendition_url(image, THUMB_IMAGE, request),
+                            "url": rendition_url(image, BODY_IMAGE, request),
+                            "caption": item.value.get("caption", ""),
+                            "alt_text": item.value.get("alt_text", ""),
+                        }
+                    )
+                elif item.block_type == "video":
+                    items.append(
+                        {
+                            "kind": "video",
+                            "url": item.value.get("url", ""),
+                            "thumb": rendition_url(
+                                item.value.get("poster"), THUMB_IMAGE, request
+                            ),
+                            "caption": item.value.get("caption", ""),
+                            "alt_text": "",
+                        }
+                    )
+            if not items:
+                continue
+            blocks.append(
+                {
+                    "type": "media_gallery",
+                    "heading": value.get("heading", ""),
+                    "caption": value.get("caption", ""),
+                    "items": items,
+                }
+            )
+
+        elif kind == "quote":
+            blocks.append(
+                {
+                    "type": "quote",
+                    "value": value.get("text", ""),
+                    "attribution": value.get("attribution", ""),
+                }
+            )
+
+        elif kind == "video":
+            blocks.append(
+                {
+                    "type": "video",
+                    "url": value.get("url", ""),
+                    "caption": value.get("caption", ""),
+                    "poster": rendition_url(value.get("poster"), BODY_IMAGE, request),
+                }
+            )
+
+        elif kind == "document":
+            document = value.get("document")
+            if not document:
+                continue
+            url = document.url
+            blocks.append(
+                {
+                    "type": "document",
+                    "url": request.build_absolute_uri(url) if request else url,
+                    "label": value.get("label", "") or document.title,
+                    "filename": document.filename,
+                }
+            )
+
+        elif kind == "key_facts":
+            facts = [
+                {"label": fact.get("label", ""), "value": fact.get("value", "")}
+                for fact in value.get("facts", [])
+                if fact.get("label") or fact.get("value")
+            ]
+            if not facts:
+                continue
+            blocks.append(
+                {
+                    "type": "key_facts",
+                    "heading": value.get("heading", ""),
+                    "facts": facts,
+                }
+            )
+
+        elif kind == "stats":
+            stats = [
+                {"value": stat.get("value", ""), "label": stat.get("label", "")}
+                for stat in value.get("stats", [])
+                if stat.get("value")
+            ]
+            if not stats:
+                continue
+            blocks.append(
+                {
+                    "type": "stats",
+                    "heading": value.get("heading", ""),
+                    "stats": stats,
+                }
+            )
+
+        elif kind == "steps":
+            steps = [
+                {
+                    "title": step.get("title", ""),
+                    "description": step.get("description", ""),
+                }
+                for step in value.get("steps", [])
+                if step.get("title")
+            ]
+            if not steps:
+                continue
+            blocks.append(
+                {
+                    "type": "steps",
+                    "heading": value.get("heading", ""),
+                    "steps": steps,
+                }
+            )
+
+        elif kind == "table":
+            table = value.get("table") or {}
+            rows = [row.get("data", []) for row in (table.get("data") or [])]
+            if not rows:
+                continue
+            blocks.append(
+                {
+                    "type": "table",
+                    "heading": value.get("heading", ""),
+                    "caption": value.get("caption", ""),
+                    "first_row_is_header": bool(
+                        table.get("first_row_is_table_header")
+                    ),
+                    "first_col_is_header": bool(table.get("first_col_is_header")),
+                    "rows": rows,
+                }
+            )
+
+        elif kind == "callout":
+            text = value.get("text", "")
+            if not text:
+                continue
+            blocks.append(
+                {
+                    "type": "callout",
+                    "label": value.get("label", ""),
+                    "value": text,
+                }
+            )
+
+        elif kind == "references":
+            entries = [
+                {
+                    "citation": entry.get("citation", ""),
+                    "url": entry.get("url", "") or "",
+                }
+                for entry in value.get("entries", [])
+                if entry.get("citation")
+            ]
+            if not entries:
+                continue
+            blocks.append(
+                {
+                    "type": "references",
+                    "heading": value.get("heading", ""),
+                    "entries": entries,
+                }
+            )
+
+    return blocks
+
+
 class WhyChooseItemSerializer(ImageSerializerMixin, serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     image_field = "image"
@@ -152,6 +379,10 @@ class ResearchProjectSerializer(ImageSerializerMixin, serializers.ModelSerialize
     image = serializers.SerializerMethodField()
     image_field = "image"
     focus_areas = FocusAreaSerializer(many=True, read_only=True)
+    body = serializers.SerializerMethodField()
+
+    def get_body(self, obj):
+        return story_blocks(obj.body, self.context.get("request"))
 
     class Meta:
         model = ResearchProject
@@ -411,126 +642,7 @@ class NewsEventSerializer(serializers.ModelSerializer):
         return False
 
     def get_body(self, obj):
-        """Flatten the StreamField into blocks the frontend can render.
-
-        Sent as typed data rather than a slab of HTML so each block keeps its
-        own markup and styling on the page, and images and documents arrive as
-        resolved URLs.
-        """
-        request = self.context.get("request")
-        blocks = []
-
-        for child in obj.body:
-            value = child.value
-
-            if child.block_type == "heading":
-                blocks.append({"type": "heading", "value": str(value)})
-            elif child.block_type == "paragraph":
-                blocks.append(
-                    {"type": "paragraph", "value": expand_db_html(value.source)}
-                )
-            elif child.block_type == "image":
-                image = value.get("image")
-                if not image:
-                    continue
-                blocks.append(
-                    {
-                        "type": "image",
-                        "url": rendition_url(image, BODY_IMAGE, request),
-                        "caption": value.get("caption", ""),
-                        "alt_text": value.get("alt_text", ""),
-                    }
-                )
-            elif child.block_type == "gallery":
-                images = [
-                    {
-                        "url": rendition_url(entry.get("image"), ROW_IMAGE, request),
-                        "alt_text": entry.get("alt_text", ""),
-                    }
-                    for entry in value.get("images", [])
-                    if entry.get("image")
-                ]
-                if not images:
-                    continue
-                blocks.append(
-                    {
-                        "type": "gallery",
-                        "images": images,
-                        "caption": value.get("caption", ""),
-                    }
-                )
-            elif child.block_type == "quote":
-                blocks.append(
-                    {
-                        "type": "quote",
-                        "value": value.get("text", ""),
-                        "attribution": value.get("attribution", ""),
-                    }
-                )
-            elif child.block_type == "video":
-                blocks.append(
-                    {
-                        "type": "video",
-                        "url": value.get("url", ""),
-                        "caption": value.get("caption", ""),
-                        "poster": rendition_url(
-                            value.get("poster"), BODY_IMAGE, request
-                        ),
-                    }
-                )
-            elif child.block_type == "media_gallery":
-                items = []
-                for item in value.get("items", []):
-                    if item.block_type == "image":
-                        image = item.value.get("image")
-                        if not image:
-                            continue
-                        items.append(
-                            {
-                                "kind": "image",
-                                "thumb": rendition_url(image, THUMB_IMAGE, request),
-                                "url": rendition_url(image, BODY_IMAGE, request),
-                                "caption": item.value.get("caption", ""),
-                                "alt_text": item.value.get("alt_text", ""),
-                            }
-                        )
-                    elif item.block_type == "video":
-                        items.append(
-                            {
-                                "kind": "video",
-                                "url": item.value.get("url", ""),
-                                "thumb": rendition_url(
-                                    item.value.get("poster"), THUMB_IMAGE, request
-                                ),
-                                "caption": item.value.get("caption", ""),
-                                "alt_text": "",
-                            }
-                        )
-                if not items:
-                    continue
-                blocks.append(
-                    {
-                        "type": "media_gallery",
-                        "heading": value.get("heading", ""),
-                        "caption": value.get("caption", ""),
-                        "items": items,
-                    }
-                )
-            elif child.block_type == "document":
-                document = value.get("document")
-                if not document:
-                    continue
-                url = document.url
-                blocks.append(
-                    {
-                        "type": "document",
-                        "url": request.build_absolute_uri(url) if request else url,
-                        "label": value.get("label", "") or document.title,
-                        "filename": document.filename,
-                    }
-                )
-
-        return blocks
+        return story_blocks(obj.body, self.context.get("request"))
 
     class Meta:
         model = NewsEvent

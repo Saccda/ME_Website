@@ -485,6 +485,138 @@ class StoryBodyTests(TestCase):
         self.assertEqual(response.json()["results"][0]["body"], [])
 
 
+class ResearchBodyTests(TestCase):
+    """A research write-up carries structures a news story does not."""
+
+    def test_structured_blocks_are_serialized(self):
+        ResearchProject.objects.create(
+            title="Metal Recycling",
+            slug="metal-recycling",
+            summary="Recovering workshop metal for teaching stock.",
+            body=json.dumps(
+                [
+                    {
+                        "type": "key_facts",
+                        "value": {
+                            "heading": "Project facts",
+                            "facts": [
+                                {"label": "Team", "value": "Four students"},
+                                {"label": "Status", "value": "Ongoing"},
+                            ],
+                        },
+                    },
+                    {
+                        "type": "stats",
+                        "value": {
+                            "heading": "Results",
+                            "stats": [
+                                {"value": "42%", "label": "Material recovered"},
+                                {"value": "1.8 kW", "label": "Furnace draw"},
+                            ],
+                        },
+                    },
+                    {
+                        "type": "steps",
+                        "value": {
+                            "heading": "Method",
+                            "steps": [
+                                {"title": "Collect", "description": "Sort by alloy."},
+                                {"title": "Melt", "description": ""},
+                            ],
+                        },
+                    },
+                    {
+                        "type": "callout",
+                        "value": {"label": "Safety", "text": "Hot metal handling."},
+                    },
+                    {
+                        "type": "references",
+                        "value": {
+                            "heading": "Publications",
+                            "entries": [
+                                {
+                                    "citation": "Dara, S. (2026) Recovery rates.",
+                                    "url": "https://example.org/paper",
+                                }
+                            ],
+                        },
+                    },
+                ]
+            ),
+        )
+
+        response = self.client.get(reverse("research-list"))
+        self.assertEqual(response.status_code, 200)
+        blocks = response.json()["results"][0]["body"]
+
+        self.assertEqual(
+            [block["type"] for block in blocks],
+            ["key_facts", "stats", "steps", "callout", "references"],
+        )
+        self.assertEqual(blocks[0]["facts"][1], {"label": "Status", "value": "Ongoing"})
+        self.assertEqual(blocks[1]["stats"][0]["value"], "42%")
+        self.assertEqual(blocks[2]["steps"][1]["description"], "")
+        self.assertEqual(blocks[3]["value"], "Hot metal handling.")
+        self.assertEqual(blocks[4]["entries"][0]["url"], "https://example.org/paper")
+
+    def test_table_block_reports_its_header_flags(self):
+        ResearchProject.objects.create(
+            title="Load Monitoring",
+            slug="load-monitoring",
+            summary="Appliance-level energy use.",
+            body=json.dumps(
+                [
+                    {
+                        "type": "table",
+                        "value": {
+                            "heading": "Test conditions",
+                            "caption": "Measured at 25C.",
+                            "table": {
+                                "first_row_is_table_header": True,
+                                "first_col_is_header": False,
+                                "data": [
+                                    {"data": ["Load", "Power"]},
+                                    {"data": ["Kettle", "2.0 kW"]},
+                                ],
+                            },
+                        },
+                    }
+                ]
+            ),
+        )
+
+        block = self.client.get(reverse("research-list")).json()["results"][0]["body"][0]
+        self.assertEqual(block["type"], "table")
+        self.assertTrue(block["first_row_is_header"])
+        self.assertFalse(block["first_col_is_header"])
+        self.assertEqual(block["rows"], [["Load", "Power"], ["Kettle", "2.0 kW"]])
+        self.assertEqual(block["caption"], "Measured at 25C.")
+
+    def test_empty_research_body_serializes_as_an_empty_list(self):
+        ResearchProject.objects.create(
+            title="Sugarcane Particle Board",
+            slug="sugarcane-particle-board",
+            summary="Residue as an engineered material.",
+        )
+        story = self.client.get(reverse("research-list")).json()["results"][0]
+        self.assertEqual(story["body"], [])
+
+    def test_structured_blocks_without_content_are_dropped(self):
+        ResearchProject.objects.create(
+            title="Draft Project",
+            slug="draft-project",
+            summary="Blocks added but not filled in.",
+            body=json.dumps(
+                [
+                    {"type": "stats", "value": {"heading": "Results", "stats": []}},
+                    {"type": "heading", "value": "Still here"},
+                ]
+            ),
+        )
+        blocks = self.client.get(reverse("research-list")).json()["results"][0]["body"]
+        self.assertEqual([block["type"] for block in blocks], ["heading"])
+
+
 class SeedNewsEventsTests(TestCase):
     """The homepage news and events bands are fed by seeded starter entries."""
 

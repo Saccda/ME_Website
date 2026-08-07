@@ -109,7 +109,7 @@ export type ResearchProject = {
   title: string;
   slug: string;
   summary: string;
-  body: string;
+  body: StoryBlock[];
   image: string | null;
   focus_areas: FocusArea[];
 };
@@ -204,7 +204,37 @@ export type StoryBlock =
       items: GalleryItem[];
     }
   | { type: "video"; url: string; caption: string; poster: string | null }
-  | { type: "document"; url: string; label: string; filename: string };
+  | { type: "document"; url: string; label: string; filename: string }
+  // Research bodies add structured blocks that read badly as prose.
+  | {
+      type: "key_facts";
+      heading: string;
+      facts: { label: string; value: string }[];
+    }
+  | {
+      type: "stats";
+      heading: string;
+      stats: { value: string; label: string }[];
+    }
+  | {
+      type: "steps";
+      heading: string;
+      steps: { title: string; description: string }[];
+    }
+  | {
+      type: "table";
+      heading: string;
+      caption: string;
+      first_row_is_header: boolean;
+      first_col_is_header: boolean;
+      rows: string[][];
+    }
+  | { type: "callout"; label: string; value: string }
+  | {
+      type: "references";
+      heading: string;
+      entries: { citation: string; url: string }[];
+    };
 
 export type NewsEvent = {
   id: number;
@@ -540,7 +570,7 @@ const fallbackData: HomeData = {
       title,
       slug: title.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
       summary,
-      body: "",
+      body: [],
       image: relatedFocusAreas[0]?.image || null,
       focus_areas: relatedFocusAreas,
     };
@@ -906,7 +936,11 @@ export async function getResearchProject(
 
   return {
     status: "found",
-    project: { ...project, focus_areas: withFocusAreaFallbacks(relatedAreas) },
+    project: {
+      ...project,
+      body: Array.isArray(project.body) ? project.body : [],
+      focus_areas: withFocusAreaFallbacks(relatedAreas),
+    },
   };
 }
 

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
+import StoryBody from "@/components/StoryBody";
 import { getHomeData, getResearchProject } from "@/lib/api";
 import { getResearchImage } from "@/lib/editorialImages";
 
@@ -106,12 +107,8 @@ export default async function ResearchProjectPage({
             <div className="research-detail-body">
               <p className="research-detail-summary">{project.summary}</p>
 
-              {project.body ? (
-                // Rich text authored in Wagtail; the CMS is the trusted source.
-                <div
-                  className="research-detail-rich"
-                  dangerouslySetInnerHTML={{ __html: project.body }}
-                />
+              {project.body.length > 0 ? (
+                <StoryBody blocks={project.body} />
               ) : (
                 <p className="research-detail-empty">
                   A full description of this project has not been published yet.

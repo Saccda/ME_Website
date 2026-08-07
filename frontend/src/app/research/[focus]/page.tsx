@@ -169,17 +169,12 @@ export default async function ResearchAreaPage({
                       <p className="research-project-summary">
                         {project.summary}
                       </p>
-                      {project.body ? (
-                        <div
-                          className="research-project-body"
-                          dangerouslySetInnerHTML={{ __html: project.body }}
-                        />
-                      ) : (
+                      {project.body.length === 0 ? (
                         <p className="research-project-placeholder">
-                          Methodology, team information, findings, media, and
-                          related publications can be added from Wagtail.
+                          Method, team, findings, media, and related
+                          publications can be added from Wagtail.
                         </p>
-                      )}
+                      ) : null}
                       <p className="research-project-more">
                         <Link
                           className="text-link"

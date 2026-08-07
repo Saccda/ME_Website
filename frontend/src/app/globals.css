@@ -2904,6 +2904,236 @@ img {
   }
 }
 
+/* Structured blocks in a research body. Each states something prose states
+   badly: standing facts, headline figures, an ordered method, a results table,
+   a caveat, and provenance. They sit on the reading measure except the table,
+   which may legitimately be wider. */
+.story-facts,
+.story-stats,
+.story-steps,
+.story-table,
+.story-references {
+  margin: clamp(34px, 3.6vw, 52px) 0;
+}
+
+.story-facts h3,
+.story-stats h3,
+.story-steps h3,
+.story-table h3,
+.story-references h3 {
+  margin: 0 0 18px;
+  font-size: clamp(1.1rem, 1.5vw, 1.3rem);
+  letter-spacing: -0.015em;
+}
+
+/* Key facts: a two-column definition list that collapses to one. */
+.story-facts dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 32px;
+}
+
+.story-facts dl > div {
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.story-facts dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.story-facts dd {
+  margin: 6px 0 0;
+  color: var(--ink);
+  font-size: 1.02rem;
+  line-height: 1.5;
+}
+
+/* Key figures: the number leads, the label explains it. */
+.story-stats > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.story-stats > div[data-count="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.story-stats > div[data-count="4"] {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.story-stats p {
+  margin: 0;
+  padding: 20px 22px;
+  background: var(--cream);
+  border-top: 3px solid var(--brand-gold);
+}
+
+.story-stats strong {
+  display: block;
+  color: var(--brand-navy);
+  font-family: var(--font-serif);
+  font-size: clamp(1.7rem, 2.6vw, 2.3rem);
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1.05;
+}
+
+.story-stats span {
+  margin-top: 8px;
+  display: block;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+/* Method: numbered, because order is the point. */
+.story-steps ol {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  counter-reset: story-step;
+  list-style: none;
+}
+
+.story-steps li {
+  position: relative;
+  padding: 18px 0 18px 52px;
+  border-top: 1px solid var(--line);
+  counter-increment: story-step;
+}
+
+.story-steps li::before {
+  position: absolute;
+  left: 0;
+  top: 18px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  color: var(--brand-navy);
+  background: var(--cream);
+  border-radius: 50%;
+  content: counter(story-step, decimal-leading-zero);
+  font-size: 0.82rem;
+  font-weight: 850;
+  font-variant-numeric: lining-nums;
+}
+
+.story-steps strong {
+  display: block;
+  font-size: 1.05rem;
+}
+
+.story-steps li p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.97rem;
+  line-height: 1.6;
+}
+
+/* Table: scrolls inside its own box so a wide result set never scrolls the
+   page sideways. */
+.story-table {
+  max-width: 100%;
+}
+
+.story-table > div {
+  overflow-x: auto;
+}
+
+.story-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.story-table th,
+.story-table td {
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.story-table thead th {
+  color: var(--white);
+  background: var(--brand-navy);
+  border-color: var(--brand-navy);
+  font-weight: 800;
+}
+
+.story-table tbody th {
+  background: var(--cream);
+  font-weight: 800;
+}
+
+.story-table > p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Callout: a caveat or a status, marked without shouting. */
+.story-callout {
+  margin: clamp(30px, 3.2vw, 44px) 0;
+  padding: 18px 22px;
+  background: var(--accent-4-tint);
+  border-left: 4px solid var(--brand-gold);
+}
+
+.story-callout strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #8a6011;
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.story-callout p {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* References: numbered, hanging indent, links where they exist. */
+.story-references ol {
+  margin: 0;
+  padding-left: 22px;
+}
+
+.story-references li {
+  margin-bottom: 12px;
+  color: var(--ink);
+  font-size: 0.97rem;
+  line-height: 1.6;
+}
+
+.story-references a {
+  color: var(--brand-navy);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 680px) {
+  .story-facts dl,
+  .story-stats > div,
+  .story-stats > div[data-count="3"],
+  .story-stats > div[data-count="4"] {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Breadcrumb bar: sits directly under the fixed header, above each page hero. */
 .breadcrumbs {
   background: var(--cream);

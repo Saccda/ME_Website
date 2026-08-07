@@ -9,7 +9,7 @@ from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Orderable
 from wagtail.snippets.models import register_snippet
 
-from .blocks import StoryBodyBlock
+from .blocks import ResearchBodyBlock, StoryBodyBlock
 
 
 class OrderedModel(models.Model):
@@ -564,7 +564,14 @@ class ResearchProject(OrderedModel):
         help_text="Select every focus area connected to this project.",
     )
     summary = models.TextField()
-    body = RichTextField(blank=True)
+    body = StreamField(
+        ResearchBodyBlock(),
+        blank=True,
+        help_text=(
+            "The project write-up. Add blocks, and drag them by the handle at "
+            "the top right of each block to rearrange."
+        ),
+    )
     image = models.ForeignKey(
         "wagtailimages.Image",
         null=True,

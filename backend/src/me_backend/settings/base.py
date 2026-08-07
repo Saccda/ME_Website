@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "wagtail.contrib.settings",
+    "wagtail.contrib.table_block",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
     "wagtail.embeds",

@@ -8,6 +8,7 @@ rich-text box.
 """
 
 from wagtail import blocks
+from wagtail.contrib.table_block.blocks import TableBlock
 from wagtail.documents.blocks import DocumentChooserBlock
 from wagtail.images.blocks import ImageChooserBlock
 
@@ -119,6 +120,112 @@ class DocumentBlock(blocks.StructBlock):
         label = "Document"
 
 
+class KeyFactsBlock(blocks.StructBlock):
+    """The standing facts of a project: team, duration, funding, status.
+
+    A labelled list rather than prose, because a reader scanning a research
+    page looks for these before they read anything else.
+    """
+
+    heading = blocks.CharBlock(required=False, max_length=200, default="Project facts")
+    facts = blocks.ListBlock(
+        blocks.StructBlock(
+            [
+                ("label", blocks.CharBlock(max_length=80)),
+                ("value", blocks.CharBlock(max_length=300)),
+            ]
+        ),
+        min_num=1,
+    )
+
+    class Meta:
+        icon = "list-ul"
+        label = "Key facts"
+
+
+class StatsBlock(blocks.StructBlock):
+    """Headline figures -- a measured result, a sample size, a percentage."""
+
+    heading = blocks.CharBlock(required=False, max_length=200)
+    stats = blocks.ListBlock(
+        blocks.StructBlock(
+            [
+                ("value", blocks.CharBlock(max_length=40, help_text="For example 42% or 1.8 kW.")),
+                ("label", blocks.CharBlock(max_length=120)),
+            ]
+        ),
+        min_num=2,
+        max_num=4,
+    )
+
+    class Meta:
+        icon = "form"
+        label = "Key figures"
+
+
+class StepsBlock(blocks.StructBlock):
+    """Numbered stages: a method, a procedure, a build sequence."""
+
+    heading = blocks.CharBlock(required=False, max_length=200, default="Method")
+    steps = blocks.ListBlock(
+        blocks.StructBlock(
+            [
+                ("title", blocks.CharBlock(max_length=200)),
+                ("description", blocks.TextBlock(required=False)),
+            ]
+        ),
+        min_num=1,
+    )
+
+    class Meta:
+        icon = "order"
+        label = "Numbered steps"
+
+
+class DataTableBlock(blocks.StructBlock):
+    """Results, specifications, or test conditions."""
+
+    heading = blocks.CharBlock(required=False, max_length=200)
+    table = TableBlock()
+    caption = blocks.CharBlock(required=False, max_length=250)
+
+    class Meta:
+        icon = "table"
+        label = "Table"
+
+
+class CalloutBlock(blocks.StructBlock):
+    """A short highlighted note: a status, a caveat, a safety point."""
+
+    label = blocks.CharBlock(required=False, max_length=60, default="Note")
+    text = blocks.TextBlock()
+
+    class Meta:
+        icon = "help"
+        label = "Callout"
+
+
+class ReferencesBlock(blocks.StructBlock):
+    """Publications and external resources, with optional links."""
+
+    heading = blocks.CharBlock(
+        required=False, max_length=200, default="Publications and references"
+    )
+    entries = blocks.ListBlock(
+        blocks.StructBlock(
+            [
+                ("citation", blocks.TextBlock()),
+                ("url", blocks.URLBlock(required=False)),
+            ]
+        ),
+        min_num=1,
+    )
+
+    class Meta:
+        icon = "doc-empty"
+        label = "References"
+
+
 class StoryBodyBlock(blocks.StreamBlock):
     heading = blocks.CharBlock(
         max_length=200,
@@ -136,6 +243,25 @@ class StoryBodyBlock(blocks.StreamBlock):
     quote = QuoteBlock()
     video = VideoBlock()
     document = DocumentBlock()
+
+    class Meta:
+        required = False
+
+
+class ResearchBodyBlock(StoryBodyBlock):
+    """Everything a story can hold, plus the structures a project needs.
+
+    Research pages carry method, results and provenance as well as narrative,
+    and those read badly as paragraphs. Inheriting keeps the shared blocks in
+    one place so a fix to the image or gallery block reaches both.
+    """
+
+    key_facts = KeyFactsBlock()
+    stats = StatsBlock()
+    steps = StepsBlock()
+    table = DataTableBlock()
+    callout = CalloutBlock()
+    references = ReferencesBlock()
 
     class Meta:
         required = False
