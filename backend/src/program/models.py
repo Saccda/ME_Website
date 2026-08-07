@@ -1008,6 +1008,20 @@ class NewsEvent(OrderedModel):
     )
     event_date = models.DateTimeField(null=True, blank=True)
     published_at = models.DateTimeField(default=timezone.now)
+    announce = models.BooleanField(
+        default=False,
+        verbose_name="Show in the announcement card",
+        help_text=(
+            "Surfaces this entry in the small card at the corner of the "
+            "homepage, for something a visitor should not have to scroll to "
+            "find. An event stops showing once its date has passed."
+        ),
+    )
+    announcement_cta = models.CharField(
+        max_length=40,
+        blank=True,
+        help_text="Button on the announcement card. Defaults to Event details.",
+    )
     is_published = models.BooleanField(default=True)
 
     panels = [
@@ -1022,6 +1036,13 @@ class NewsEvent(OrderedModel):
         FieldPanel("image"),
         FieldPanel("event_date"),
         FieldPanel("published_at"),
+        MultiFieldPanel(
+            [
+                FieldPanel("announce"),
+                FieldPanel("announcement_cta"),
+            ],
+            heading="Announcement card",
+        ),
         FieldPanel("is_published"),
     ]
 

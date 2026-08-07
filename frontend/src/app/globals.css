@@ -9201,3 +9201,628 @@ a.partner-logo:focus-visible {
     text-align: center;
   }
 }
+
+/* =========================================================================
+   ME Lab Open House event widget.
+
+   Ported verbatim from the approved mock-up
+   ME-Lab-Open-House-Robot-Arm-Always-Visible-Mockup.html
+   (sha256 ffe362cad809494ff0aed8dc913072eb8191b6c9c656cc4dbbd7a13fd5b86c67).
+
+   Geometry, colours, keyframes and timings are exactly as supplied. Two
+   changes, both called for by the integration notes: the event layer is
+   `fixed` rather than `absolute` so it floats site-wide, and its z-index is
+   1200 so it clears the site's own fixed header and admissions dock.
+
+   The demo page's own chrome (.me-site, .me-header, .story-*) and the
+   superseded .robot-stage / .robot-cue mascot are omitted: they are not part
+   of the widget the specification defines.
+   ========================================================================= */
+
+#me-open-house-widget-demo {
+  --me-blue: #062d72;
+  --me-blue-2: #0b469e;
+  --me-gold: #f3c53d;
+  --me-gold-soft: #fff4c8;
+  --me-red: #e51b23;
+  --me-green: #32d21f;
+  --me-ink: #12213b;
+  --me-copy: #536075;
+  --me-line: #dce3ee;
+  --me-paper: #ffffff;
+  --me-canvas: #f5f8fc;
+  --event-card-width: 390px;
+  --robot-stage-width: 150px;
+  color: var(--me-ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  width: 100%;
+}
+
+#me-open-house-widget-demo * { box-sizing: border-box; }
+
+#me-open-house-widget-demo button,
+#me-open-house-widget-demo a { font: inherit; }
+
+#me-open-house-widget-demo .event-layer {
+  position: fixed;
+  z-index: 1200;
+  right: 24px;
+  /* The mock-up's 24px assumed an empty corner. This site already has a fixed
+     admissions dock (90px) along the bottom, and the hero's statistics band
+     sits directly above it, so the widget starts above both. */
+  bottom: 196px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  pointer-events: none;
+}
+
+#me-open-house-widget-demo .panel-scene {
+  position: relative;
+  display: block;
+  width: var(--event-card-width);
+  max-width: calc(100vw - 72px);
+  perspective: 1200px;
+  pointer-events: none;
+}
+
+#me-open-house-widget-demo .event-layer:is(.is-opening, .is-open) .panel-scene {
+  pointer-events: auto;
+}
+
+/* Open, the card is 529px tall and would reach the fixed site header from the
+   closed-state offset. It only has to clear the admissions dock -- covering
+   the hero is what an opened card is for -- so it sits lower than the folded
+   launcher, which does have to stay clear of the statistics band. */
+#me-open-house-widget-demo .event-layer:is(.is-opening, .is-open) {
+  bottom: 106px;
+}
+
+#me-open-house-widget-demo .event-panel {
+  position: relative;
+  z-index: 3;
+  width: var(--event-card-width);
+  max-width: 100%;
+  color: white;
+  opacity: 0;
+  filter: drop-shadow(0 26px 34px rgba(4, 24, 63, .34));
+  transform: translate(44px, 24px) scale(.66) rotateY(-34deg);
+  transform-origin: 90% 100%;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+#me-open-house-widget-demo .event-layer:is(.is-opening, .is-open) .event-panel {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+#me-open-house-widget-demo .event-layer.is-opening .event-panel {
+  animation: me-card-arrive .8s cubic-bezier(.18,.86,.2,1) .12s both;
+}
+
+#me-open-house-widget-demo .fold-section {
+  position: relative;
+  overflow: hidden;
+  border-inline: 1px solid rgba(255,255,255,.2);
+  background:
+    linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px),
+    linear-gradient(90deg, #0a3f91 0%, #062d72 48%, #041d4c 100%);
+  background-size: 22px 22px, 22px 22px, auto;
+  opacity: 0;
+  transform: rotateX(-92deg) translateY(-5px);
+  transform-origin: top center;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+#me-open-house-widget-demo .fold-section-top {
+  padding: 20px 20px 17px 24px;
+  border-top: 1px solid rgba(255,255,255,.2);
+  border-radius: 22px 22px 0 0;
+  transform: rotateY(-88deg) translateX(24px);
+  transform-origin: right center;
+}
+
+#me-open-house-widget-demo .fold-section-middle {
+  padding: 0 20px 1px 24px;
+}
+
+#me-open-house-widget-demo .fold-section-bottom {
+  padding: 15px 20px 18px 24px;
+  border-bottom: 1px solid rgba(255,255,255,.2);
+  border-radius: 0 0 22px 22px;
+}
+
+#me-open-house-widget-demo .event-layer.is-opening .fold-section-top {
+  animation: me-fold-side .34s cubic-bezier(.2,.84,.2,1) .18s both;
+}
+
+#me-open-house-widget-demo .event-layer.is-opening .fold-section-middle {
+  animation: me-fold-down .34s cubic-bezier(.2,.84,.2,1) .44s both;
+}
+
+#me-open-house-widget-demo .event-layer.is-opening .fold-section-bottom {
+  animation: me-fold-down .34s cubic-bezier(.2,.84,.2,1) .68s both;
+}
+
+#me-open-house-widget-demo .event-layer.is-open .fold-section {
+  opacity: 1;
+  transform: none;
+}
+
+#me-open-house-widget-demo .fold-section::after {
+  position: absolute;
+  content: "";
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--me-gold);
+}
+
+#me-open-house-widget-demo .pull-tab {
+  position: absolute;
+  z-index: 7;
+  left: -8px;
+  top: 117px;
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 44px;
+  border: 2px solid #fff4c8;
+  border-radius: 10px 4px 4px 10px;
+  color: var(--me-blue);
+  background: var(--me-gold);
+  box-shadow: 0 7px 18px rgba(4,24,63,.25);
+  font-size: 16px;
+  font-weight: 900;
+  opacity: 0;
+  transform: translateX(28px) scale(.72);
+  pointer-events: none;
+}
+
+#me-open-house-widget-demo .event-layer.is-opening .pull-tab {
+  animation: me-pull-tab .72s cubic-bezier(.18,.9,.2,1) .08s both;
+}
+
+#me-open-house-widget-demo .independent-robot-arm {
+  position: absolute;
+  z-index: 2;
+  right: 276px;
+  bottom: -74px;
+  /* 64px wide is 88px tall on this viewBox: just over the launcher's 62px, so
+     the machine stands beside the folded card rather than looming over it. */
+  width: 64px;
+  opacity: 1;
+  filter: drop-shadow(0 24px 22px rgba(2, 20, 52, .28));
+  transform: translate(0, 0) scale(1) rotate(0);
+  transform-origin: 82% 100%;
+  transition:
+    right .72s cubic-bezier(.18,.9,.2,1),
+    bottom .72s cubic-bezier(.18,.9,.2,1),
+    width .72s cubic-bezier(.18,.9,.2,1),
+    transform .72s cubic-bezier(.18,.9,.2,1);
+  pointer-events: none;
+}
+
+#me-open-house-widget-demo .event-layer:is(.is-opening, .is-open) .independent-robot-arm {
+  right: calc(100% + 22px);
+  bottom: 2px;
+  width: 150px;
+  opacity: 1;
+  transform: translate(0, 0) scale(1) rotate(0);
+}
+
+#me-open-house-widget-demo .event-layer.is-opening .independent-robot-arm {
+  animation: none;
+}
+
+#me-open-house-widget-demo .independent-robot-arm svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+#me-open-house-widget-demo .independent-robot-arm .arm-machine {
+  transform-box: view-box;
+  transform-origin: 116px 286px;
+  animation: me-independent-arm-breathe 3.8s ease-in-out infinite;
+}
+
+#me-open-house-widget-demo .independent-robot-arm .arm-forearm {
+  transform-box: view-box;
+  transform-origin: 91px 154px;
+  animation: me-independent-arm-present 2.9s ease-in-out infinite;
+}
+
+#me-open-house-widget-demo .event-layer.is-opening .independent-robot-arm .arm-forearm {
+  animation: me-independent-arm-point .72s cubic-bezier(.18,.9,.2,1.14) .4s both;
+}
+
+#me-open-house-widget-demo .event-layer.is-open .independent-robot-arm .arm-forearm {
+  animation: me-independent-arm-present 2.9s ease-in-out infinite;
+}
+
+#me-open-house-widget-demo .independent-robot-arm .arm-status-light {
+  animation: me-independent-arm-light 1.7s ease-out infinite;
+}
+
+#me-open-house-widget-demo .fold-section-top::before {
+  position: absolute;
+  content: "";
+  width: 185px;
+  height: 185px;
+  right: -86px;
+  top: 48px;
+  border: 1px solid rgba(243,197,61,.25);
+  border-radius: 50%;
+  box-shadow: 0 0 0 19px rgba(243,197,61,.05), 0 0 0 40px rgba(243,197,61,.035);
+  pointer-events: none;
+}
+
+#me-open-house-widget-demo .panel-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+#me-open-house-widget-demo .live-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--me-gold-soft);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+#me-open-house-widget-demo .live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--me-green);
+  box-shadow: 0 0 0 5px rgba(50,210,31,.15);
+  animation: me-pulse 2.1s ease-out infinite;
+}
+
+#me-open-house-widget-demo .close-event {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 50%;
+  color: white;
+  background: rgba(255,255,255,.08);
+  cursor: pointer;
+}
+
+#me-open-house-widget-demo .close-event:hover { background: rgba(255,255,255,.16); }
+
+#me-open-house-widget-demo .event-hero {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+#me-open-house-widget-demo .date-plate {
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 14px;
+  text-align: center;
+  background: rgba(255,255,255,.09);
+  backdrop-filter: blur(8px);
+}
+
+#me-open-house-widget-demo .date-plate span {
+  display: block;
+  padding: 5px;
+  color: var(--me-blue);
+  background: var(--me-gold);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+#me-open-house-widget-demo .date-plate strong {
+  display: block;
+  padding: 8px 4px 3px;
+  font-size: 34px;
+  line-height: 1;
+}
+
+#me-open-house-widget-demo .date-plate small { display: block; padding: 0 4px 9px; color: #d7e4fb; font-size: 10px; letter-spacing: .08em; }
+
+#me-open-house-widget-demo .event-kicker { margin: 0 0 3px; color: #bdd2f7; font-size: 12px; }
+
+#me-open-house-widget-demo .event-title { margin: 0; color: white; font-size: 27px; line-height: 1.05; letter-spacing: -.025em; }
+
+#me-open-house-widget-demo .event-subtitle { margin: 8px 0 0; color: #d7e4fb; font-size: 13px; }
+
+#me-open-house-widget-demo .event-meta {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin: 17px 0 14px;
+  padding: 13px 0;
+  border-top: 1px solid rgba(255,255,255,.13);
+  border-bottom: 1px solid rgba(255,255,255,.13);
+}
+
+#me-open-house-widget-demo .meta-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #f3f7ff;
+  font-size: 13px;
+}
+
+#me-open-house-widget-demo .meta-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border-radius: 7px;
+  color: var(--me-gold);
+  background: rgba(243,197,61,.1);
+}
+
+#me-open-house-widget-demo .experience-label { margin: 0 0 8px; color: #bdd2f7; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+
+#me-open-house-widget-demo .experience-list { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 17px; padding: 0; list-style: none; }
+
+#me-open-house-widget-demo .experience-list li { padding: 7px 9px; border: 1px solid rgba(255,255,255,.13); border-radius: 9px; color: #f3f7ff; background: rgba(255,255,255,.065); font-size: 11px; }
+
+#me-open-house-widget-demo .event-actions { display: grid; grid-template-columns: 1fr auto; gap: 9px; }
+
+#me-open-house-widget-demo .register-action,
+#me-open-house-widget-demo .details-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: 11px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#me-open-house-widget-demo .register-action { gap: 8px; border: 1px solid var(--me-gold); color: var(--me-blue); background: var(--me-gold); }
+
+#me-open-house-widget-demo .register-action:hover { background: #ffda68; }
+
+#me-open-house-widget-demo .details-action { padding: 0 13px; border: 1px solid rgba(255,255,255,.2); color: white; background: rgba(255,255,255,.07); }
+
+#me-open-house-widget-demo .event-footnote { margin: 10px 0 0; color: #bfd0ee; font-size: 11px; text-align: center; }
+
+#me-open-house-widget-demo .event-toast {
+  display: none;
+  margin-top: 10px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  color: var(--me-gold-soft);
+  background: rgba(243,197,61,.1);
+  font-size: 11px;
+  text-align: center;
+}
+
+#me-open-house-widget-demo .event-toast.is-visible { display: block; }
+
+#me-open-house-widget-demo .event-launcher {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 62px;
+  max-width: 260px;
+  padding: 8px 18px 8px 8px;
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 999px;
+  color: white;
+  background: linear-gradient(135deg, var(--me-blue-2), var(--me-blue));
+  box-shadow: 0 13px 35px rgba(4, 24, 63, .3);
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity .22s ease, transform .25s ease;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+#me-open-house-widget-demo .event-layer:is(.is-opening, .is-open) .event-launcher {
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+}
+
+#me-open-house-widget-demo .launcher-mascot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 27%, #fff7d5 0 8%, #f3c53d 35%, #d99d11 78%, #9a6500 100%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,.7), 0 0 0 2px rgba(243,197,61,.23), 0 7px 14px rgba(2,18,48,.32);
+  animation: me-mascot-float 2.8s ease-in-out infinite;
+}
+
+#me-open-house-widget-demo .launcher-mascot::before {
+  content: "";
+  position: absolute;
+  width: 28px;
+  height: 21px;
+  border: 2px solid #c88509;
+  border-radius: 9px 9px 11px 11px;
+  background: linear-gradient(145deg, #f9fbff 0%, #d5e5fb 48%, #81a6d8 100%);
+  box-shadow: inset -4px -4px 7px rgba(6,45,114,.16), inset 3px 3px 4px rgba(255,255,255,.9);
+}
+
+#me-open-house-widget-demo .launcher-mascot::after {
+  content: "••";
+  position: relative;
+  z-index: 1;
+  margin-top: -1px;
+  color: var(--me-blue);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-shadow: 0 0 5px rgba(11,70,158,.35);
+}
+
+#me-open-house-widget-demo .launcher-copy { min-width: 0; text-align: left; }
+
+#me-open-house-widget-demo .launcher-copy small { display: block; color: var(--me-gold); font-size: 10px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+
+#me-open-house-widget-demo .launcher-copy strong { display: block; margin-top: 3px; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+
+#me-open-house-widget-demo .new-tag { position: absolute; right: 9px; top: -9px; padding: 4px 7px; border: 2px solid white; border-radius: 999px; color: white; background: var(--me-red); font-size: 9px; font-weight: 900; letter-spacing: .08em; }
+
+@keyframes me-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(50,210,31,.35); }
+  70%, 100% { box-shadow: 0 0 0 8px rgba(50,210,31,0); }
+}
+
+@keyframes me-card-arrive {
+  0% { opacity: 0; transform: translate(44px, 24px) scale(.66) rotateY(-34deg); }
+  30% { opacity: 1; }
+  100% { opacity: 1; transform: translate(0, 0) scale(1) rotateY(0); }
+}
+
+@keyframes me-fold-side {
+  0% { opacity: .25; transform: rotateY(-88deg) translateX(24px); }
+  65% { opacity: 1; transform: rotateY(8deg) translateX(0); }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes me-fold-down {
+  0% { opacity: .2; transform: rotateX(-92deg) translateY(-5px); }
+  68% { opacity: 1; transform: rotateX(7deg) translateY(0); }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes me-pull-tab {
+  0% { opacity: 0; transform: translateX(28px) scale(.72); }
+  18% { opacity: 1; }
+  62% { opacity: 1; transform: translateX(-7px) scale(1); }
+  100% { opacity: 0; transform: translateX(-15px) scale(.88); }
+}
+
+@keyframes me-mascot-float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-3px) rotate(2deg); }
+}
+
+@keyframes me-independent-arm-breathe {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes me-independent-arm-point {
+  0% { transform: rotate(-24deg); }
+  68% { transform: rotate(4deg); }
+  100% { transform: rotate(0); }
+}
+
+@keyframes me-independent-arm-present {
+  0%, 100% { transform: rotate(0); }
+  45% { transform: rotate(2.5deg); }
+  65% { transform: rotate(-1deg); }
+}
+
+@keyframes me-independent-arm-light {
+  0% { opacity: 1; }
+  70%, 100% { opacity: .25; }
+}
+
+@media (max-width: 760px) {
+  #me-open-house-widget-demo .event-layer { left: 12px; right: 12px; bottom: 104px; align-items: stretch; }
+
+  /* Open, the arm stands above a full-width card, so the stack needs the whole
+     band between header and dock: the desktop offset would push the arm off
+     the top of the screen. */
+  #me-open-house-widget-demo .event-layer:is(.is-opening, .is-open) {
+    bottom: 12px;
+  }
+
+  #me-open-house-widget-demo .panel-scene {
+    width: 100%;
+    max-width: none;
+  }
+
+  #me-open-house-widget-demo .event-panel { width: 100%; max-width: none; }
+
+  #me-open-house-widget-demo .fold-section-top { padding: 17px 16px 14px 19px; border-radius: 19px 19px 0 0; }
+
+  #me-open-house-widget-demo .fold-section-middle { padding: 0 16px 1px 19px; }
+
+  #me-open-house-widget-demo .fold-section-bottom { padding: 14px 16px 15px 19px; border-radius: 0 0 19px 19px; }
+
+  #me-open-house-widget-demo .event-title { font-size: 23px; }
+
+  #me-open-house-widget-demo .event-launcher { align-self: flex-end; }
+
+  #me-open-house-widget-demo .panel-top { padding-right: 0; }
+
+  #me-open-house-widget-demo .pull-tab { left: -8px; top: 112px; transform-origin: center; }
+
+  #me-open-house-widget-demo .independent-robot-arm {
+    right: 276px;
+    left: auto;
+    bottom: -74px;
+    width: 64px;
+  }
+
+  #me-open-house-widget-demo .event-layer:is(.is-opening, .is-open) .independent-robot-arm {
+    right: auto;
+    left: 10px;
+    bottom: calc(100% + 18px);
+    width: 100px;
+  }
+}
+
+@media (max-width: 430px) {
+  #me-open-house-widget-demo .event-hero { grid-template-columns: 64px 1fr; gap: 12px; }
+
+  #me-open-house-widget-demo .date-plate strong { font-size: 29px; }
+
+  #me-open-house-widget-demo .event-actions { grid-template-columns: 1fr; }
+
+  #me-open-house-widget-demo .details-action { min-height: 38px; }
+
+  #me-open-house-widget-demo .experience-list li { padding: 6px 8px; }
+
+  #me-open-house-widget-demo .pull-tab { left: -8px; top: 112px; }
+
+  #me-open-house-widget-demo .independent-robot-arm {
+    right: 276px;
+    left: auto;
+    bottom: -74px;
+    width: 60px;
+  }
+
+  #me-open-house-widget-demo .event-layer:is(.is-opening, .is-open) .independent-robot-arm {
+    right: auto;
+    left: 4px;
+    bottom: calc(100% + 14px);
+    width: 84px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #me-open-house-widget-demo *,
+  #me-open-house-widget-demo *::before,
+  #me-open-house-widget-demo *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

@@ -221,6 +221,8 @@ export type NewsEvent = {
   /** Stills for the card slideshow, drawn from the story's own pictures. */
   card_media: string[];
   has_video: boolean;
+  announce: boolean;
+  announcement_cta: string;
   event_date: string | null;
   published_at: string;
 };
@@ -961,6 +963,8 @@ async function fetchNewsEvents(): Promise<NewsEvent[] | null> {
       ? item.card_media.filter((url): url is string => !!url)
       : [item.image].filter((url): url is string => !!url),
     has_video: item.has_video ?? false,
+    announce: item.announce ?? false,
+    announcement_cta: item.announcement_cta ?? "",
     event_date: item.event_date ?? null,
     published_at: item.published_at ?? "",
   }));

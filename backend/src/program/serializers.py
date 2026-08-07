@@ -548,6 +548,8 @@ class NewsEventSerializer(serializers.ModelSerializer):
             "image_wide",
             "card_media",
             "has_video",
+            "announce",
+            "announcement_cta",
             "event_date",
             "published_at",
         )
