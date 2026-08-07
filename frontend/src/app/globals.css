@@ -2198,10 +2198,26 @@ img {
   color: #8a6011;
 }
 
+/* Three fixed columns, not auto-fit. auto-fit collapses the tracks it has no
+   items for, so a band with one published story stretched that single card
+   across the full width and blew its 16:10 image up to about 900px tall. Fixed
+   tracks keep a lone card the same size as one of three. */
 .home-feed-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(20px, 2.2vw, 30px);
+}
+
+@media (max-width: 1040px) {
+  .home-feed-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .home-feed-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* News */
