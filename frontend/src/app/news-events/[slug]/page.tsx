@@ -8,7 +8,7 @@ import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import StoryBody from "@/components/StoryBody";
 import { getHomeData, getNewsEvent, getNewsEvents } from "@/lib/api";
-import { formatDispatchDate } from "@/lib/homeDispatches";
+import { formatDateRange, formatDispatchDate } from "@/lib/homeDispatches";
 
 export const dynamic = "force-dynamic";
 
@@ -63,9 +63,12 @@ export default async function StoryPage({ params }: StoryPageProps) {
 
   const story = lookup.story;
   const isEvent = story.content_type === "event";
-  const date = formatDispatchDate(
-    isEvent ? story.event_date ?? story.published_at : story.published_at,
-  );
+  const date = isEvent
+    ? formatDateRange(
+        story.event_date ?? story.published_at,
+        story.event_end_date,
+      )
+    : formatDispatchDate(story.published_at);
 
   const related = (await getNewsEvents())
     .filter((item) => item.slug !== story.slug)

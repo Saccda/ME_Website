@@ -74,10 +74,14 @@ export default function StoryBody({ blocks }: { blocks: StoryBlock[] }) {
             );
 
           case "video": {
-            const src = videoEmbedUrl(block.url);
+            const src = block.url ? videoEmbedUrl(block.url) : null;
             return (
               <figure className="story-figure" key={key}>
-                {src ? (
+                {block.file_url ? (
+                  <video controls poster={block.poster ?? undefined}>
+                    <source src={block.file_url} />
+                  </video>
+                ) : src ? (
                   <div className="story-video">
                     <iframe
                       src={src}

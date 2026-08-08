@@ -1013,7 +1013,21 @@ class NewsEvent(OrderedModel):
         on_delete=models.SET_NULL,
         related_name="+",
     )
-    event_date = models.DateTimeField(null=True, blank=True)
+    event_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Event start",
+    )
+    event_end_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Event end",
+        help_text=(
+            "Only for an event running over more than one day. Leave empty for "
+            "a single-day event. The event stays listed as upcoming until this "
+            "date passes."
+        ),
+    )
     published_at = models.DateTimeField(default=timezone.now)
     announce = models.BooleanField(
         default=False,
@@ -1042,6 +1056,7 @@ class NewsEvent(OrderedModel):
         FieldPanel("body"),
         FieldPanel("image"),
         FieldPanel("event_date"),
+        FieldPanel("event_end_date"),
         FieldPanel("published_at"),
         MultiFieldPanel(
             [

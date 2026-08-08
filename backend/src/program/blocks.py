@@ -68,7 +68,21 @@ class QuoteBlock(blocks.StructBlock):
 
 
 class VideoBlock(blocks.StructBlock):
-    url = blocks.URLBlock(help_text="A YouTube, Vimeo, or Facebook video link.")
+    """A video, either hosted elsewhere or uploaded here.
+
+    Give a link for anything long: this server has no adaptive streaming and
+    sends the whole file on every play. Upload a file for a short clip that
+    should not depend on an outside account.
+    """
+
+    url = blocks.URLBlock(
+        required=False,
+        help_text="A YouTube, Vimeo, or Facebook link. Leave empty if uploading a file.",
+    )
+    video_file = DocumentChooserBlock(
+        required=False,
+        help_text="An uploaded .mp4 or .webm, up to 100MB. Used when there is no link.",
+    )
     caption = blocks.CharBlock(required=False, max_length=250)
     poster = ImageChooserBlock(
         required=False,
@@ -105,6 +119,42 @@ class MediaGalleryBlock(blocks.StructBlock):
     class Meta:
         icon = "image"
         label = "Gallery (images and videos)"
+
+
+def collection_choices():
+    """Every image collection, resolved when the form is rendered.
+
+    A callable rather than a fixed list, so a collection created after this
+    module was imported still appears in the chooser.
+    """
+    from wagtail.models import Collection
+
+    return [
+        (str(collection.pk), collection.name)
+        for collection in Collection.objects.all().order_by("name")
+    ]
+
+
+class CollectionGalleryBlock(blocks.StructBlock):
+    """Every image in a Wagtail collection, as one gallery.
+
+    The way to publish forty photographs from a three-day activity: upload them
+    in one go with Images -> Add multiple images into a collection named for the
+    activity, then point one block at that collection. Adding a photograph later
+    means uploading it to the collection; the page picks it up with no edit
+    here.
+    """
+
+    heading = blocks.CharBlock(required=False, max_length=200)
+    collection = blocks.ChoiceBlock(
+        choices=collection_choices,
+        help_text="Images uploaded into this collection are shown, newest last.",
+    )
+    caption = blocks.CharBlock(required=False, max_length=250)
+
+    class Meta:
+        icon = "image"
+        label = "Gallery from an image collection"
 
 
 class DocumentBlock(blocks.StructBlock):
@@ -240,6 +290,7 @@ class StoryBodyBlock(blocks.StreamBlock):
     image = ImageBlock()
     gallery = GalleryBlock()
     media_gallery = MediaGalleryBlock()
+    collection_gallery = CollectionGalleryBlock()
     quote = QuoteBlock()
     video = VideoBlock()
     document = DocumentBlock()

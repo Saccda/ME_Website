@@ -36,6 +36,13 @@ ROW_IMAGE = "fill-1200x800"  # 3:2, the image-row crop
 THUMB_IMAGE = "fill-600x400"  # 3:2, a gallery thumbnail
 
 
+def document_url(document, request=None):
+    if not document:
+        return None
+    url = document.url
+    return request.build_absolute_uri(url) if request else url
+
+
 def rendition_url(image, spec, request=None):
     """A resized copy, generated and cached by Wagtail on first request.
 
@@ -123,15 +130,20 @@ def story_blocks(stream_value, request=None):
                             "kind": "image",
                             "thumb": rendition_url(image, THUMB_IMAGE, request),
                             "url": rendition_url(image, BODY_IMAGE, request),
+                            "file_url": None,
                             "caption": item.value.get("caption", ""),
                             "alt_text": item.value.get("alt_text", ""),
                         }
                     )
                 elif item.block_type == "video":
+                    file_url = document_url(item.value.get("video_file"), request)
+                    if not item.value.get("url") and not file_url:
+                        continue
                     items.append(
                         {
                             "kind": "video",
-                            "url": item.value.get("url", ""),
+                            "url": item.value.get("url", "") or file_url,
+                            "file_url": file_url,
                             "thumb": rendition_url(
                                 item.value.get("poster"), THUMB_IMAGE, request
                             ),
@@ -139,6 +151,39 @@ def story_blocks(stream_value, request=None):
                             "alt_text": "",
                         }
                     )
+            if not items:
+                continue
+            blocks.append(
+                {
+                    "type": "media_gallery",
+                    "heading": value.get("heading", ""),
+                    "caption": value.get("caption", ""),
+                    "items": items,
+                }
+            )
+
+        elif kind == "collection_gallery":
+            from wagtail.images import get_image_model
+
+            collection_id = value.get("collection")
+            if not collection_id:
+                continue
+            images = (
+                get_image_model()
+                .objects.filter(collection_id=collection_id)
+                .order_by("pk")
+            )
+            items = [
+                {
+                    "kind": "image",
+                    "thumb": rendition_url(image, THUMB_IMAGE, request),
+                    "url": rendition_url(image, BODY_IMAGE, request),
+                    "file_url": None,
+                    "caption": "",
+                    "alt_text": image.title,
+                }
+                for image in images
+            ]
             if not items:
                 continue
             blocks.append(
@@ -160,10 +205,15 @@ def story_blocks(stream_value, request=None):
             )
 
         elif kind == "video":
+            video_file = value.get("video_file")
+            url = value.get("url", "")
+            if not url and not video_file:
+                continue
             blocks.append(
                 {
                     "type": "video",
-                    "url": value.get("url", ""),
+                    "url": url,
+                    "file_url": document_url(video_file, request),
                     "caption": value.get("caption", ""),
                     "poster": rendition_url(value.get("poster"), BODY_IMAGE, request),
                 }
@@ -663,6 +713,7 @@ class NewsEventSerializer(serializers.ModelSerializer):
             "announce",
             "announcement_cta",
             "event_date",
+            "event_end_date",
             "published_at",
         )
 

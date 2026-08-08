@@ -2816,6 +2816,15 @@ img {
   }
 }
 
+/* An uploaded clip uses the browser's own player; a linked one an iframe. */
+.story-figure video,
+.story-lightbox video {
+  width: 100%;
+  max-height: 78vh;
+  display: block;
+  background: #041229;
+}
+
 .story-video {
   position: relative;
   aspect-ratio: 16 / 9;

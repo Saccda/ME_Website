@@ -17,6 +17,44 @@ const DATE_FORMAT: Intl.DateTimeFormatOptions = {
   year: "numeric",
 };
 
+/**
+ * "12-14 September 2026", collapsing the parts the two dates share.
+ *
+ * A range that stays inside one month prints the month once; one inside one
+ * year prints the year once. Falls back to the single date when there is no
+ * end, or when the end is not after the start.
+ */
+export function formatDateRange(
+  start: string | null,
+  end: string | null,
+): string {
+  const from = start ? new Date(start) : null;
+  const to = end ? new Date(end) : null;
+  if (!from || Number.isNaN(from.getTime())) return "";
+  if (!to || Number.isNaN(to.getTime()) || to <= from) {
+    return formatDispatchDate(start);
+  }
+
+  const sameYear = from.getFullYear() === to.getFullYear();
+  const sameMonth = sameYear && from.getMonth() === to.getMonth();
+
+  if (sameMonth) {
+    const month = to.toLocaleDateString("en-GB", {
+      month: "long",
+      year: "numeric",
+    });
+    return `${from.getDate()}\u2013${to.getDate()} ${month}`;
+  }
+  if (sameYear) {
+    const left = from.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+    });
+    return `${left} \u2013 ${formatDispatchDate(end)}`;
+  }
+  return `${formatDispatchDate(start)} \u2013 ${formatDispatchDate(end)}`;
+}
+
 export function formatDispatchDate(value: string | null): string {
   if (!value) return "";
   const parsed = new Date(value);
@@ -58,24 +96,30 @@ export function selectUpcomingEvents(
   startOfToday.setHours(0, 0, 0, 0);
 
   const dated = (item: NewsEvent) => time(item.event_date ?? item.published_at);
+  // A multi-day event is still upcoming while it is running, so the end date
+  // decides whether it has passed.
+  const finishes = (item: NewsEvent) =>
+    time(item.event_end_date) || dated(item);
 
   const events = items
     .filter((item) => item.content_type === "event")
     .filter((item) => !Number.isNaN(dated(item)));
 
   const upcoming = events
-    .filter((item) => dated(item) >= startOfToday.getTime())
+    .filter((item) => finishes(item) >= startOfToday.getTime())
     .sort((a, b) => dated(a) - dated(b))
     .map((item) => ({ item, isUpcoming: true }));
 
   const past = events
-    .filter((item) => dated(item) < startOfToday.getTime())
+    .filter((item) => finishes(item) < startOfToday.getTime())
     .sort((a, b) => dated(b) - dated(a))
     .map((item) => ({ item, isUpcoming: false }));
 
   return [...upcoming, ...past].slice(0, limit).map(({ item, isUpcoming }) => ({
     item,
     isUpcoming,
-    date: formatDispatchDate(item.event_date ?? item.published_at),
+    date: item.event_date
+      ? formatDateRange(item.event_date, item.event_end_date)
+      : formatDispatchDate(item.published_at),
   }));
 }

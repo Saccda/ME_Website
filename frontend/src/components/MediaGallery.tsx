@@ -120,7 +120,9 @@ export default function MediaGallery({
           ) : null}
 
           <figure>
-            {active.kind === "video" ? (
+            {active.kind === "video" && active.file_url ? (
+              <video autoPlay controls src={active.file_url} />
+            ) : active.kind === "video" ? (
               <div className="story-video">
                 <iframe
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

@@ -182,6 +182,8 @@ export type FacultyMember = {
 export type GalleryItem = {
   kind: "image" | "video";
   url: string;
+  /** Set when the video was uploaded here rather than linked to a host. */
+  file_url: string | null;
   thumb: string | null;
   caption: string;
   alt_text: string;
@@ -203,7 +205,13 @@ export type StoryBlock =
       caption: string;
       items: GalleryItem[];
     }
-  | { type: "video"; url: string; caption: string; poster: string | null }
+  | {
+      type: "video";
+      url: string;
+      file_url: string | null;
+      caption: string;
+      poster: string | null;
+    }
   | { type: "document"; url: string; label: string; filename: string }
   // Research bodies add structured blocks that read badly as prose.
   | {
@@ -254,6 +262,8 @@ export type NewsEvent = {
   announce: boolean;
   announcement_cta: string;
   event_date: string | null;
+  /** Only set for an event running over more than one day. */
+  event_end_date: string | null;
   published_at: string;
 };
 
@@ -1000,6 +1010,7 @@ async function fetchNewsEvents(): Promise<NewsEvent[] | null> {
     announce: item.announce ?? false,
     announcement_cta: item.announcement_cta ?? "",
     event_date: item.event_date ?? null,
+    event_end_date: item.event_end_date ?? null,
     published_at: item.published_at ?? "",
   }));
 }

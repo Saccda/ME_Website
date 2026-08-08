@@ -4,6 +4,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getHomeData, getNewsEvents, type NewsEvent } from "@/lib/api";
+import { formatDateRange } from "@/lib/homeDispatches";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,14 @@ function formatDate(value: string | null) {
   }).format(new Date(value));
 }
 
+/** Events can run over several days; news has a single publication date. */
+function storyDate(item: NewsEvent) {
+  if (item.content_type === "event" && item.event_date) {
+    return formatDateRange(item.event_date, item.event_end_date);
+  }
+  return formatDate(item.event_date || item.published_at);
+}
+
 function StoryCard({ item }: { item: NewsEvent }) {
   return (
     <article className="story-card">
@@ -25,7 +34,7 @@ function StoryCard({ item }: { item: NewsEvent }) {
       </div>
       <div>
         <time dateTime={item.event_date || item.published_at}>
-          {formatDate(item.event_date || item.published_at)}
+          {storyDate(item)}
         </time>
         <h3>
           <Link href={`/news-events/${item.slug}`}>{item.title}</Link>

@@ -208,10 +208,16 @@ WAGTAILADMIN_BASE_URL = os.getenv("WAGTAILADMIN_BASE_URL", "http://localhost:800
 # This can be omitted to allow all files, but note that this may present a security risk
 # if untrusted users are allowed to upload files -
 # see https://docs.wagtail.org/en/stable/advanced_topics/deploying.html#user-uploaded-files
-WAGTAILDOCS_EXTENSIONS = ['csv', 'docx', 'key', 'odt', 'pdf', 'pptx', 'rtf', 'txt', 'xlsx', 'zip']
+WAGTAILDOCS_EXTENSIONS = [
+    'csv', 'docx', 'key', 'odt', 'pdf', 'pptx', 'rtf', 'txt', 'xlsx', 'zip',
+    # Short clips uploaded straight into a story or project body. Anything
+    # long belongs on YouTube: this server has no adaptive streaming and
+    # sends the whole file down the tunnel on every play.
+    'mp4', 'webm', 'mov', 'm4v',
+]
 
 # Maximum upload size for documents in bytes.
-WAGTAILDOCS_MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10MB
+WAGTAILDOCS_MAX_UPLOAD_SIZE = 100 * 1024 * 1024  # 100MB, to allow short video clips
 
 
 # Public API and frontend integration

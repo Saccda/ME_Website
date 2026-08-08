@@ -7,9 +7,11 @@ from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from django.core.files.base import ContentFile
+from wagtail.documents import get_document_model
 from wagtail.images import get_image_model
 from wagtail.images.tests.utils import get_test_image_file
-from wagtail.models import Site
+from wagtail.models import Collection, Site
 
 from .models import (
     Course,
@@ -615,6 +617,134 @@ class ResearchBodyTests(TestCase):
         )
         blocks = self.client.get(reverse("research-list")).json()["results"][0]["body"]
         self.assertEqual([block["type"] for block in blocks], ["heading"])
+
+
+class MediaAndDateRangeTests(TestCase):
+    """Uploaded video, collection galleries, and multi-day events."""
+
+    def test_video_block_exposes_an_uploaded_file(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                document = get_document_model().objects.create(
+                    title="Site walkthrough",
+                    file=ContentFile(b"not really a video", name="walkthrough.mp4"),
+                )
+                NewsEvent.objects.create(
+                    content_type="news",
+                    title="A story with an uploaded clip",
+                    slug="story-with-uploaded-clip",
+                    excerpt="Short clip hosted here.",
+                    body=json.dumps(
+                        [
+                            {
+                                "type": "video",
+                                "value": {
+                                    "url": "",
+                                    "video_file": document.pk,
+                                    "caption": "Walkthrough",
+                                },
+                            }
+                        ]
+                    ),
+                )
+
+                block = self.client.get(reverse("news-list")).json()["results"][0][
+                    "body"
+                ][0]
+                self.assertEqual(block["type"], "video")
+                self.assertEqual(block["url"], "")
+                self.assertIn("walkthrough", block["file_url"])
+
+    def test_video_block_with_neither_link_nor_file_is_dropped(self):
+        NewsEvent.objects.create(
+            content_type="news",
+            title="A story with an empty video block",
+            slug="story-with-empty-video",
+            excerpt="Author added the block but filled nothing in.",
+            body=json.dumps(
+                [
+                    {"type": "video", "value": {"url": "", "caption": ""}},
+                    {"type": "heading", "value": "Still here"},
+                ]
+            ),
+        )
+        blocks = self.client.get(reverse("news-list")).json()["results"][0]["body"]
+        self.assertEqual([block["type"] for block in blocks], ["heading"])
+
+    def test_collection_gallery_returns_every_image_in_the_collection(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                collection = Collection.get_first_root_node().add_child(
+                    name="Learning Express 2026"
+                )
+                Image = get_image_model()
+                for index in range(3):
+                    Image.objects.create(
+                        title=f"Day {index + 1}",
+                        collection=collection,
+                        file=get_test_image_file(size=(900, 600)),
+                    )
+                # An image outside the collection must not appear.
+                Image.objects.create(
+                    title="Unrelated", file=get_test_image_file(size=(900, 600))
+                )
+
+                NewsEvent.objects.create(
+                    content_type="news",
+                    title="A three day activity",
+                    slug="a-three-day-activity",
+                    excerpt="Photographs uploaded in one go.",
+                    body=json.dumps(
+                        [
+                            {
+                                "type": "collection_gallery",
+                                "value": {
+                                    "heading": "Every day",
+                                    "collection": str(collection.pk),
+                                    "caption": "Uploaded as a set.",
+                                },
+                            }
+                        ]
+                    ),
+                )
+
+                block = self.client.get(reverse("news-list")).json()["results"][0][
+                    "body"
+                ][0]
+                # Serialized as a media_gallery so the frontend needs no second
+                # renderer.
+                self.assertEqual(block["type"], "media_gallery")
+                self.assertEqual(block["heading"], "Every day")
+                self.assertEqual(len(block["items"]), 3)
+                self.assertEqual(
+                    [item["alt_text"] for item in block["items"]],
+                    ["Day 1", "Day 2", "Day 3"],
+                )
+
+    def test_event_end_date_is_exposed(self):
+        start = timezone.now() + timedelta(days=10)
+        NewsEvent.objects.create(
+            content_type="event",
+            title="Learning Express",
+            slug="learning-express",
+            excerpt="Runs over three days.",
+            event_date=start,
+            event_end_date=start + timedelta(days=2),
+        )
+        story = self.client.get(reverse("news-list")).json()["results"][0]
+        self.assertIsNotNone(story["event_end_date"])
+        self.assertGreater(story["event_end_date"], story["event_date"])
+
+    def test_single_day_event_has_no_end_date(self):
+        NewsEvent.objects.create(
+            content_type="event",
+            title="Open house",
+            slug="open-house-single",
+            excerpt="One day only.",
+            event_date=timezone.now() + timedelta(days=5),
+        )
+        story = self.client.get(reverse("news-list")).json()["results"][0]
+        self.assertIsNone(story["event_end_date"])
 
 
 class SeedNewsEventsTests(TestCase):
