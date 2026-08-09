@@ -1079,9 +1079,12 @@ class NewsEvent(ClusterableModel, OrderedModel):
             heading="Story gallery",
             label="Image",
             help_text=(
-                "Shown as a gallery at the end of the story. Use Add multiple "
-                "images to pick or upload a whole set at once, then drag to "
-                "reorder."
+                "Use Add multiple images to tick a whole set at once, then "
+                "drag to reorder. To upload many files in one go first, go to "
+                "Images then Add multiple images, which takes a drag-and-drop "
+                "batch; the chooser's own Upload tab takes one file at a time. "
+                "Add a Story gallery block to the body to position this set, "
+                "otherwise it renders after the body."
             ),
         ),
         FieldPanel("is_published"),

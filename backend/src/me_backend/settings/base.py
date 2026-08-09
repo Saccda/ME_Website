@@ -216,6 +216,10 @@ WAGTAILDOCS_EXTENSIONS = [
     'mp4', 'webm', 'mov', 'm4v',
 ]
 
+# Photographs off a DSLR routinely exceed Wagtail's 10MB default, and the
+# gallery flow uploads them in batches.
+WAGTAILIMAGES_MAX_UPLOAD_SIZE = 25 * 1024 * 1024  # 25MB
+
 # Maximum upload size for documents in bytes.
 WAGTAILDOCS_MAX_UPLOAD_SIZE = 100 * 1024 * 1024  # 100MB, to allow short video clips
 
