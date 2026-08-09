@@ -23,6 +23,7 @@ from .models import (
     FocusAreaDetailItem,
     Inquiry,
     NewsEvent,
+    NewsEventGalleryImage,
     Opportunity,
     Partner,
     ProgramSettings,
@@ -720,6 +721,50 @@ class MediaAndDateRangeTests(TestCase):
                     [item["alt_text"] for item in block["items"]],
                     ["Day 1", "Day 2", "Day 3"],
                 )
+
+    def test_story_gallery_is_serialized_in_order(self):
+        """Images picked in one pass keep the order they were arranged in."""
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                story = NewsEvent.objects.create(
+                    content_type="news",
+                    title="A story with a gallery",
+                    slug="story-with-a-gallery",
+                    excerpt="Photographs chosen in one pass.",
+                )
+                Image = get_image_model()
+                for index in range(3):
+                    NewsEventGalleryImage.objects.create(
+                        story=story,
+                        sort_order=index,
+                        caption=f"Frame {index + 1}",
+                        image=Image.objects.create(
+                            title=f"Shot {index + 1}",
+                            file=get_test_image_file(size=(1200, 800)),
+                        ),
+                    )
+
+                payload = self.client.get(reverse("news-list")).json()["results"][0]
+                gallery = payload["gallery"]
+                self.assertEqual(len(gallery), 3)
+                self.assertEqual(
+                    [item["caption"] for item in gallery],
+                    ["Frame 1", "Frame 2", "Frame 3"],
+                )
+                self.assertTrue(all(item["kind"] == "image" for item in gallery))
+                self.assertNotIn("original_images", gallery[0]["thumb"])
+                # The gallery also feeds the card slideshow.
+                self.assertEqual(len(payload["card_media"]), 3)
+
+    def test_story_without_a_gallery_returns_an_empty_list(self):
+        NewsEvent.objects.create(
+            content_type="news",
+            title="A story with no gallery",
+            slug="story-with-no-gallery",
+            excerpt="Text only.",
+        )
+        payload = self.client.get(reverse("news-list")).json()["results"][0]
+        self.assertEqual(payload["gallery"], [])
 
     def test_event_end_date_is_exposed(self):
         start = timezone.now() + timedelta(days=10)

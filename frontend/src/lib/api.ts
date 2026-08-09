@@ -256,6 +256,8 @@ export type NewsEvent = {
   /** Card-sized crop. `image_wide` is the same photograph for a full-bleed lead. */
   image: string | null;
   image_wide: string | null;
+  /** The story's own gallery, chosen in one pass on its record. */
+  gallery: GalleryItem[];
   /** Stills for the card slideshow, drawn from the story's own pictures. */
   card_media: string[];
   has_video: boolean;
@@ -1003,6 +1005,7 @@ async function fetchNewsEvents(): Promise<NewsEvent[] | null> {
     body: Array.isArray(item.body) ? item.body : [],
     image: item.image ?? null,
     image_wide: item.image_wide ?? item.image ?? null,
+    gallery: Array.isArray(item.gallery) ? item.gallery : [],
     card_media: Array.isArray(item.card_media)
       ? item.card_media.filter((url): url is string => !!url)
       : [item.image].filter((url): url is string => !!url),

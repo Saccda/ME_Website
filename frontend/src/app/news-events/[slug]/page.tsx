@@ -6,6 +6,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import CardMedia from "@/components/CardMedia";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
+import MediaGallery from "@/components/MediaGallery";
 import StoryBody from "@/components/StoryBody";
 import { getHomeData, getNewsEvent, getNewsEvents } from "@/lib/api";
 import { formatDateRange, formatDispatchDate } from "@/lib/homeDispatches";
@@ -132,6 +133,14 @@ export default async function StoryPage({ params }: StoryPageProps) {
                 The full story is being written. Check back shortly.
               </p>
             )}
+
+            {story.gallery.length > 0 ? (
+              <MediaGallery
+                caption=""
+                heading="Gallery"
+                items={story.gallery}
+              />
+            ) : null}
 
             <p className="story-foot">
               <a className="story-top-link" href="#main-content">

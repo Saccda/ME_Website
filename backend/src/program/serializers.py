@@ -640,6 +640,7 @@ class FacultyMemberSerializer(serializers.ModelSerializer):
 class NewsEventSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     image_wide = serializers.SerializerMethodField()
+    gallery = serializers.SerializerMethodField()
     card_media = serializers.SerializerMethodField()
     has_video = serializers.SerializerMethodField()
     body = serializers.SerializerMethodField()
@@ -649,6 +650,22 @@ class NewsEventSerializer(serializers.ModelSerializer):
 
     def get_image_wide(self, obj):
         return rendition_url(obj.image, WIDE_IMAGE, self.context.get("request"))
+
+    def get_gallery(self, obj):
+        """The story's own gallery, in the same shape a gallery block emits."""
+        request = self.context.get("request")
+        return [
+            {
+                "kind": "image",
+                "thumb": rendition_url(entry.image, THUMB_IMAGE, request),
+                "url": rendition_url(entry.image, BODY_IMAGE, request),
+                "file_url": None,
+                "caption": entry.caption,
+                "alt_text": entry.caption or entry.image.title,
+            }
+            for entry in obj.gallery_images.all()
+            if entry.image
+        ]
 
     def get_card_media(self, obj):
         """Stills for the card slideshow, drawn from the story itself.
@@ -666,6 +683,10 @@ class NewsEventSerializer(serializers.ModelSerializer):
                 urls.append(url)
 
         add(obj.image)
+        for entry in obj.gallery_images.all():
+            if len(urls) >= 5:
+                break
+            add(entry.image)
         for child in obj.body:
             if len(urls) >= 5:
                 break
@@ -708,6 +729,7 @@ class NewsEventSerializer(serializers.ModelSerializer):
             "body",
             "image",
             "image_wide",
+            "gallery",
             "card_media",
             "has_video",
             "announce",

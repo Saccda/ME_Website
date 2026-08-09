@@ -3,7 +3,12 @@ from django.utils import timezone
 from django.utils.text import slugify
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
-from wagtail.admin.panels import FieldPanel, InlinePanel, MultiFieldPanel
+from wagtail.admin.panels import (
+    FieldPanel,
+    InlinePanel,
+    MultiFieldPanel,
+    MultipleChooserPanel,
+)
 from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
 from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Orderable
@@ -974,7 +979,7 @@ class FacultyWorkItem(Orderable):
 
 
 @register_snippet
-class NewsEvent(OrderedModel):
+class NewsEvent(ClusterableModel, OrderedModel):
     CONTENT_TYPES = (("news", "News"), ("event", "Event"))
 
     content_type = models.CharField(max_length=10, choices=CONTENT_TYPES, default="news")
@@ -1065,11 +1070,62 @@ class NewsEvent(OrderedModel):
             ],
             heading="Announcement card",
         ),
+        # "Add multiple images" opens the chooser in multi-select mode, so a
+        # whole set is picked -- or dragged in and uploaded -- in one pass
+        # instead of one image at a time.
+        MultipleChooserPanel(
+            "gallery_images",
+            chooser_field_name="image",
+            heading="Story gallery",
+            label="Image",
+            help_text=(
+                "Shown as a gallery at the end of the story. Use Add multiple "
+                "images to pick or upload a whole set at once, then drag to "
+                "reorder."
+            ),
+        ),
         FieldPanel("is_published"),
     ]
 
+    # ClusterableModel comes first in the bases, so its empty Meta would
+    # otherwise win and the listing would lose its sort order.
+    class Meta(OrderedModel.Meta):
+        pass
+
     def __str__(self):
         return self.title
+
+
+class NewsEventGalleryImage(Orderable):
+    """One picture in a story's gallery.
+
+    A child model rather than a StreamField block, because only a model
+    relation can use MultipleChooserPanel -- which is the only place in Wagtail
+    where several images are chosen in a single action.
+    """
+
+    story = ParentalKey(
+        NewsEvent,
+        on_delete=models.CASCADE,
+        related_name="gallery_images",
+    )
+    image = models.ForeignKey(
+        "wagtailimages.Image",
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
+    caption = models.CharField(max_length=250, blank=True)
+
+    panels = [
+        FieldPanel("image"),
+        FieldPanel("caption"),
+    ]
+
+    class Meta(Orderable.Meta):
+        verbose_name = "Story gallery image"
+
+    def __str__(self):
+        return f"{self.story.title} - {self.image.title}"
 
 
 class Inquiry(models.Model):

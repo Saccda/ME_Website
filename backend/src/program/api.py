@@ -184,6 +184,7 @@ class NewsEventViewSet(PublicReadOnlyViewSet):
         queryset = (
             NewsEvent.objects.filter(is_published=True, published_at__lte=timezone.now())
             .select_related("image")
+            .prefetch_related("gallery_images__image")
             .order_by("-published_at", "sort_order")
         )
         content_type = self.request.query_params.get("type")
