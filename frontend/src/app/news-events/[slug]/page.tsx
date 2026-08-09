@@ -127,7 +127,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
 
           <div className="shell story-content">
             {story.body.length > 0 ? (
-              <StoryBody blocks={story.body} />
+              <StoryBody blocks={story.body} galleryTitle={story.title} />
             ) : (
               <p className="story-body-empty">
                 The full story is being written. Check back shortly.
@@ -138,6 +138,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
             {story.gallery.length > 0 && !story.gallery_in_body ? (
               <MediaGallery
                 caption=""
+                galleryTitle={story.title}
                 heading="Gallery"
                 items={story.gallery}
               />

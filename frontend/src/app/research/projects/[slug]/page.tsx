@@ -108,7 +108,7 @@ export default async function ResearchProjectPage({
               <p className="research-detail-summary">{project.summary}</p>
 
               {project.body.length > 0 ? (
-                <StoryBody blocks={project.body} />
+                <StoryBody blocks={project.body} galleryTitle={project.title} />
               ) : (
                 <p className="research-detail-empty">
                   A full description of this project has not been published yet.

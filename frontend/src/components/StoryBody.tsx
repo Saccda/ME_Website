@@ -3,7 +3,14 @@ import type { StoryBlock } from "@/lib/api";
 import { videoEmbedUrl } from "@/lib/video";
 import MediaGallery from "./MediaGallery";
 
-export default function StoryBody({ blocks }: { blocks: StoryBlock[] }) {
+export default function StoryBody({
+  blocks,
+  galleryTitle,
+}: {
+  blocks: StoryBlock[];
+  /** Passed to any gallery in the body as the activity name. */
+  galleryTitle?: string;
+}) {
   if (blocks.length === 0) return null;
 
   return (
@@ -59,6 +66,7 @@ export default function StoryBody({ blocks }: { blocks: StoryBlock[] }) {
             return (
               <MediaGallery
                 caption={block.caption}
+                galleryTitle={galleryTitle}
                 heading={block.heading}
                 items={block.items}
                 key={key}

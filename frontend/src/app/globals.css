@@ -2583,7 +2583,8 @@ img {
 
 /* Media runs the full band, wider than the prose it sits between. */
 .story-figure,
-.story-gallery {
+.story-gallery,
+.photo-story {
   margin: clamp(40px, 4.5vw, 68px) 0;
   max-width: 100%;
 }
@@ -2621,204 +2622,502 @@ img {
   object-fit: cover;
 }
 
-/* Gallery: a whole set of media from one activity. Thumbnails run the full
-   band and open full size, so a week of photographs does not become a page of
-   full-width images the reader has to scroll past. */
-.story-media-gallery {
+/* Photo story gallery.
+   Values from PHOTO-STORY-DESIGN-SPEC.md. A fixed-height stage with a
+   thumbnail rail, so a set of forty photographs costs the article the same
+   vertical space as a set of four. */
+.photo-story {
+  --gallery-navy: #10264b;
+  --gallery-ink: #102033;
+  --gallery-muted: #667386;
+  --gallery-gold: #e7b94e;
   margin: clamp(40px, 4.5vw, 68px) 0;
   max-width: 100%;
 }
 
-.story-media-gallery h3 {
-  margin: 0 0 20px;
-  font-size: clamp(1.2rem, 1.7vw, 1.5rem);
-  letter-spacing: -0.02em;
+.photo-story__heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
 }
 
-.story-media-grid {
+.photo-story__eyebrow {
+  margin: 0 0 10px;
+  color: #a87812;
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.photo-story__heading h2 {
   margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
-  gap: clamp(10px, 1.2vw, 16px);
-  list-style: none;
+  font-size: 28px;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
 }
 
-.story-media-grid button {
+.photo-story__total {
+  color: var(--gallery-muted);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.photo-story__stage {
   position: relative;
-  width: 100%;
-  padding: 0;
-  display: block;
+  height: min(660px, 58vw);
+  min-height: 480px;
   overflow: hidden;
-  background: var(--cream);
-  border: 0;
-  cursor: pointer;
+  border-radius: 18px;
+  color: #fff;
+  background: #0a1729;
+  box-shadow: 0 24px 60px rgba(9, 28, 53, 0.16);
 }
 
-.story-media-grid img {
+.photo-story__stage::after {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 52%;
+  background: linear-gradient(transparent, rgba(4, 13, 26, 0.9));
+  pointer-events: none;
+  content: "";
+}
+
+.photo-story__image {
   width: 100%;
-  aspect-ratio: 3 / 2;
+  height: 100%;
+  transition: opacity 0.25s ease;
+}
+
+.photo-story__image img,
+.photo-story__image video,
+.photo-story__image iframe {
+  width: 100%;
+  height: 100%;
   display: block;
+  border: 0;
   object-fit: cover;
-  transition: transform 380ms ease;
 }
 
-.story-media-grid button:hover img {
-  transform: scale(1.05);
+.photo-story__topline {
+  position: absolute;
+  z-index: 3;
+  top: 20px;
+  right: 22px;
+  left: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.story-media-grid button:focus-visible {
-  outline: 3px solid var(--brand-gold);
+.photo-story__current {
+  padding: 9px 13px;
+  border-left: 3px solid var(--gallery-gold);
+  background: rgba(5, 18, 36, 0.76);
+  font-size: 13px;
+  backdrop-filter: blur(10px);
+}
+
+.photo-story__current span {
+  color: var(--gallery-gold);
+}
+
+.photo-story__expand,
+.photo-story__arrow {
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: rgba(5, 18, 36, 0.64);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+.photo-story__expand {
+  width: 42px;
+  height: 42px;
+}
+
+.photo-story__expand svg {
+  width: 18px;
+}
+
+.photo-story__arrow {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  font-size: 21px;
+  transform: translateY(-50%);
+}
+
+.photo-story__arrow--prev {
+  left: 18px;
+}
+
+.photo-story__arrow--next {
+  right: 18px;
+}
+
+.photo-story__expand:hover,
+.photo-story__arrow:hover {
+  color: var(--gallery-navy);
+  background: var(--gallery-gold);
+}
+
+.photo-story__expand:focus-visible,
+.photo-story__arrow:focus-visible,
+.photo-story__thumb:focus-visible {
+  outline: 3px solid #fff;
   outline-offset: 2px;
 }
 
-.story-media-placeholder {
-  display: block;
-  aspect-ratio: 3 / 2;
-  background: var(--cream);
+.photo-story__bottom {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.4fr);
+  gap: 32px;
+  align-items: end;
+  padding: 24px;
 }
 
-.story-media-play {
+.photo-story__copy strong {
+  display: block;
+  font-size: 18px;
+}
+
+.photo-story__copy span {
+  margin-top: 4px;
+  display: block;
+  color: #c8d1dc;
+  font-size: 12px;
+}
+
+.photo-story__thumbs {
+  display: flex;
+  min-width: 0;
+  gap: 9px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.photo-story__thumbs::-webkit-scrollbar {
+  display: none;
+}
+
+.photo-story__thumb {
+  position: relative;
+  width: 92px;
+  height: 62px;
+  padding: 0;
+  flex: none;
+  overflow: hidden;
+  background: #25344a;
+  border: 2px solid transparent;
+  opacity: 0.58;
+  cursor: pointer;
+}
+
+.photo-story__thumb.is-active {
+  border-color: var(--gallery-gold);
+  opacity: 1;
+}
+
+.photo-story__thumb img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+/* Marks a video in the rail; the player is only built for the shown item. */
+.photo-story__thumb-play {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 54px;
-  height: 54px;
+  width: 24px;
+  height: 24px;
   display: grid;
   place-items: center;
-  background: rgba(6, 26, 42, 0.66);
+  background: rgba(6, 26, 42, 0.72);
   border-radius: 50%;
   transform: translate(-50%, -50%);
 }
 
-.story-media-play::after {
+.photo-story__thumb-play::after {
   width: 0;
   height: 0;
-  margin-left: 4px;
-  border-top: 9px solid transparent;
-  border-bottom: 9px solid transparent;
-  border-left: 15px solid var(--white);
+  margin-left: 2px;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid #fff;
   content: "";
 }
 
-.story-media-caption {
-  margin: 14px 0 0;
-  max-width: var(--story-measure);
-  color: var(--muted);
-  font-size: 0.92rem;
+.photo-story__footer {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.photo-story__caption {
+  margin: 0;
+  max-width: 720px;
+  color: var(--gallery-muted);
+  font-size: 13px;
   line-height: 1.5;
 }
 
-/* Viewer */
-.story-lightbox {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
+.photo-story__hint {
+  flex: none;
+  color: var(--gallery-muted);
+  font-size: 12px;
+}
+
+.photo-story-dialog {
+  width: min(1160px, calc(100% - 28px));
+  max-width: none;
+  padding: 0;
+  overflow: hidden;
+  color: #fff;
+  background: #071426;
+  border: 0;
+  border-radius: 18px;
+}
+
+.photo-story-dialog::backdrop {
+  background: rgba(5, 13, 25, 0.88);
+  backdrop-filter: blur(7px);
+}
+
+.photo-story-dialog__viewer {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 12px;
-  padding: clamp(16px, 4vw, 48px);
-  background: rgba(6, 18, 30, 0.94);
+  grid-template-rows: minmax(0, 1fr) auto;
+  height: min(88vh, 820px);
 }
 
-.story-lightbox figure {
-  margin: 0;
-  grid-column: 2;
-  justify-self: center;
-  max-width: min(1200px, 100%);
+.photo-story-dialog__main {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  padding: 54px 76px 28px;
 }
 
-.story-lightbox img {
-  max-width: 100%;
-  max-height: 78vh;
-  display: block;
-  margin: 0 auto;
+.photo-story-dialog__main img,
+.photo-story-dialog__main video {
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 
-.story-lightbox .story-video {
-  width: min(1100px, 82vw);
-  background: transparent;
+.photo-story-dialog__main iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
 }
 
-.story-lightbox figcaption {
-  margin-top: 16px;
-  color: #d9e2ec;
-  font-size: 0.95rem;
-  text-align: center;
-}
-
-.story-lightbox button {
-  width: 48px;
-  height: 48px;
+.photo-story-dialog__close,
+.photo-story-dialog__arrow {
+  position: absolute;
+  z-index: 2;
   display: grid;
   place-items: center;
-  color: var(--white);
-  background: rgba(255, 255, 255, 0.12);
-  border: 0;
+  color: #fff;
+  background: rgba(7, 20, 38, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  font-size: 1.2rem;
   cursor: pointer;
-  transition: background 200ms ease;
 }
 
-.story-lightbox button:hover,
-.story-lightbox button:focus-visible {
-  background: rgba(255, 255, 255, 0.28);
+.photo-story-dialog__close {
+  top: 16px;
+  right: 16px;
+  width: 42px;
+  height: 42px;
+  font-size: 20px;
 }
 
-.story-lightbox-prev {
-  grid-column: 1;
+.photo-story-dialog__arrow {
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  font-size: 22px;
+  transform: translateY(-50%);
 }
 
-.story-lightbox-next {
-  grid-column: 3;
+.photo-story-dialog__prev {
+  left: 16px;
 }
 
-.story-lightbox-close {
-  position: absolute;
-  top: clamp(14px, 2vw, 26px);
-  right: clamp(14px, 2vw, 26px);
+.photo-story-dialog__next {
+  right: 16px;
 }
 
-.story-lightbox-count {
-  position: absolute;
-  left: 50%;
-  bottom: clamp(14px, 2vw, 26px);
-  margin: 0;
-  color: #9fb2c4;
-  font-size: 0.86rem;
-  transform: translateX(-50%);
+.photo-story-dialog__bar {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+  padding: 18px 24px;
+  background: #0d1d32;
 }
 
-@media (max-width: 680px) {
-  .story-lightbox {
+.photo-story-dialog__copy {
+  min-width: 0;
+}
+
+.photo-story-dialog__copy strong {
+  display: block;
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.photo-story-dialog__copy span {
+  display: block;
+  color: #9faabc;
+  font-size: 12px;
+}
+
+.photo-story-dialog__thumbs {
+  display: flex;
+  min-width: 0;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.photo-story-dialog__thumb {
+  width: 58px;
+  height: 42px;
+  padding: 0;
+  flex: none;
+  overflow: hidden;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  opacity: 0.56;
+  cursor: pointer;
+}
+
+.photo-story-dialog__thumb.is-active {
+  border-color: var(--gallery-gold);
+  opacity: 1;
+}
+
+.photo-story-dialog__thumb img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+@media (max-width: 760px) {
+  /* Full-bleed relative to the article: the stage runs out to the viewport
+     edges, escaping the shell it sits in, while the words keep their padding.
+     `clip` on the page absorbs the rounding a classic scrollbar leaves behind
+     without turning the page into a scroll container. */
+  .editorial-page {
+    overflow-x: clip;
+  }
+
+  .photo-story {
+    width: 100vw;
+    max-width: none;
+    margin-inline: calc(50% - 50vw);
+  }
+
+  .photo-story__heading,
+  .photo-story__footer {
+    padding-inline: 20px;
+  }
+
+  .photo-story__total,
+  .photo-story__hint {
+    display: none;
+  }
+
+  .photo-story__stage {
+    height: 520px;
+    min-height: 0;
+    border-radius: 0;
+  }
+
+  .photo-story__bottom {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    padding: 18px 20px;
+  }
+
+  .photo-story__thumb {
+    width: 76px;
+    height: 52px;
+  }
+
+  .photo-story__current {
+    font-size: 12px;
+  }
+
+  .photo-story__arrow {
+    top: 45%;
+    width: 42px;
+    height: 42px;
+  }
+
+  .photo-story-dialog__main {
+    padding: 56px 12px 18px;
+  }
+
+  .photo-story-dialog__arrow {
+    top: auto;
+    bottom: 16px;
+  }
+
+  .photo-story-dialog__bar {
     grid-template-columns: 1fr;
   }
 
-  .story-lightbox figure {
-    grid-column: 1;
+  .photo-story-dialog__thumbs {
+    grid-row: 1;
   }
 
-  .story-lightbox-prev,
-  .story-lightbox-next {
-    position: absolute;
-    bottom: clamp(48px, 9vw, 70px);
+  .photo-story-dialog__copy {
+    grid-row: 2;
+  }
+}
+
+@media (max-width: 460px) {
+  .photo-story__stage {
+    height: 460px;
   }
 
-  .story-lightbox-prev {
-    left: 16px;
+  .photo-story__heading h2 {
+    font-size: 24px;
   }
 
-  .story-lightbox-next {
-    right: 16px;
+  .photo-story__copy strong {
+    font-size: 16px;
   }
 }
 
 /* An uploaded clip uses the browser's own player; a linked one an iframe. */
-.story-figure video,
-.story-lightbox video {
+.story-figure video {
   width: 100%;
   max-height: 78vh;
   display: block;
