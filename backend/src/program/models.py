@@ -14,7 +14,7 @@ from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Orderable
 from wagtail.snippets.models import register_snippet
 
-from .blocks import ResearchBodyBlock, StoryBodyBlock
+from .blocks import NewsBodyBlock, ResearchBodyBlock
 
 
 class OrderedModel(models.Model):
@@ -1004,7 +1004,7 @@ class NewsEvent(ClusterableModel, OrderedModel):
     )
     excerpt = models.TextField()
     body = StreamField(
-        StoryBodyBlock(),
+        NewsBodyBlock(),
         blank=True,
         help_text=(
             "The story itself. Add blocks, and drag them by the handle at the "

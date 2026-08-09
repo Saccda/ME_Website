@@ -258,6 +258,8 @@ export type NewsEvent = {
   image_wide: string | null;
   /** The story's own gallery, chosen in one pass on its record. */
   gallery: GalleryItem[];
+  /** True when the body places the gallery itself, so the page must not repeat it. */
+  gallery_in_body: boolean;
   /** Stills for the card slideshow, drawn from the story's own pictures. */
   card_media: string[];
   has_video: boolean;
@@ -1006,6 +1008,7 @@ async function fetchNewsEvents(): Promise<NewsEvent[] | null> {
     image: item.image ?? null,
     image_wide: item.image_wide ?? item.image ?? null,
     gallery: Array.isArray(item.gallery) ? item.gallery : [],
+    gallery_in_body: item.gallery_in_body ?? false,
     card_media: Array.isArray(item.card_media)
       ? item.card_media.filter((url): url is string => !!url)
       : [item.image].filter((url): url is string => !!url),

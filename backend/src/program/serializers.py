@@ -66,13 +66,17 @@ class ImageSerializerMixin:
         return image_url(image, request)
 
 
-def story_blocks(stream_value, request=None):
+def story_blocks(stream_value, request=None, gallery_items=None):
     """Flatten a StreamField into typed blocks the frontend can render.
 
     Sent as typed data rather than a slab of HTML, so each block keeps its own
     markup and styling on the page and images and documents arrive as resolved
     URLs. Shared by news stories and research projects; the structured blocks
     at the end only ever appear in a research body.
+
+    `gallery_items` are the pictures chosen on the record itself. A story that
+    places the gallery in its body gets them at that point; one that does not
+    has them rendered after the body instead.
     """
     blocks = []
 
@@ -192,6 +196,18 @@ def story_blocks(stream_value, request=None):
                     "heading": value.get("heading", ""),
                     "caption": value.get("caption", ""),
                     "items": items,
+                }
+            )
+
+        elif kind == "story_gallery":
+            if not gallery_items:
+                continue
+            blocks.append(
+                {
+                    "type": "media_gallery",
+                    "heading": value.get("heading", ""),
+                    "caption": value.get("caption", ""),
+                    "items": gallery_items,
                 }
             )
 
@@ -641,6 +657,7 @@ class NewsEventSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     image_wide = serializers.SerializerMethodField()
     gallery = serializers.SerializerMethodField()
+    gallery_in_body = serializers.SerializerMethodField()
     card_media = serializers.SerializerMethodField()
     has_video = serializers.SerializerMethodField()
     body = serializers.SerializerMethodField()
@@ -713,7 +730,13 @@ class NewsEventSerializer(serializers.ModelSerializer):
         return False
 
     def get_body(self, obj):
-        return story_blocks(obj.body, self.context.get("request"))
+        request = self.context.get("request")
+        return story_blocks(obj.body, request, self.get_gallery(obj))
+
+    def get_gallery_in_body(self, obj):
+        """True when the body positions the gallery, so the page does not
+        also render it at the end."""
+        return any(child.block_type == "story_gallery" for child in obj.body)
 
     class Meta:
         model = NewsEvent
@@ -730,6 +753,7 @@ class NewsEventSerializer(serializers.ModelSerializer):
             "image",
             "image_wide",
             "gallery",
+            "gallery_in_body",
             "card_media",
             "has_video",
             "announce",

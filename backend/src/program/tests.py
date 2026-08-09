@@ -3,6 +3,7 @@ import tempfile
 from datetime import timedelta
 
 from django.core import mail
+from django.core.cache import cache
 from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -311,6 +312,9 @@ class FacultyWorkItemTests(TestCase):
 
 class StoryBodyTests(TestCase):
     """Story bodies are sent as typed blocks, not one slab of HTML."""
+
+    def setUp(self):
+        cache.clear()
 
     def test_body_blocks_are_serialized_by_type(self):
         NewsEvent.objects.create(
@@ -623,6 +627,9 @@ class ResearchBodyTests(TestCase):
 class MediaAndDateRangeTests(TestCase):
     """Uploaded video, collection galleries, and multi-day events."""
 
+    def setUp(self):
+        cache.clear()
+
     def test_video_block_exposes_an_uploaded_file(self):
         with tempfile.TemporaryDirectory() as media_root:
             with override_settings(MEDIA_ROOT=media_root):
@@ -755,6 +762,79 @@ class MediaAndDateRangeTests(TestCase):
                 self.assertNotIn("original_images", gallery[0]["thumb"])
                 # The gallery also feeds the card slideshow.
                 self.assertEqual(len(payload["card_media"]), 3)
+
+    def test_body_can_position_the_story_gallery(self):
+        """The placeholder renders the panel's images at that point."""
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                story = NewsEvent.objects.create(
+                    content_type="news",
+                    title="A story that places its gallery",
+                    slug="story-that-places-its-gallery",
+                    excerpt="Gallery sits mid-article.",
+                    body=json.dumps(
+                        [
+                            {"type": "heading", "value": "Before"},
+                            {
+                                "type": "story_gallery",
+                                "value": {"heading": "Day one", "caption": "Set."},
+                            },
+                            {"type": "heading", "value": "After"},
+                        ]
+                    ),
+                )
+                Image = get_image_model()
+                for index in range(2):
+                    NewsEventGalleryImage.objects.create(
+                        story=story,
+                        sort_order=index,
+                        image=Image.objects.create(
+                            title=f"Shot {index + 1}",
+                            file=get_test_image_file(size=(900, 600)),
+                        ),
+                    )
+
+                payload = self.client.get(reverse("news-list")).json()["results"][0]
+                blocks = payload["body"]
+                self.assertEqual(
+                    [block["type"] for block in blocks],
+                    ["heading", "media_gallery", "heading"],
+                )
+                self.assertEqual(blocks[1]["heading"], "Day one")
+                self.assertEqual(len(blocks[1]["items"]), 2)
+                # The page must not also render it at the end.
+                self.assertTrue(payload["gallery_in_body"])
+                self.assertEqual(len(payload["gallery"]), 2)
+
+    def test_placeholder_without_gallery_images_is_dropped(self):
+        NewsEvent.objects.create(
+            content_type="news",
+            title="A story with an unfilled gallery placeholder",
+            slug="story-unfilled-gallery-placeholder",
+            excerpt="Block added but no images chosen.",
+            body=json.dumps(
+                [
+                    {"type": "story_gallery", "value": {"heading": "Gallery"}},
+                    {"type": "heading", "value": "Still here"},
+                ]
+            ),
+        )
+        payload = self.client.get(reverse("news-list")).json()["results"][0]
+        self.assertEqual([b["type"] for b in payload["body"]], ["heading"])
+        # Nothing to place and nothing to append.
+        self.assertTrue(payload["gallery_in_body"])
+        self.assertEqual(payload["gallery"], [])
+
+    def test_story_without_the_placeholder_reports_gallery_outside_body(self):
+        NewsEvent.objects.create(
+            content_type="news",
+            title="A story with a trailing gallery",
+            slug="story-with-trailing-gallery",
+            excerpt="Gallery renders after the body.",
+            body=json.dumps([{"type": "heading", "value": "Only text"}]),
+        )
+        payload = self.client.get(reverse("news-list")).json()["results"][0]
+        self.assertFalse(payload["gallery_in_body"])
 
     def test_story_without_a_gallery_returns_an_empty_list(self):
         NewsEvent.objects.create(

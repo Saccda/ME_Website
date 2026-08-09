@@ -134,7 +134,8 @@ export default async function StoryPage({ params }: StoryPageProps) {
               </p>
             )}
 
-            {story.gallery.length > 0 ? (
+            {/* Only when the body has not placed it itself. */}
+            {story.gallery.length > 0 && !story.gallery_in_body ? (
               <MediaGallery
                 caption=""
                 heading="Gallery"

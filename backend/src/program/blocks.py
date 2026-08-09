@@ -157,6 +157,23 @@ class CollectionGalleryBlock(blocks.StructBlock):
         label = "Gallery from an image collection"
 
 
+class StoryGalleryBlock(blocks.StructBlock):
+    """Marks where the story's own gallery should appear in the body.
+
+    It holds no images itself: the pictures are the ones chosen in the Story
+    gallery panel, which is the only place several can be picked at once. Drop
+    this block wherever the set belongs and it renders there instead of after
+    the body.
+    """
+
+    heading = blocks.CharBlock(required=False, max_length=200, default="Gallery")
+    caption = blocks.CharBlock(required=False, max_length=250)
+
+    class Meta:
+        icon = "image"
+        label = "Story gallery (images from the panel below)"
+
+
 class DocumentBlock(blocks.StructBlock):
     document = DocumentChooserBlock()
     label = blocks.CharBlock(
@@ -294,6 +311,15 @@ class StoryBodyBlock(blocks.StreamBlock):
     quote = QuoteBlock()
     video = VideoBlock()
     document = DocumentBlock()
+
+    class Meta:
+        required = False
+
+
+class NewsBodyBlock(StoryBodyBlock):
+    """A story body, which can position the gallery chosen on its own record."""
+
+    story_gallery = StoryGalleryBlock()
 
     class Meta:
         required = False
