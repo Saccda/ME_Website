@@ -6,19 +6,21 @@ import type { GalleryItem } from "@/lib/api";
 import { videoEmbedUrl, videoThumbnail } from "@/lib/video";
 
 /**
- * Photo story gallery.
+ * Article gallery.
  *
- * Built to `PHOTO-STORY-DESIGN-SPEC.md` and `photo-story-gallery.html`: one
- * fixed-height stage with a thumbnail rail, rather than a grid that grows with
- * the set. Forty photographs then cost the article the same vertical space as
- * four, and the reader browses instead of scrolling past.
+ * Built to `ME-Modern-Article-Gallery-Mockup.html`: a mosaic of three tiles --
+ * one tall frame beside two stacked ones -- standing in for the whole set,
+ * with the remainder counted on the last tile. A forty-photograph story then
+ * costs the article the same vertical space as a three-photograph one.
  *
- * Videos keep their existing behaviour -- a still with a play badge in the rail,
- * and a player created only for the item actually being viewed, so a long set
- * never loads a player per item.
+ * The mockup's dialog is a single image with previous/next. This one keeps the
+ * thumbnail rail we already had, because picking the eleventh of twenty
+ * photographs by pressing "next" ten times is not browsing. Video is likewise
+ * ours, not the mockup's: a still with a play badge, and a player built only
+ * for the item on the stage, so a long set never loads a player per item.
  */
 
-const FADE_MS = 120;
+const PREVIEW = 3;
 
 function itemTitle(item: GalleryItem, index: number) {
   return item.caption || item.alt_text || `Photograph ${index + 1}`;
@@ -28,10 +30,12 @@ function thumbSrc(item: GalleryItem) {
   return item.thumb || videoThumbnail(item.url) || item.url;
 }
 
-/** The stage and the dialog show the same thing; CSS decides cover vs contain. */
+/** Only ever built for the item on the stage. */
 function Media({ item }: { item: GalleryItem }) {
   if (item.kind === "video" && item.file_url) {
-    return <video controls poster={item.thumb ?? undefined} src={item.file_url} />;
+    return (
+      <video controls poster={item.thumb ?? undefined} src={item.file_url} />
+    );
   }
   if (item.kind === "video") {
     return (
@@ -50,36 +54,24 @@ export default function MediaGallery({
   heading,
   caption,
   items,
-  eyebrow = "Photo story",
   galleryTitle,
 }: {
   heading: string;
   caption: string;
   items: GalleryItem[];
-  eyebrow?: string;
-  /** The activity or event the set belongs to, shown over the image. */
+  /** The activity or event the set belongs to, shown as a chip. */
   galleryTitle?: string;
 }) {
   const [index, setIndex] = useState(0);
-  const [fading, setFading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const dialogRef = useRef<HTMLDialogElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
-  const dialogRailRef = useRef<HTMLDivElement>(null);
-  const fadeTimer = useRef<number | null>(null);
 
   const total = items.length;
-  const current = items[index];
-  const headingId = "photo-story-title";
+  const headingId = "article-gallery-title";
 
-  useEffect(() => {
-    return () => {
-      if (fadeTimer.current !== null) window.clearTimeout(fadeTimer.current);
-    };
-  }, []);
-
-  // Native showModal gives focus trapping and Escape for free.
+  // Native showModal gives focus trapping for free.
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
@@ -97,38 +89,28 @@ export default function MediaGallery({
     };
   }, [dialogOpen]);
 
-  // Keep the selected thumbnail centred in its rail.
+  // Keep the selected thumbnail in view as the reader moves through the set.
   useEffect(() => {
-    for (const rail of [railRef.current, dialogRailRef.current]) {
-      const thumb = rail?.children[index];
-      thumb?.scrollIntoView({ block: "nearest", inline: "center" });
-    }
+    railRef.current?.children[index]?.scrollIntoView({
+      block: "nearest",
+      inline: "center",
+    });
   }, [index, dialogOpen]);
 
   if (total === 0) return null;
 
-  /** Wraps continuously, and cross-fades rather than cutting. */
+  const preview = items.slice(0, PREVIEW);
+  const remaining = total - preview.length;
+  const current = items[index];
+
+  /** Wraps continuously, so the set has no dead ends. */
   function select(next: number) {
-    const target = (next + total) % total;
-    if (target === index) return;
-    if (fadeTimer.current !== null) window.clearTimeout(fadeTimer.current);
-    setFading(true);
-    fadeTimer.current = window.setTimeout(() => {
-      setIndex(target);
-      setFading(false);
-    }, FADE_MS);
+    setIndex((next + total) % total);
   }
 
-  /** Arrow keys drive the gallery only while focus is inside it. */
-  function onKeyDown(event: React.KeyboardEvent) {
-    if (event.key === "ArrowLeft") {
-      event.preventDefault();
-      select(index - 1);
-    }
-    if (event.key === "ArrowRight") {
-      event.preventDefault();
-      select(index + 1);
-    }
+  function openAt(position: number) {
+    setIndex(position);
+    setDialogOpen(true);
   }
 
   /**
@@ -142,120 +124,67 @@ export default function MediaGallery({
       setDialogOpen(false);
       return;
     }
-    onKeyDown(event);
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      select(index - 1);
+    }
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      select(index + 1);
+    }
   }
 
   return (
-    <section
-      aria-labelledby={headingId}
-      className="photo-story"
-      onKeyDown={onKeyDown}
-    >
-      <header className="photo-story__heading">
+    <section aria-labelledby={headingId} className="article-gallery">
+      <header className="article-gallery__head">
         <div>
-          <p className="photo-story__eyebrow">{eyebrow}</p>
           <h2 id={headingId}>{heading || "Gallery"}</h2>
+          {caption ? <p>{caption}</p> : null}
         </div>
-        <span className="photo-story__total">
-          {total} {total === 1 ? "photograph" : "photographs"}
-        </span>
+        {galleryTitle ? (
+          <span className="article-gallery__badge" title={galleryTitle}>
+            {galleryTitle}
+          </span>
+        ) : null}
       </header>
 
-      <div className="photo-story__stage">
-        <div
-          className="photo-story__image"
-          style={{ opacity: fading ? 0.35 : 1 }}
-        >
-          <Media item={current} />
-        </div>
-
-        <div className="photo-story__topline">
-          {galleryTitle ? (
-            <div className="photo-story__current">
-              <span>Gallery:</span> {galleryTitle}
-            </div>
-          ) : (
-            <span />
-          )}
+      <div className="article-gallery__mosaic" data-count={preview.length}>
+        {preview.map((item, position) => (
           <button
-            aria-label="Open full-screen gallery"
-            className="photo-story__expand"
-            onClick={() => setDialogOpen(true)}
+            aria-label={`Open ${itemTitle(item, position)} in the gallery viewer`}
+            className="article-gallery__tile"
+            key={`${item.kind}-${position}`}
+            onClick={() => openAt(position)}
             type="button"
           >
-            <svg
-              aria-hidden="true"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" />
-            </svg>
-          </button>
-        </div>
-
-        {total > 1 ? (
-          <>
-            <button
-              aria-label="Previous photograph"
-              className="photo-story__arrow photo-story__arrow--prev"
-              onClick={() => select(index - 1)}
-              type="button"
-            >
-              <span aria-hidden="true">←</span>
-            </button>
-            <button
-              aria-label="Next photograph"
-              className="photo-story__arrow photo-story__arrow--next"
-              onClick={() => select(index + 1)}
-              type="button"
-            >
-              <span aria-hidden="true">→</span>
-            </button>
-          </>
-        ) : null}
-
-        <div className="photo-story__bottom">
-          <div className="photo-story__copy">
-            <strong>{itemTitle(current, index)}</strong>
-            <span>
-              Photograph {index + 1} of {total}
+            <img alt="" src={thumbSrc(item)} />
+            {item.kind === "video" ? (
+              <span aria-hidden="true" className="article-gallery__play" />
+            ) : null}
+            <span className="article-gallery__label">
+              {itemTitle(item, position)}
             </span>
-          </div>
-          <div
-            aria-label="Choose a photograph"
-            className="photo-story__thumbs"
-            ref={railRef}
-          >
-            {items.map((item, position) => (
-              <button
-                aria-label={`${position + 1}: ${itemTitle(item, position)}`}
-                className={`photo-story__thumb${position === index ? " is-active" : ""}`}
-                key={`${item.kind}-${position}`}
-                onClick={() => select(position)}
-                type="button"
-              >
-                <img alt="" loading="lazy" src={thumbSrc(item)} />
-                {item.kind === "video" ? (
-                  <span className="photo-story__thumb-play" aria-hidden="true" />
-                ) : null}
-              </button>
-            ))}
-          </div>
-        </div>
+            {position === preview.length - 1 && remaining > 0 ? (
+              <span className="article-gallery__more">+{remaining} more</span>
+            ) : null}
+          </button>
+        ))}
       </div>
 
-      {caption ? (
-        <footer className="photo-story__footer">
-          <p className="photo-story__caption">{caption}</p>
-          <span className="photo-story__hint">Use arrow keys to browse</span>
-        </footer>
-      ) : null}
+      <footer className="article-gallery__foot">
+        <p>
+          {remaining > 0
+            ? `${preview.length} of ${total} shown. Open any photograph to browse the full set.`
+            : `${total} ${total === 1 ? "photograph" : "photographs"}.`}
+        </p>
+        <span className="article-gallery__count">
+          {total} {total === 1 ? "item" : "items"}
+        </span>
+      </footer>
 
       <dialog
-        aria-label={`${heading || "Gallery"} photographs`}
-        className="photo-story-dialog"
+        aria-label={`${heading || "Gallery"} viewer`}
+        className="article-gallery-dialog"
         onClick={(event) => {
           if (event.target === dialogRef.current) setDialogOpen(false);
         }}
@@ -264,21 +193,25 @@ export default function MediaGallery({
         ref={dialogRef}
       >
         {dialogOpen ? (
-          <div className="photo-story-dialog__viewer">
-            <div className="photo-story-dialog__main">
+          <div className="article-gallery-dialog__viewer">
+            <div className="article-gallery-dialog__topbar">
+              <span aria-live="polite">
+                {index + 1} of {total}
+              </span>
               <button
-                aria-label="Close"
-                className="photo-story-dialog__close"
+                className="article-gallery-dialog__close"
                 onClick={() => setDialogOpen(false)}
                 type="button"
               >
-                <span aria-hidden="true">×</span>
+                Close <span aria-hidden="true">×</span>
               </button>
+            </div>
 
+            <div className="article-gallery-dialog__stage">
               {total > 1 ? (
                 <button
-                  aria-label="Previous image"
-                  className="photo-story-dialog__arrow photo-story-dialog__prev"
+                  aria-label="Previous"
+                  className="article-gallery-dialog__arrow article-gallery-dialog__prev"
                   onClick={() => select(index - 1)}
                   type="button"
                 >
@@ -290,8 +223,8 @@ export default function MediaGallery({
 
               {total > 1 ? (
                 <button
-                  aria-label="Next image"
-                  className="photo-story-dialog__arrow photo-story-dialog__next"
+                  aria-label="Next"
+                  className="article-gallery-dialog__arrow article-gallery-dialog__next"
                   onClick={() => select(index + 1)}
                   type="button"
                 >
@@ -300,18 +233,17 @@ export default function MediaGallery({
               ) : null}
             </div>
 
-            <div className="photo-story-dialog__bar">
-              <div className="photo-story-dialog__copy">
-                <strong>{itemTitle(current, index)}</strong>
-                <span>
-                  {index + 1} of {total}
-                </span>
-              </div>
-              <div className="photo-story-dialog__thumbs" ref={dialogRailRef}>
+            <div className="article-gallery-dialog__foot">
+              <p>{itemTitle(current, index)}</p>
+              <div
+                aria-label="Choose a photograph"
+                className="article-gallery-dialog__thumbs"
+                ref={railRef}
+              >
                 {items.map((item, position) => (
                   <button
-                    aria-label={`Open image ${position + 1}: ${itemTitle(item, position)}`}
-                    className={`photo-story-dialog__thumb${position === index ? " is-active" : ""}`}
+                    aria-label={`${position + 1}: ${itemTitle(item, position)}`}
+                    className={`article-gallery-dialog__thumb${position === index ? " is-active" : ""}`}
                     key={`d-${item.kind}-${position}`}
                     onClick={() => select(position)}
                     type="button"
