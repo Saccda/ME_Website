@@ -1135,6 +1135,16 @@ class NewsEvent(ClusterableModel, OrderedModel):
         ),
     )
     published_at = models.DateTimeField(default=timezone.now)
+    period = models.CharField(
+        max_length=80,
+        blank=True,
+        verbose_name="Activity period",
+        help_text=(
+            "For work that ran over months rather than on a day, for example "
+            "May 2025 - June 2026. Shown instead of the date. Leave empty for "
+            "anything that happened on one day."
+        ),
+    )
     announce = models.BooleanField(
         default=False,
         verbose_name="Show in the announcement card",
@@ -1164,6 +1174,7 @@ class NewsEvent(ClusterableModel, OrderedModel):
         FieldPanel("event_date"),
         FieldPanel("event_end_date"),
         FieldPanel("published_at"),
+        FieldPanel("period"),
         MultiFieldPanel(
             [
                 FieldPanel("announce"),

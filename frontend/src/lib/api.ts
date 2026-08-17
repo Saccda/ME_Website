@@ -295,6 +295,12 @@ export type NewsEvent = {
   /** Only set for an event running over more than one day. */
   event_end_date: string | null;
   published_at: string;
+  /**
+   * A span in words, for work that ran over months rather than on a day.
+   * Displayed in place of the date when set. Free text, so it is never a
+   * machine-readable datetime.
+   */
+  period: string;
 };
 
 export type Facility = {
@@ -1049,6 +1055,7 @@ async function fetchNewsEvents(): Promise<NewsEvent[] | null> {
     event_date: item.event_date ?? null,
     event_end_date: item.event_end_date ?? null,
     published_at: item.published_at ?? "",
+    period: item.period ?? "",
   }));
 }
 

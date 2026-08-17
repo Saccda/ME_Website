@@ -1172,3 +1172,59 @@ class FixArticleDatesTests(TestCase):
             {e.slug: (e.published_at, e.is_published) for e in NewsEvent.objects.all()},
             snapshot,
         )
+
+
+class NewsEventPeriodTests(TestCase):
+    """A span in words, for work that ran over months rather than on a day.
+
+    published_at orders the feeds and has to stay a single timestamp, so an
+    article covering a year of work had nowhere to say so and had to pick one
+    date. `period` is that missing line.
+    """
+
+    def test_the_period_reaches_the_api(self):
+        NewsEvent.objects.create(
+            title="Supporting FairFarms in Kampot",
+            slug="fairfarms-long-term-support",
+            excerpt="Two years of work.",
+            period="March 2024 - June 2025",
+        )
+
+        story = self.client.get(reverse("news-list")).json()["results"][0]
+        self.assertEqual(story["period"], "March 2024 - June 2025")
+
+    def test_a_single_day_article_leaves_it_empty(self):
+        """Most articles happened on a day. They must not be made to carry an
+        empty span, so the field stays blank and the date is used instead."""
+        NewsEvent.objects.create(
+            title="Battambang High School Visit",
+            slug="battambang-visit",
+            excerpt="One afternoon.",
+        )
+
+        story = self.client.get(reverse("news-list")).json()["results"][0]
+        self.assertEqual(story["period"], "")
+
+    def test_the_period_does_not_disturb_ordering(self):
+        """It is a label, not a sort key: the feeds still order by published_at,
+        so setting a period cannot move an article up the page."""
+        early = NewsEvent.objects.create(
+            title="Earlier",
+            slug="earlier",
+            excerpt="x",
+            published_at=timezone.now() - timedelta(days=30),
+            period="2020 - 2026",
+        )
+        late = NewsEvent.objects.create(
+            title="Later",
+            slug="later",
+            excerpt="x",
+            published_at=timezone.now() - timedelta(days=1),
+        )
+
+        slugs = [
+            item["slug"]
+            for item in self.client.get(reverse("news-list")).json()["results"]
+        ]
+        self.assertEqual(slugs.index(late.slug), 0)
+        self.assertLess(slugs.index(late.slug), slugs.index(early.slug))

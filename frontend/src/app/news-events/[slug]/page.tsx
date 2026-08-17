@@ -101,9 +101,14 @@ export default async function StoryPage({ params }: StoryPageProps) {
                 {story.category || (isEvent ? "Event" : "News")}
               </p>
               <h1>{story.title}</h1>
-              {date || story.author ? (
+              {story.period || date || story.author ? (
                 <p className="story-byline">
-                  {date ? (
+                  {/* The period wins when set: an article covering a year of
+                      work should say so rather than name a single day. It is
+                      free text, so it cannot be marked up as a <time>. */}
+                  {story.period ? (
+                    <span>{story.period}</span>
+                  ) : date ? (
                     <time
                       dateTime={
                         (isEvent ? story.event_date : story.published_at) ??
@@ -113,7 +118,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
                       {isEvent ? `Taking place ${date}` : date}
                     </time>
                   ) : null}
-                  {date && story.author ? (
+                  {(story.period || date) && story.author ? (
                     <span aria-hidden="true">|</span>
                   ) : null}
                   {story.author ? <span>By {story.author}</span> : null}

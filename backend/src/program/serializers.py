@@ -812,6 +812,7 @@ class NewsEventSerializer(serializers.ModelSerializer):
             "event_date",
             "event_end_date",
             "published_at",
+            "period",
         )
 
 

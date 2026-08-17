@@ -33,9 +33,16 @@ function StoryCard({ item }: { item: NewsEvent }) {
         <small>{item.content_type}</small>
       </div>
       <div>
-        <time dateTime={item.event_date || item.published_at}>
-          {storyDate(item)}
-        </time>
+        {/* A span in words is not a datetime, so it cannot use <time>. Work
+            that ran across months reads truer as its period than as the one
+            date it happened to be filed under. */}
+        {item.period ? (
+          <span className="story-period">{item.period}</span>
+        ) : (
+          <time dateTime={item.event_date || item.published_at}>
+            {storyDate(item)}
+          </time>
+        )}
         <h3>
           <Link href={`/news-events/${item.slug}`}>{item.title}</Link>
         </h3>

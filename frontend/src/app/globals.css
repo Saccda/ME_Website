@@ -664,7 +664,10 @@ img {
   padding: 23px;
 }
 
+/* `.story-period` carries a span in words where a date would otherwise sit, so
+   it takes the date's own styling rather than a treatment of its own. */
 .story-card time,
+.story-card .story-period,
 .publication-list time {
   display: block;
   margin-bottom: 9px;
