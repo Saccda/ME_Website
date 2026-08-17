@@ -14,6 +14,7 @@ from wagtail.images import get_image_model
 from wagtail.images.tests.utils import get_test_image_file
 from wagtail.models import Collection, Site
 
+from .management.commands.seed_article_bank import ARTICLES
 from .models import (
     Course,
     CurriculumYear,
@@ -906,3 +907,77 @@ class SeedNewsEventsTests(TestCase):
         entry.refresh_from_db()
         self.assertEqual(entry.title, "Rewritten by an author in Wagtail")
         self.assertEqual(NewsEvent.objects.filter(content_type="news").count(), 3)
+
+
+class SeedArticleBankTests(TestCase):
+    """The drafted article bank, seeded without disturbing published work."""
+
+    def run_seed(self):
+        call_command("seed_article_bank", verbosity=0)
+
+    def test_seed_creates_every_bank_article(self):
+        self.run_seed()
+
+        self.assertEqual(NewsEvent.objects.count(), len(ARTICLES))
+        for entry in NewsEvent.objects.all():
+            self.assertTrue(entry.excerpt)
+            self.assertTrue(entry.category)
+            self.assertEqual(len(entry.body), 3)
+
+    def test_every_article_is_published(self):
+        """The bank is publication-ready, so nothing is held back as a draft."""
+        self.run_seed()
+
+        self.assertEqual(
+            NewsEvent.objects.filter(is_published=True).count(), len(ARTICLES)
+        )
+        self.assertFalse(NewsEvent.objects.filter(is_published=False).exists())
+
+    def test_unapproved_personal_names_stay_out_of_the_body(self):
+        """The document asks for these two names to be approved first, and a
+        name published without consent cannot be taken back."""
+        self.run_seed()
+
+        for entry in NewsEvent.objects.all():
+            self.assertNotIn("Liv Yi", str(entry.body))
+            self.assertNotIn("Meas Sreypich", str(entry.body))
+
+    def test_editorial_notes_never_reach_the_article_body(self):
+        """`Suggested media` and `Publication check` are instructions to the
+        author, not copy: they must not be published."""
+        self.run_seed()
+
+        for entry in NewsEvent.objects.all():
+            body = str(entry.body)
+            for phrase in ("Publication check", "Suggested media", "Card description"):
+                self.assertNotIn(phrase, body, msg=f"{phrase} leaked into {entry.slug}")
+
+    def test_existing_articles_are_left_untouched(self):
+        """The four already on the site must survive a run unchanged."""
+        live = NewsEvent.objects.create(
+            sort_order=0,
+            title="ME Lab Open House 2026",
+            slug="staff-training-on-cnc-milling-machine",
+            excerpt="Already written by an author.",
+            body=[],
+        )
+
+        self.run_seed()
+
+        live.refresh_from_db()
+        self.assertEqual(live.title, "ME Lab Open House 2026")
+        self.assertEqual(live.excerpt, "Already written by an author.")
+        self.assertEqual(NewsEvent.objects.count(), len(ARTICLES))
+
+    def test_reseeding_keeps_author_edits(self):
+        self.run_seed()
+
+        entry = NewsEvent.objects.get(slug="tuesday-weekly-seminar-technical-exchange")
+        entry.title = "Rewritten in Wagtail"
+        entry.save()
+
+        self.run_seed()
+
+        entry.refresh_from_db()
+        self.assertEqual(entry.title, "Rewritten in Wagtail")
+        self.assertEqual(NewsEvent.objects.count(), len(ARTICLES))
