@@ -837,18 +837,22 @@ function getFallbackFocusArea(slug: string): FocusAreaDetail | null {
  *
  * The retry is what actually fixes it: the second attempt travels a warm
  * connection and returns in a fraction of the first attempt's time.
+ *
+ * Caching was tried here and removed. Pinning the rendering region beside the
+ * backend already brought every page to about 250ms, so a cache bought no
+ * measurable speed -- and because Vercel prerenders a cached page during the
+ * build, from a US build container that cannot reach the lab backend reliably,
+ * each deploy published a landing page with its news bands missing until the
+ * first revalidation. Rendering per request from the right region is both
+ * faster to publish and always current.
  */
 const REQUEST_TIMEOUT_MS = 8000;
-const CACHE_SECONDS = 60;
 const RETRY_DELAY_MS = 150;
 
 async function fetchOnce(url: string): Promise<Response | null> {
   try {
     const response = await fetch(url, {
-      // Cached for a minute rather than never. A route that keeps
-      // `force-dynamic` overrides this back to no-store, so only pages that
-      // opt in are cached -- see the landing page.
-      next: { revalidate: CACHE_SECONDS },
+      cache: "no-store",
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
     // A 4xx is a real answer and must not be retried; only 5xx and network
