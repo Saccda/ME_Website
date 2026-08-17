@@ -188,9 +188,9 @@ RESEARCH = [
         "Developing sensor-based cooling and spraying controls for more consistent, efficient environmental management.",
     ),
     (
-        "Sugarcane Particle Board",
+        "Composite Particle Board",
         ("DMP", "ECM"),
-        "Investigating sugarcane residue as a useful raw material for lower-impact engineered particle board.",
+        "Comparing sugarcane bagasse, coconut shell and small waste plastics as raw materials for lower-impact engineered particle board.",
     ),
     (
         "Non-Intrusive Load Monitoring System",

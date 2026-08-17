@@ -602,8 +602,8 @@ class ResearchBodyTests(TestCase):
 
     def test_empty_research_body_serializes_as_an_empty_list(self):
         ResearchProject.objects.create(
-            title="Sugarcane Particle Board",
-            slug="sugarcane-particle-board",
+            title="Composite Particle Board",
+            slug="composite-particle-board",
             summary="Residue as an engineered material.",
         )
         story = self.client.get(reverse("research-list")).json()["results"][0]
@@ -981,3 +981,88 @@ class SeedArticleBankTests(TestCase):
         entry.refresh_from_db()
         self.assertEqual(entry.title, "Rewritten in Wagtail")
         self.assertEqual(NewsEvent.objects.count(), len(ARTICLES))
+
+
+class SeedCompositeBoardProjectTests(TestCase):
+    """The worked example, and the rename it has to survive.
+
+    The project existed under a sugarcane slug before the study widened, so
+    the command has to carry that record across rather than leave it stranded
+    or create a second one beside it.
+    """
+
+    def run_seed(self):
+        call_command("seed_composite_board_project", verbosity=0)
+
+    def test_an_existing_sugarcane_project_is_renamed_not_duplicated(self):
+        project = ResearchProject.objects.create(
+            title="Sugarcane Particle Board",
+            slug="sugarcane-particle-board",
+            summary="Residue as an engineered material.",
+        )
+
+        self.run_seed()
+
+        project.refresh_from_db()
+        self.assertEqual(ResearchProject.objects.count(), 1)
+        self.assertEqual(project.slug, "composite-particle-board")
+        self.assertEqual(project.title, "Composite Particle Board")
+
+    def test_seeding_twice_does_not_create_a_second_project(self):
+        ResearchProject.objects.create(
+            title="Sugarcane Particle Board",
+            slug="sugarcane-particle-board",
+            summary="Residue as an engineered material.",
+        )
+
+        self.run_seed()
+        self.run_seed()
+
+        self.assertEqual(ResearchProject.objects.count(), 1)
+
+    def test_the_body_names_all_three_feedstocks(self):
+        ResearchProject.objects.create(
+            title="Composite Particle Board",
+            slug="composite-particle-board",
+            summary="Placeholder.",
+        )
+
+        self.run_seed()
+
+        body = str(ResearchProject.objects.get(slug="composite-particle-board").body)
+        for material in ("bagasse", "Coconut shell", "waste plastics"):
+            self.assertIn(material, body)
+
+    def test_no_performance_figure_is_claimed(self):
+        """Nothing has been measured yet, so the page must not read as though
+        a feedstock has already won."""
+        ResearchProject.objects.create(
+            title="Composite Particle Board",
+            slug="composite-particle-board",
+            summary="Placeholder.",
+        )
+
+        self.run_seed()
+
+        project = ResearchProject.objects.get(slug="composite-particle-board")
+        self.assertNotIn("stats", [block.block_type for block in project.body])
+        self.assertIn("No performance figures are published", str(project.body))
+
+    def test_an_empty_gallery_is_dropped_rather_than_published_blank(self):
+        ResearchProject.objects.create(
+            title="Composite Particle Board",
+            slug="composite-particle-board",
+            summary="Placeholder.",
+        )
+
+        self.run_seed()
+
+        project = ResearchProject.objects.get(slug="composite-particle-board")
+        self.assertNotIn(
+            "media_gallery", [block.block_type for block in project.body]
+        )
+
+    def test_a_missing_project_is_reported_not_invented(self):
+        self.run_seed()
+
+        self.assertEqual(ResearchProject.objects.count(), 0)

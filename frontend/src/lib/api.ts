@@ -600,7 +600,7 @@ const fallbackData: HomeData = {
   research: ([
     ["Metal Recycling", ["DMP"], "Exploring practical processes for recovering, sorting, and reusing metal resources to support more sustainable manufacturing."],
     ["Automated Cooling & Spraying System", ["TES", "MAS"], "Developing sensor-based cooling and spraying controls for consistent, efficient environmental management."],
-    ["Sugarcane Particle Board", ["DMP", "ECM"], "Investigating sugarcane residue as a useful raw material for lower-impact engineered particle board."],
+    ["Composite Particle Board", ["DMP", "ECM"], "Comparing sugarcane bagasse, coconut shell and small waste plastics as raw materials for lower-impact engineered particle board."],
     ["Non-Intrusive Load Monitoring System", ["TES", "MAS"], "Using electrical measurements and intelligent analysis to identify appliance-level energy use without individual sensors."],
   ] as Array<[string, string[], string]>).map(([title, codes, summary]) => {
     const relatedFocusAreas = focusAreas.filter((area) =>
