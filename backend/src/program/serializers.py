@@ -300,6 +300,47 @@ def story_blocks(stream_value, request=None, gallery_items=None):
                 }
             )
 
+        elif kind == "team":
+            members = [
+                {
+                    "name": member.get("name", ""),
+                    "role": member.get("role", ""),
+                    "detail": member.get("detail", ""),
+                }
+                for member in value.get("members", [])
+                if member.get("name")
+            ]
+            if not members:
+                continue
+            blocks.append(
+                {
+                    "type": "team",
+                    "heading": value.get("heading", ""),
+                    "members": members,
+                }
+            )
+
+        elif kind == "timeline":
+            entries = [
+                {
+                    "period": entry.get("period", ""),
+                    "title": entry.get("title", ""),
+                    "detail": entry.get("detail", ""),
+                    "status": entry.get("status", "done"),
+                }
+                for entry in value.get("entries", [])
+                if entry.get("title")
+            ]
+            if not entries:
+                continue
+            blocks.append(
+                {
+                    "type": "timeline",
+                    "heading": value.get("heading", ""),
+                    "entries": entries,
+                }
+            )
+
         elif kind == "table":
             table = value.get("table") or {}
             rows = [row.get("data", []) for row in (table.get("data") or [])]
@@ -457,6 +498,9 @@ class ResearchProjectSerializer(ImageSerializerMixin, serializers.ModelSerialize
             "sort_order",
             "title",
             "slug",
+            "status",
+            "period",
+            "keywords",
             "summary",
             "body",
             "image",
@@ -511,7 +555,14 @@ class OpportunitySerializer(serializers.ModelSerializer):
             "focus_areas",
             "summary",
             "body",
+            "responsibilities",
+            "requirements",
+            "how_to_apply",
+            "employment_type",
+            "positions",
             "location",
+            "source_name",
+            "source_url",
             "application_deadline",
             "application_url",
             "published_at",

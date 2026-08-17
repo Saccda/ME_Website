@@ -87,6 +87,16 @@ export default async function ResearchProjectPage({
             <header className="research-detail-head">
               <p className="eyebrow">Research project</p>
               <h1>{project.title}</h1>
+              {/* Status first: whether the work is finished decides how every
+                  result below it should be read. */}
+              <p className="research-status" data-status={project.status}>
+                {project.status === "completed"
+                  ? "Completed"
+                  : project.status === "proposed"
+                    ? "Proposed"
+                    : "Ongoing"}
+                {project.period ? <span>{project.period}</span> : null}
+              </p>
               {project.focus_areas.length > 0 ? (
                 <ul className="research-detail-areas">
                   {project.focus_areas.map((area) => (
@@ -104,16 +114,70 @@ export default async function ResearchProjectPage({
               <img src={image} alt={project.title} />
             </figure>
 
-            <div className="research-detail-body">
-              <p className="research-detail-summary">{project.summary}</p>
+            <div className="research-layout">
+              <div className="research-main">
+                <p className="research-detail-summary">{project.summary}</p>
 
-              {project.body.length > 0 ? (
-                <StoryBody blocks={project.body} galleryTitle={project.title} />
-              ) : (
-                <p className="research-detail-empty">
-                  A full description of this project has not been published yet.
-                </p>
-              )}
+                {project.body.length > 0 ? (
+                  <StoryBody blocks={project.body} galleryTitle={project.title} />
+                ) : (
+                  <p className="research-detail-empty">
+                    A full description of this project has not been published yet.
+                  </p>
+                )}
+              </div>
+
+              {/* Sticky beside the prose: a reader checking the status or the
+                  focus area partway down should not have to scroll back. */}
+              <aside className="research-aside">
+                <dl className="research-facts">
+              <div>
+                <dt>Status</dt>
+                <dd>
+                  {project.status === "completed"
+                    ? "Completed"
+                    : project.status === "proposed"
+                      ? "Proposed"
+                      : "Ongoing"}
+                </dd>
+              </div>
+              {project.period ? (
+                <div>
+                  <dt>Period</dt>
+                  <dd>{project.period}</dd>
+                </div>
+              ) : null}
+              {project.focus_areas.length > 0 ? (
+                <div>
+                  <dt>Focus area</dt>
+                  <dd>
+                    {project.focus_areas.map((area) => area.code).join(" · ")}
+                  </dd>
+                </div>
+              ) : null}
+                  {project.keywords ? (
+                    <div>
+                      <dt>Keywords</dt>
+                      <dd>{project.keywords}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+
+                {project.focus_areas.length > 0 ? (
+                  <div className="research-aside-links">
+                    <p>Explore the focus area</p>
+                    <ul>
+                      {project.focus_areas.map((area) => (
+                        <li key={area.code}>
+                          <Link href={`/research/${area.code.toLowerCase()}`}>
+                            {area.code} — {area.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </aside>
             </div>
 
             <p className="research-detail-back">

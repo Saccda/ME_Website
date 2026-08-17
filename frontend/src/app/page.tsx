@@ -2,7 +2,7 @@
 import Link from "next/link";
 import CardMedia from "@/components/CardMedia";
 import ImpactStory from "@/components/ImpactStory";
-import JobOpportunities from "@/components/IndustryCareers";
+import OpportunityBoard from "@/components/OpportunityBoard";
 import QuadrupleHelix from "@/components/QuadrupleHelix";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
@@ -207,16 +207,6 @@ export default async function Home() {
               })}
             </div>
           </div>
-          <div className="partner-jobs-band">
-            <div className="shell">
-              <JobOpportunities
-                email={program.email}
-                facebookUrl={program.facebook_url}
-                opportunities={data.opportunities}
-                telegramUrl={program.telegram_url}
-              />
-            </div>
-          </div>
         </section>
 
         {latestNews.length > 0 ? (
@@ -308,6 +298,31 @@ export default async function Home() {
           </section>
         ) : null}
 
+        {/* Its own band rather than a strip inside the partnership section:
+            partnerships address institutions, opportunities address students. */}
+        <section className="section cream" id="opportunities">
+          <div className="shell">
+            <header className="opportunity-head">
+              <div>
+                <p className="eyebrow">Opportunities</p>
+                <h2>Jobs and internships with our partners</h2>
+                <p>
+                  Openings shared with the ME community by partner
+                  organizations and the program itself.
+                </p>
+              </div>
+            </header>
+          </div>
+          {/* Outside the shell: the rails run the full width of the band, so
+              a card slides in from the window edge rather than from a line
+              partway across it. Each row keeps its heading on the shell. */}
+          <OpportunityBoard
+            email={program.email}
+            facebookUrl={program.facebook_url}
+            opportunities={data.opportunities}
+            telegramUrl={program.telegram_url}
+          />
+        </section>
       </main>
 
       <SiteFooter focusAreas={data.focus_areas} settings={program} />

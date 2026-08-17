@@ -4980,11 +4980,6 @@ a.partner-logo:focus-visible {
   line-height: 1.15;
 }
 
-.opportunity-rail {
-  overflow: hidden;
-  padding: 38px 12px 32px;
-}
-
 .opportunity-track {
   width: 100%;
   display: flex;
@@ -9651,7 +9646,6 @@ a.partner-logo:focus-visible {
     border-right: 0;
   }
 
-
   .sample-form-sheet {
     min-height: 520px;
     padding: 22px;
@@ -10047,7 +10041,9 @@ a.partner-logo:focus-visible {
   background: rgba(243,197,61,.1);
 }
 
-#me-open-house-widget-demo .experience-label { margin: 0 0 8px; color: #bdd2f7; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+/* Title case rather than uppercase: the label is a short sentence, and shouted
+   type reads less considered on an academic page. Tracking eases off with it. */
+#me-open-house-widget-demo .experience-label { margin: 0 0 8px; color: #bdd2f7; font-size: 11px; font-weight: 800; letter-spacing: .04em; }
 
 #me-open-house-widget-demo .experience-list { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 17px; padding: 0; list-style: none; }
 
@@ -10296,5 +10292,964 @@ a.partner-logo:focus-visible {
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
+  }
+}
+
+/* Opportunity board.
+   Its own band after the events feed. Information-first cards: the
+   announcement picture is a thumbnail that appears only when one exists,
+   because most entries have none and a placeholder poster spent 40% of the
+   old card saying nothing. */
+.opportunity-head {
+  max-width: 46rem;
+  margin: 0 0 clamp(28px, 3vw, 40px);
+}
+
+.opportunity-head h2 {
+  margin: 0 0 14px;
+  font-size: var(--step-2);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+.opportunity-head p:last-child {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* A type with nothing open still shows: seeing "Internships 0" is how a
+   student learns internships are posted here at all. */
+
+.opportunity[data-type="job"] {
+  --opportunity-accent: var(--accent-2);
+  --opportunity-ink: var(--accent-2-ink);
+}
+
+.opportunity[data-type="internship"] {
+  --opportunity-accent: var(--accent-3);
+  --opportunity-ink: var(--accent-3-ink);
+}
+
+.opportunity[data-type="scholarship"] {
+  --opportunity-accent: var(--accent-4);
+  --opportunity-ink: var(--accent-4-ink);
+}
+
+.opportunity[data-type="training"] {
+  --opportunity-accent: var(--accent-1);
+  --opportunity-ink: var(--accent-1-ink);
+}
+
+.opportunity-org {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.opportunity-org img {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  object-fit: contain;
+}
+
+.opportunity-org-mark {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  place-items: center;
+  color: var(--white);
+  background: var(--navy);
+  font-size: 0.62rem;
+  font-weight: 850;
+}
+
+.opportunity-title {
+  margin: 0 0 10px;
+  font-size: 1.18rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.opportunity-summary {
+  display: -webkit-box;
+  margin: 0 0 18px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.opportunity-thumb {
+  width: 100%;
+  height: 150px;
+  margin: 0 0 18px;
+  object-fit: cover;
+}
+
+.opportunity-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 26px;
+  margin: 0 0 16px;
+}
+
+.opportunity-meta dt {
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.opportunity-meta dd {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+/* The deadline says how long is left, not just a date: a closing tomorrow and
+   one closing in three weeks used to look identical. */
+.opportunity-closing {
+  margin: 0 0 18px auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 0.87rem;
+  font-weight: 700;
+}
+
+.opportunity-closing[data-urgency="urgent"] {
+  color: var(--accent-1-ink);
+}
+
+.opportunity-closing[data-urgency="closed"] {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.opportunity-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 20px;
+  color: var(--white);
+  background: var(--navy);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: background-color 160ms ease;
+}
+
+.opportunity-action:hover {
+  background: var(--navy-2);
+}
+
+.opportunity-action.is-enquiry {
+  color: var(--navy);
+  background: transparent;
+  border: 1px solid var(--navy);
+}
+
+.opportunity-action.is-enquiry:hover {
+  color: var(--white);
+  background: var(--navy);
+}
+
+.opportunity-none {
+  padding: clamp(30px, 4vw, 52px);
+  background: var(--white);
+  border: 1px solid var(--line);
+}
+
+.opportunity-none h3 {
+  margin: 0 0 10px;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+}
+
+.opportunity-none p {
+  max-width: 52ch;
+  margin: 0 0 22px;
+  color: var(--muted);
+}
+
+.opportunity-none-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+}
+
+.opportunity-none-actions a {
+  font-size: 0.87rem;
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opportunity-filter,
+  .opportunity-action {
+    transition: none;
+  }
+}
+
+/* Card actions: the detail page carries the full posting, the second link
+   goes straight to the partner's application when one exists. */
+.opportunity-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.opportunity-actions .opportunity-action {
+  flex: 1 1 auto;
+}
+
+.opportunity-apply {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 18px;
+  color: var(--navy);
+  background: transparent;
+  border: 1px solid var(--line);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.opportunity-apply:hover {
+  background: var(--cream);
+  border-color: var(--navy);
+}
+
+.opportunity-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.opportunity-title a:hover {
+  text-decoration: underline;
+}
+
+/* Opportunity detail page. */
+.posting-head {
+  max-width: 62ch;
+  margin: 0 0 clamp(26px, 3vw, 38px);
+}
+
+.posting-chip {
+  margin: 0 0 12px;
+  color: var(--accent-2-ink);
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.posting-head[data-type="internship"] .posting-chip {
+  color: var(--accent-3-ink);
+}
+
+.posting-head[data-type="scholarship"] .posting-chip {
+  color: var(--accent-4-ink);
+}
+
+.posting-head[data-type="training"] .posting-chip {
+  color: var(--accent-1-ink);
+}
+
+.posting-head h1 {
+  margin: 0 0 12px;
+  font-size: var(--step-2);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+.posting-org {
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.posting-summary {
+  margin: 0;
+  font-size: 1.08rem;
+  line-height: 1.6;
+}
+
+.posting-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 18px 26px;
+  margin: 0 0 clamp(30px, 3.4vw, 44px);
+  padding: 24px;
+  background: var(--cream);
+}
+
+.posting-facts dt {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.posting-facts dd {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.posting-body {
+  max-width: var(--story-measure, min(68ch, 100%));
+}
+
+.posting-section {
+  margin: 0 0 clamp(26px, 3vw, 38px);
+}
+
+.posting-section h2 {
+  margin: 0 0 12px;
+  font-size: 1.3rem;
+  letter-spacing: -0.025em;
+}
+
+.posting-section p {
+  margin: 0 0 12px;
+}
+
+.posting-section ul,
+.posting-section ol {
+  margin: 0 0 12px;
+  padding-left: 22px;
+}
+
+.posting-section li {
+  margin-bottom: 7px;
+}
+
+.posting-figure {
+  margin: 0 0 clamp(26px, 3vw, 38px);
+}
+
+.posting-figure img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.posting-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 26px;
+  margin: 0 0 22px;
+  padding-top: clamp(22px, 2.6vw, 32px);
+  border-top: 1px solid var(--line);
+}
+
+.posting-apply {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 26px;
+  color: var(--white);
+  background: var(--navy);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: background-color 160ms ease;
+}
+
+.posting-apply:hover {
+  background: var(--navy-2);
+}
+
+.posting-source {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.87rem;
+}
+
+/* Research project detail: status, facts, team and activity record. */
+.research-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 18px;
+  font-size: 0.8rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.research-status::before {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+}
+
+.research-status[data-status="ongoing"] {
+  color: var(--accent-4-ink);
+}
+
+.research-status[data-status="completed"] {
+  color: var(--accent-3-ink);
+}
+
+.research-status[data-status="proposed"] {
+  color: var(--muted);
+}
+
+.research-status span {
+  color: var(--muted);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.research-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+  gap: 18px 26px;
+  margin: 0 0 clamp(28px, 3.2vw, 40px);
+  padding: 24px;
+  background: var(--cream);
+}
+
+.research-facts dt {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.research-facts dd {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+/* Who did the work. A project page that omits this reads as though the
+   research appeared on its own. */
+.story-team ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.story-team li {
+  padding: 18px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+}
+
+.story-team strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 1rem;
+}
+
+.story-team span {
+  display: block;
+  color: var(--accent-2-ink);
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.story-team em {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.87rem;
+  font-style: normal;
+}
+
+/* Dated activities. Prose cannot separate what has happened from what is
+   planned; a timeline can, which is what an ongoing project needs. */
+.story-timeline ol {
+  margin: 0;
+  padding: 0 0 0 26px;
+  list-style: none;
+  border-left: 2px solid var(--line);
+}
+
+.story-timeline li {
+  position: relative;
+  padding-bottom: 26px;
+}
+
+.story-timeline li::before {
+  position: absolute;
+  top: 4px;
+  left: -33px;
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--white);
+  border-radius: 50%;
+  background: var(--navy);
+  content: "";
+}
+
+.story-timeline li[data-status="current"]::before {
+  background: var(--accent-4);
+  box-shadow: 0 0 0 4px rgba(230, 184, 79, 0.28);
+}
+
+.story-timeline li[data-status="planned"]::before {
+  background: var(--white);
+  border-color: var(--line);
+  box-shadow: inset 0 0 0 2px var(--muted);
+}
+
+.story-timeline-period {
+  margin: 0 0 3px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.story-timeline li strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 1.05rem;
+}
+
+.story-timeline li p:last-child {
+  margin: 0;
+  color: var(--muted);
+}
+
+.story-timeline li[data-status="planned"] strong {
+  color: var(--muted);
+}
+
+/* Research detail: prose keeps its reading measure while the band's width is
+   used by a sidebar, rather than left empty beside a 68-character column. */
+/* The whole section is capped and centred rather than the layout alone: a
+   band wider than its content leaves the same gap, just further out. Capping
+   the shell keeps the picture, the facts and the prose on one alignment. */
+.research-detail {
+  --shell: min(1160px, calc(100vw - 48px));
+}
+
+.research-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: clamp(30px, 4vw, 56px);
+  align-items: start;
+}
+
+.research-main {
+  min-width: 0;
+}
+
+.research-main .research-detail-summary,
+.research-main .story-body > p,
+.research-main .story-rich-text {
+  max-width: 72ch;
+}
+
+.research-aside {
+  position: sticky;
+  top: 104px;
+  min-width: 0;
+}
+
+.research-aside .research-facts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin: 0 0 22px;
+}
+
+.research-aside-links p {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.research-aside-links ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.research-aside-links li {
+  margin-bottom: 8px;
+}
+
+.research-aside-links a {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .research-layout {
+    grid-template-columns: 1fr;
+  }
+
+  /* Above the prose on a phone: status and period are what a reader checks
+     first, and a sticky sidebar has nowhere to stick in one column. */
+  .research-aside {
+    position: static;
+    order: -1;
+  }
+
+  .research-aside .research-facts {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  }
+}
+
+/* One sliding row per opportunity type. Grouping answers "are there
+   internships?" without the reader pressing anything, and the row scrolls
+   natively so swipe and drag work with no JavaScript involved. */
+.opportunity-row {
+  margin-bottom: clamp(34px, 4vw, 52px);
+}
+
+.opportunity-row:last-child {
+  margin-bottom: 0;
+}
+
+/* The count sits opposite the row title and centred on it, so the eye reads
+   "Internships -- 2 active internships" as one line. */
+.opportunity-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  margin-bottom: 16px;
+}
+
+.opportunity-row-head .opportunity-count {
+  align-self: center;
+}
+
+.opportunity-row-head h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font-size: 1.28rem;
+  letter-spacing: -0.025em;
+}
+
+.opportunity-row-head h3 span {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
+.opportunity-rail {
+  display: flex;
+  gap: 18px;
+  padding-bottom: 6px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  overscroll-behavior-x: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opportunity-rail {
+    scroll-behavior: auto;
+  }
+
+  .opportunity-row-nav button {
+    transition: none;
+  }
+}
+
+/* Opportunity rows use the partner-logo marquee: the list is rendered twice
+   and the track slides half its width, so the loop is seamless. */
+.opportunity-marquee .marquee-track {
+  gap: 22px;
+  align-items: stretch;
+  padding: 10px 0 34px;
+}
+
+.opportunity-card {
+  display: flex;
+  width: 330px;
+  flex: none;
+  flex-direction: column;
+  overflow: visible;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--opportunity-accent, var(--navy));
+}
+
+.opportunity-card[data-type="job"] {
+  --opportunity-accent: var(--accent-2);
+  --opportunity-ink: var(--accent-2-ink);
+}
+
+.opportunity-card[data-type="internship"] {
+  --opportunity-accent: var(--accent-3);
+  --opportunity-ink: var(--accent-3-ink);
+}
+
+.opportunity-card[data-type="scholarship"] {
+  --opportunity-accent: var(--accent-4);
+  --opportunity-ink: var(--accent-4-ink);
+}
+
+.opportunity-card[data-type="training"] {
+  --opportunity-accent: var(--accent-1);
+  --opportunity-ink: var(--accent-1-ink);
+}
+
+.opportunity-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 26px 22px 22px;
+}
+
+.opportunity-partner {
+  margin: 0 0 8px;
+  color: var(--opportunity-ink, var(--muted));
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.opportunity-content h4 {
+  margin: 0 0 10px;
+  font-size: 1.14rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.opportunity-content h4 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.opportunity-summary {
+  display: -webkit-box;
+  margin: 0 0 16px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.opportunity-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin: 0 0 14px;
+}
+
+.opportunity-facts dt {
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.opportunity-facts dd {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.opportunity-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: auto 0 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.opportunity-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.opportunity-tags li {
+  padding: 4px 9px;
+  background: var(--cream);
+  font-size: 0.66rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+}
+
+.opportunity-closing {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.opportunity-closing[data-urgency="urgent"] {
+  color: var(--accent-1-ink);
+}
+
+.opportunity-closing[data-urgency="none"] {
+  color: var(--muted);
+}
+
+.opportunity-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 46px;
+  padding: 0 18px;
+  color: var(--navy);
+  background: var(--cream);
+  font-size: 0.74rem;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.opportunity-action:hover {
+  color: var(--white);
+  background: var(--navy);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opportunity-marquee .marquee-track {
+    animation: none;
+  }
+}
+
+/* The rails run to the window edge while the headings stay on the page's
+   alignment. A marquee that stops short of the edge looks like it was cut;
+   running it full width is also what makes the mask fade mean something,
+   because cards genuinely enter and leave the viewport.
+   `clip` absorbs the rounding a classic scrollbar leaves behind without
+   turning the section into a scroll container. */
+#opportunities {
+  overflow-x: clip;
+}
+
+/* The rails sit outside the shell, so 100% is exactly the visible width --
+   no 100vw, which counts the scrollbar and bleeds a few pixels past the edge. */
+.opportunity-marquee {
+  width: 100%;
+}
+
+/* A row too short to loop still starts on the page alignment rather than
+   hard against the window edge. */
+
+
+/* Matched to the News & Events band, which runs on a wider shell than the
+   page default: 1440 against 1180, invisible on a laptop and a quarter of a
+   metre apart on a wide monitor. */
+#opportunities {
+  --shell: min(1440px, calc(100vw - clamp(32px, 5vw, 80px)));
+}
+
+/* The rails sit outside the shell in the markup, so they take the shell width
+   explicitly to line up with the news grid above them. */
+.opportunity-marquee {
+  width: var(--shell);
+  margin-inline: auto;
+}
+
+.opportunity-head {
+  max-width: 46rem;
+  margin-bottom: clamp(24px, 2.8vw, 34px);
+  padding-bottom: clamp(20px, 2.4vw, 30px);
+  border-bottom: 1px solid var(--line);
+}
+
+.opportunity-count {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 10px 20px 10px 10px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.opportunity-count strong {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  color: var(--navy);
+  background: var(--gold);
+  border-radius: 50%;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.opportunity-count span {
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  .opportunity-count {
+    padding: 8px 16px 8px 8px;
+  }
+
+  .opportunity-count strong {
+    width: 32px;
+    height: 32px;
+    font-size: 0.95rem;
+  }
+
+  .opportunity-count span {
+    font-size: 0.78rem;
   }
 }

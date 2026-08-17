@@ -325,6 +325,88 @@ class NewsBodyBlock(StoryBodyBlock):
         required = False
 
 
+class TeamBlock(blocks.StructBlock):
+    """Who is doing the work.
+
+    Research on a teaching programme is done by students under supervision,
+    and a project page that does not say so reads as though it appeared on its
+    own. Naming the people is also what lets a reader judge the work.
+    """
+
+    heading = blocks.CharBlock(required=False, max_length=200, default="Project team")
+    members = blocks.ListBlock(
+        blocks.StructBlock(
+            [
+                ("name", blocks.CharBlock(max_length=160)),
+                (
+                    "role",
+                    blocks.CharBlock(
+                        max_length=160,
+                        help_text="For example Student researcher, or Supervisor.",
+                    ),
+                ),
+                (
+                    "detail",
+                    blocks.CharBlock(
+                        required=False,
+                        max_length=200,
+                        help_text="Year of study, department, or area of contribution.",
+                    ),
+                ),
+            ]
+        ),
+        min_num=1,
+    )
+
+    class Meta:
+        icon = "group"
+        label = "Project team"
+
+
+class TimelineBlock(blocks.StructBlock):
+    """Dated activities, oldest first.
+
+    A research page has to distinguish what has happened from what is planned.
+    A timeline does that in a way prose cannot, and it is the honest way to
+    show a project that is still running.
+    """
+
+    heading = blocks.CharBlock(
+        required=False, max_length=200, default="Project activities"
+    )
+    entries = blocks.ListBlock(
+        blocks.StructBlock(
+            [
+                (
+                    "period",
+                    blocks.CharBlock(
+                        max_length=80,
+                        help_text="For example March 2026, or 2025-2026.",
+                    ),
+                ),
+                ("title", blocks.CharBlock(max_length=200)),
+                ("detail", blocks.TextBlock(required=False)),
+                (
+                    "status",
+                    blocks.ChoiceBlock(
+                        choices=[
+                            ("done", "Completed"),
+                            ("current", "In progress"),
+                            ("planned", "Planned"),
+                        ],
+                        default="done",
+                    ),
+                ),
+            ]
+        ),
+        min_num=1,
+    )
+
+    class Meta:
+        icon = "time"
+        label = "Project activities"
+
+
 class ResearchBodyBlock(StoryBodyBlock):
     """Everything a story can hold, plus the structures a project needs.
 
@@ -336,6 +418,8 @@ class ResearchBodyBlock(StoryBodyBlock):
     key_facts = KeyFactsBlock()
     stats = StatsBlock()
     steps = StepsBlock()
+    team = TeamBlock()
+    timeline = TimelineBlock()
     table = DataTableBlock()
     callout = CalloutBlock()
     references = ReferencesBlock()

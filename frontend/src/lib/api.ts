@@ -108,6 +108,9 @@ export type CurriculumYear = {
 export type ResearchProject = {
   title: string;
   slug: string;
+  status: "ongoing" | "completed" | "proposed";
+  period: string;
+  keywords: string;
   summary: string;
   body: StoryBlock[];
   image: string | null;
@@ -141,7 +144,15 @@ export type Opportunity = {
   announcement_image: string | null;
   focus_areas: OpportunityFocusArea[];
   summary: string;
+  body: string;
+  responsibilities: string;
+  requirements: string;
+  how_to_apply: string;
+  employment_type: string;
+  positions: number | null;
   location: string;
+  source_name: string;
+  source_url: string;
   application_deadline: string | null;
   application_url: string;
   is_featured: boolean;
@@ -223,6 +234,21 @@ export type StoryBlock =
       type: "stats";
       heading: string;
       stats: { value: string; label: string }[];
+    }
+  | {
+      type: "team";
+      heading: string;
+      members: { name: string; role: string; detail: string }[];
+    }
+  | {
+      type: "timeline";
+      heading: string;
+      entries: {
+        period: string;
+        title: string;
+        detail: string;
+        status: "done" | "current" | "planned";
+      }[];
     }
   | {
       type: "steps";
@@ -583,6 +609,11 @@ const fallbackData: HomeData = {
     return {
       title,
       slug: title.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+      // Sample content stands in only when the API is unreachable, so it
+      // claims nothing: no period, no keywords, and the least committal status.
+      status: "ongoing" as const,
+      period: "",
+      keywords: "",
       summary,
       body: [],
       image: relatedFocusAreas[0]?.image || null,
@@ -1040,6 +1071,27 @@ export async function getNewsEvent(slug: string): Promise<NewsEventLookup> {
 
   const story = items.find((item) => item.slug === slug);
   return story ? { status: "found", story } : { status: "not-found" };
+}
+
+export type OpportunityLookup =
+  | { status: "found"; opportunity: Opportunity }
+  | { status: "not-found" }
+  | { status: "unavailable" };
+
+/**
+ * Fetched from the collection rather than the home payload, which falls back
+ * to sample data on failure and so cannot tell a broken API from a missing
+ * posting. A null list means the fetch failed, and a slow API must never turn
+ * a real posting into a 404.
+ */
+export async function getOpportunity(slug: string): Promise<OpportunityLookup> {
+  const items = await fetchCollection<Opportunity>("opportunities");
+  if (items === null) return { status: "unavailable" };
+
+  const opportunity = items.find((item) => item.slug === slug);
+  return opportunity
+    ? { status: "found", opportunity }
+    : { status: "not-found" };
 }
 
 export function getFacilities(): Promise<Facility[]> {

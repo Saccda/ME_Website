@@ -160,6 +160,41 @@ export default function StoryBody({
               </section>
             );
 
+          case "team":
+            return (
+              <section className="story-team" key={key}>
+                {block.heading ? <h3>{block.heading}</h3> : null}
+                <ul>
+                  {block.members.map((member) => (
+                    <li key={`${member.name}-${member.role}`}>
+                      <strong>{member.name}</strong>
+                      <span>{member.role}</span>
+                      {member.detail ? <em>{member.detail}</em> : null}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+
+          case "timeline":
+            return (
+              <section className="story-timeline" key={key}>
+                {block.heading ? <h3>{block.heading}</h3> : null}
+                <ol>
+                  {block.entries.map((entry) => (
+                    <li
+                      data-status={entry.status}
+                      key={`${entry.period}-${entry.title}`}
+                    >
+                      <p className="story-timeline-period">{entry.period}</p>
+                      <strong>{entry.title}</strong>
+                      {entry.detail ? <p>{entry.detail}</p> : null}
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            );
+
           case "table": {
             const [firstRow, ...restRows] = block.rows;
             const headerRow = block.first_row_is_header ? firstRow : null;

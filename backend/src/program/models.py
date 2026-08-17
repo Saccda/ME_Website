@@ -568,6 +568,31 @@ class ResearchProject(OrderedModel):
         related_name="research_projects",
         help_text="Select every focus area connected to this project.",
     )
+    STATUSES = (
+        ("ongoing", "Ongoing"),
+        ("completed", "Completed"),
+        ("proposed", "Proposed"),
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUSES,
+        default="ongoing",
+        help_text=(
+            "Shown beside the title. A reader has to know whether results are "
+            "final before deciding how to read them."
+        ),
+    )
+    period = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text="When the work runs, for example 2025-2026.",
+    )
+    keywords = models.CharField(
+        max_length=240,
+        blank=True,
+        help_text="Comma-separated, for example bagasse, composites, recycling.",
+    )
     summary = models.TextField()
     body = StreamField(
         ResearchBodyBlock(),
@@ -592,6 +617,9 @@ class ResearchProject(OrderedModel):
         FieldPanel("title"),
         FieldPanel("slug"),
         FieldPanel("focus_areas"),
+        FieldPanel("status"),
+        FieldPanel("period"),
+        FieldPanel("keywords"),
         FieldPanel("summary"),
         FieldPanel("body"),
         FieldPanel("image"),
@@ -675,13 +703,79 @@ class Opportunity(OrderedModel):
         related_name="opportunities",
         help_text="Focus areas most relevant to this opportunity.",
     )
-    summary = models.TextField()
-    body = RichTextField(blank=True)
+    summary = models.TextField(
+        help_text=(
+            "One or two sentences describing the role. Shown on the card, so "
+            "keep it short: the full description belongs below."
+        )
+    )
+    body = RichTextField(
+        blank=True,
+        help_text="Full description of the role, shown on the detail page.",
+    )
+    responsibilities = RichTextField(
+        blank=True,
+        help_text="What the person will do. A bulleted list reads best.",
+    )
+    requirements = RichTextField(
+        blank=True,
+        help_text="Qualifications, skills and experience expected.",
+    )
+    employment_type = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text=(
+            "For example Full-time, Part-time, or 6-month internship. Shown "
+            "on the card beside the location."
+        ),
+    )
+    positions = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="Number of openings, if the partner has stated one.",
+    )
+    how_to_apply = RichTextField(
+        blank=True,
+        help_text=(
+            "What an applicant should send and where. Used when there is no "
+            "application link to send them to."
+        ),
+    )
     location = models.CharField(max_length=180, blank=True)
     application_deadline = models.DateField(null=True, blank=True)
     application_url = models.URLField(blank=True)
+    # Where the announcement came from. Filled by hand today; the same three
+    # fields are what an importer would write, so adding a partner feed later
+    # does not require another migration.
+    source_name = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text=(
+            "Where this announcement was published, for example the partner's "
+            "careers page or a Telegram post."
+        ),
+    )
+    source_url = models.URLField(
+        blank=True,
+        help_text="Link to the original announcement.",
+    )
+    synced_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Set automatically when an announcement is imported from a "
+            "partner source. Empty means it was entered by hand."
+        ),
+    )
     published_at = models.DateTimeField(default=timezone.now)
-    is_published = models.BooleanField(default=False)
+    is_published = models.BooleanField(
+        default=False,
+        help_text=(
+            "Nothing appears on the site until this is ticked, including "
+            "imported announcements: a partner posting on a university site "
+            "is reviewed first."
+        ),
+    )
     is_featured = models.BooleanField(
         default=False,
         help_text="Prioritize this announcement on the homepage.",
@@ -697,9 +791,16 @@ class Opportunity(OrderedModel):
         FieldPanel("focus_areas"),
         FieldPanel("summary"),
         FieldPanel("body"),
+        FieldPanel("responsibilities"),
+        FieldPanel("requirements"),
+        FieldPanel("how_to_apply"),
+        FieldPanel("employment_type"),
+        FieldPanel("positions"),
         FieldPanel("location"),
         FieldPanel("application_deadline"),
         FieldPanel("application_url"),
+        FieldPanel("source_name"),
+        FieldPanel("source_url"),
         FieldPanel("published_at"),
         FieldPanel("is_published"),
         FieldPanel("is_featured"),
