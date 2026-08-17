@@ -28,9 +28,19 @@ from program.models import NewsEvent
 # depends on them, and the article prose carries no dates of its own, so
 # correcting one of these in Wagtail cannot contradict the text.
 PUBLISHED_ON = {
+    # ESTIMATES, approved as estimates by the author, to be replaced with the
+    # confirmed dates. Only the ordering depends on them, and the article prose
+    # carries no dates of its own, so correcting one in Wagtail cannot
+    # contradict the text.
     "fairfarms-site-assessment-and-system-design": date(2024, 3, 15),
     "installing-cooling-and-spraying-systems-at-two-farms": date(2024, 9, 15),
     "sharing-the-cooling-and-spraying-system-with-communities": date(2025, 6, 15),
+    # Stated by the source document. Where it gives only a month or a range,
+    # the end of that period is used rather than an invented day.
+    "planning-mechanical-engineering-learning-spaces-for-campus-iii": date(2026, 5, 13),
+    "developing-an-additive-manufacturing-system": date(2026, 6, 30),
+    "mex-learning-journey-hands-on-automation": date(2026, 6, 30),
+    "tuesday-weekly-seminar-technical-exchange": date(2026, 8, 4),
 }
 
 # (slug, title, category, excerpt, paragraphs, is_published, check)
@@ -426,17 +436,31 @@ ARTICLES = [
 
 
 def published_moment(slug, now, index):
-    """When the article claims to have been published.
+    """The article's activity date, or the run time for an undated draft.
 
-    An estimated activity date if one is recorded, otherwise the run time --
-    a publication timestamp, not an activity date, since the source document
-    leaves most activity dates unconfirmed. The minute offset only keeps the
-    newest-first ordering stable rather than arbitrary.
+    The run time is only ever reached by an article held back as a draft, so it
+    never competes for a place in the feeds. An earlier version applied it to
+    live articles too, which stamped ten backdated stories with the seeding
+    timestamp: they outranked every real article on the site and pushed the
+    program's own recent news off both the homepage band and the news listing.
+
+    The minute offset only keeps the ordering stable rather than arbitrary.
     """
-    estimated = PUBLISHED_ON.get(slug)
-    if estimated:
-        return timezone.make_aware(datetime.combine(estimated, time(9, 0)))
+    stated = PUBLISHED_ON.get(slug)
+    if stated:
+        return timezone.make_aware(datetime.combine(stated, time(9, 0)))
     return now - timedelta(minutes=index)
+
+
+def is_publishable(slug):
+    """An article is only published once its date is known.
+
+    The source document asks for a confirmed activity date before publication,
+    and the site orders its feeds by that date -- so publishing an undated
+    article means guessing where it belongs among real ones. The body is
+    created either way and waits in Wagtail for the date.
+    """
+    return slug in PUBLISHED_ON
 
 
 def seed_article_bank():
@@ -465,7 +489,7 @@ def seed_article_bank():
             body=[
                 ("paragraph", RichText(f"<p>{text}</p>")) for text in paragraphs
             ],
-            is_published=is_published,
+            is_published=is_published and is_publishable(slug),
         )
         created.append(slug)
 

@@ -14,7 +14,8 @@ from wagtail.images import get_image_model
 from wagtail.images.tests.utils import get_test_image_file
 from wagtail.models import Collection, Site
 
-from .management.commands.seed_article_bank import ARTICLES
+from .management.commands.fix_article_dates import CONFIRMED, UNDATED
+from .management.commands.seed_article_bank import ARTICLES, PUBLISHED_ON
 from .models import (
     Course,
     CurriculumYear,
@@ -924,14 +925,48 @@ class SeedArticleBankTests(TestCase):
             self.assertTrue(entry.category)
             self.assertEqual(len(entry.body), 3)
 
-    def test_every_article_is_published(self):
-        """The bank is publication-ready, so nothing is held back as a draft."""
+    def test_only_dated_articles_are_published(self):
+        """An undated article cannot be placed among real ones.
+
+        The site orders its feeds by published_at and shows only the newest
+        few, so publishing an article whose activity date is unknown means
+        guessing where it belongs -- and guessing wrongly once pushed the
+        program's own recent news off the homepage entirely.
+        """
         self.run_seed()
 
-        self.assertEqual(
-            NewsEvent.objects.filter(is_published=True).count(), len(ARTICLES)
-        )
-        self.assertFalse(NewsEvent.objects.filter(is_published=False).exists())
+        for entry in NewsEvent.objects.all():
+            self.assertEqual(
+                entry.is_published,
+                entry.slug in PUBLISHED_ON,
+                f"{entry.slug} published={entry.is_published} "
+                f"but dated={entry.slug in PUBLISHED_ON}",
+            )
+
+    def test_an_undated_article_never_claims_to_be_the_newest(self):
+        """The run time is what buried the real articles. No live article may
+        carry it."""
+        self.run_seed()
+
+        newest_dated = max(PUBLISHED_ON.values())
+        for entry in NewsEvent.objects.filter(is_published=True):
+            self.assertLessEqual(
+                entry.published_at.date(),
+                newest_dated,
+                f"{entry.slug} is live with a date later than any the source "
+                "document states",
+            )
+
+    def test_a_held_article_keeps_its_body_for_later(self):
+        """Held back, not discarded: the text is written and waits in Wagtail
+        for its date."""
+        self.run_seed()
+
+        held = NewsEvent.objects.filter(is_published=False)
+        self.assertTrue(held.exists())
+        for entry in held:
+            self.assertEqual(len(entry.body), 3)
+            self.assertTrue(entry.excerpt)
 
     def test_unapproved_personal_names_stay_out_of_the_body(self):
         """The document asks for these two names to be approved first, and a
@@ -1066,3 +1101,74 @@ class SeedCompositeBoardProjectTests(TestCase):
         self.run_seed()
 
         self.assertEqual(ResearchProject.objects.count(), 0)
+
+
+class FixArticleDatesTests(TestCase):
+    """Repairing the dates the first seeding run got wrong.
+
+    The command runs against live data, so what it must not touch matters as
+    much as what it corrects.
+    """
+
+    def setUp(self):
+        call_command("seed_article_bank", verbosity=0)
+        # Recreate the defect: undated articles live, stamped with the run time.
+        NewsEvent.objects.filter(slug__in=UNDATED).update(
+            is_published=True, published_at=timezone.now()
+        )
+
+    def test_an_authored_article_is_never_touched(self):
+        """The one property that matters on production data."""
+        authored = NewsEvent.objects.create(
+            title="ME Team Leads the First Learning Express Program",
+            slug="learning-express-2026",
+            excerpt="Written by an author.",
+            published_at=timezone.now() - timedelta(days=23),
+            is_published=True,
+        )
+        before = (authored.title, authored.published_at, authored.is_published)
+
+        call_command("fix_article_dates", verbosity=0)
+
+        authored.refresh_from_db()
+        self.assertEqual(
+            (authored.title, authored.published_at, authored.is_published), before
+        )
+
+    def test_undated_articles_are_held_and_dated_ones_published(self):
+        call_command("fix_article_dates", verbosity=0)
+
+        for slug in UNDATED:
+            self.assertFalse(
+                NewsEvent.objects.get(slug=slug).is_published,
+                f"{slug} should be held until it has a date",
+            )
+        for slug in CONFIRMED:
+            entry = NewsEvent.objects.get(slug=slug)
+            self.assertTrue(entry.is_published)
+            self.assertEqual(entry.published_at.date(), CONFIRMED[slug])
+
+    def test_no_live_article_still_carries_the_run_time(self):
+        """The actual bug: an article claiming to be today's news."""
+        call_command("fix_article_dates", verbosity=0)
+
+        today = timezone.now().date()
+        for entry in NewsEvent.objects.filter(is_published=True):
+            self.assertNotEqual(
+                entry.published_at.date(),
+                today,
+                f"{entry.slug} still claims to have been published today",
+            )
+
+    def test_running_twice_changes_nothing_further(self):
+        call_command("fix_article_dates", verbosity=0)
+        snapshot = {
+            e.slug: (e.published_at, e.is_published) for e in NewsEvent.objects.all()
+        }
+
+        call_command("fix_article_dates", verbosity=0)
+
+        self.assertEqual(
+            {e.slug: (e.published_at, e.is_published) for e in NewsEvent.objects.all()},
+            snapshot,
+        )
