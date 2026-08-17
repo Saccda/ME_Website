@@ -823,13 +823,54 @@ function getFallbackFocusArea(slug: string): FocusAreaDetail | null {
   };
 }
 
+/**
+ * One request to the CMS, retried once.
+ *
+ * The budget is deliberately generous. The API answers in about 300ms warm,
+ * but the first request over a freshly opened connection has been measured at
+ * nearly seven seconds -- the page is rendered in Vercel's US region while the
+ * backend is a lab machine in Phnom Penh behind a Cloudflare tunnel, so a cold
+ * path is slow in a way a nearby request never shows. The previous 2.5s cut
+ * those off, and because a failed collection fetch reads as "no content", the
+ * landing page silently dropped its news and events bands instead of
+ * reporting anything.
+ *
+ * The retry is what actually fixes it: the second attempt travels a warm
+ * connection and returns in a fraction of the first attempt's time.
+ */
+const REQUEST_TIMEOUT_MS = 8000;
+const CACHE_SECONDS = 60;
+const RETRY_DELAY_MS = 150;
+
+async function fetchOnce(url: string): Promise<Response | null> {
+  try {
+    const response = await fetch(url, {
+      // Cached for a minute rather than never. A route that keeps
+      // `force-dynamic` overrides this back to no-store, so only pages that
+      // opt in are cached -- see the landing page.
+      next: { revalidate: CACHE_SECONDS },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+    // A 4xx is a real answer and must not be retried; only 5xx and network
+    // failures are worth a second attempt.
+    return response.ok || response.status < 500 ? response : null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchCms(url: string): Promise<Response | null> {
+  const first = await fetchOnce(url);
+  if (first) return first;
+
+  await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+  return fetchOnce(url);
+}
+
 export async function getHomeData(): Promise<HomeData> {
   try {
-    const response = await fetch(`${API_BASE_URL}/home/`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(2500),
-    });
-    if (!response.ok) return fallbackData;
+    const response = await fetchCms(`${API_BASE_URL}/home/`);
+    if (!response || !response.ok) return fallbackData;
     const data = (await response.json()) as Partial<HomeData>;
     if (!data.settings) return fallbackData;
 
@@ -857,14 +898,10 @@ export async function getFocusArea(
   if (!fallback) return null;
 
   try {
-    const response = await fetch(
+    const response = await fetchCms(
       `${API_BASE_URL}/focus-areas/${encodeURIComponent(slug)}/`,
-      {
-        cache: "no-store",
-        signal: AbortSignal.timeout(2500),
-      },
     );
-    if (!response.ok) return fallback;
+    if (!response || !response.ok) return fallback;
 
     const data = (await response.json()) as FocusAreaDetail;
 
@@ -887,14 +924,10 @@ export async function getFocusArea(
 async function fetchCollection<T>(path: string): Promise<T[] | null> {
   try {
     const [pathname, query] = path.split("?", 2);
-    const response = await fetch(
+    const response = await fetchCms(
       `${API_BASE_URL}/${pathname}/${query ? `?${query}` : ""}`,
-      {
-        cache: "no-store",
-        signal: AbortSignal.timeout(2500),
-      },
     );
-    if (!response.ok) return null;
+    if (!response || !response.ok) return null;
     const data = (await response.json()) as T[] | { results?: T[] };
     return Array.isArray(data) ? data : data.results ?? [];
   } catch {

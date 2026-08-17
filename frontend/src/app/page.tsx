@@ -13,7 +13,19 @@ import {
 } from "@/lib/homeDispatches";
 import { impactProjects } from "@/lib/impactProjects";
 
-export const dynamic = "force-dynamic";
+/**
+ * Cached for a minute, then refreshed in the background.
+ *
+ * Rendered per request, the landing page had to reach a lab machine in Phnom
+ * Penh on every visit and measured 3s to first byte. Worse, a fetch that timed
+ * out came back as an empty list, which is indistinguishable from "no
+ * articles" -- so the news and events bands silently disappeared instead of
+ * reporting anything. A cached render is served in milliseconds and keeps
+ * standing when the backend is briefly unreachable.
+ *
+ * The cost is that a Wagtail edit can take up to a minute to appear here.
+ */
+export const revalidate = 60;
 
 function EditorialSectionHeading({ text }: { text: string }) {
   const sentenceBreak = text.match(/^(.+?[.!?])\s+(.+)$/);

@@ -10,7 +10,7 @@
 | Layer | Exact implementation |
 |---|---|
 | Frontend | Next.js `16.2.10` App Router + Turbopack, React/React DOM `19.2.4`, strict TypeScript, Node/npm |
-| Rendering/data | Async React Server Components by default; dynamic routes use `export const dynamic = "force-dynamic"`; native `fetch` with `cache: "no-store"` + 2.5 s timeout + approved static fallback data |
+| Rendering/data | Async React Server Components by default; most routes use `export const dynamic = "force-dynamic"`, the landing page uses `export const revalidate = 60`; all CMS traffic goes through `fetchCms()` in `lib/api.ts` — 8 s timeout, one retry, 60 s revalidate — plus approved static fallback data |
 | UI/CSS | Handwritten `frontend/src/app/globals.css`; CSS custom properties; no Tailwind, CSS-in-JS, component library, animation library, or icon package |
 | State | No global store/React Query. Local `useState`/`useEffect` only in client components (`ImpactStory`, `CurriculumTabs`, `InquiryForm`) |
 | Backend | Docker runtime Python `3.12`; Django `>=6.0,<6.1`; Wagtail `>=7.4,<7.5`; Django REST Framework `>=3.17,<3.18`; django-cors-headers, django-filter, Pillow |
@@ -42,7 +42,7 @@ Public browser
    ├─ server-side data
    │  └─ `lib/api.ts`
    │     ├─ NEXT_PUBLIC_API_URL
-   │     ├─ no-store fetch + timeout
+   │     ├─ fetchCms: 8 s timeout, one retry, 60 s revalidate
    │     ├─ normalizes legacy `focus_area` → `focus_areas`
    │     ├─ backfills focus areas missing newer CMS fields from fallback
    │     └─ falls back to approved in-file content if API fails/is empty
@@ -90,7 +90,7 @@ NEXT_PUBLIC_API_URL
 - **TypeScript:** strict; 2-space indent; semicolons; double quotes; PascalCase components/types, camelCase functions/variables, kebab-case URL segments and CSS classes. `@/*` aliases `frontend/src/*`.
 - **API naming:** Preserve backend `snake_case` in frontend DTOs (`focus_areas`, `accent_color`, `published_at`) to avoid translation layers. Normalize version differences only inside `frontend/src/lib/api.ts`.
 - **React:** Server Components by default; add `"use client"` only for browser state/events. Fetch in server pages/helpers, not presentation components. Prefer typed props and pure mapping; no global mutable state.
-- **Next routes:** `src/app/<route>/page.tsx`; dynamic segments `[slug]`/`[focus]`; define metadata where useful; public content is force-dynamic because CMS data uses `no-store`.
+- **Next routes:** `src/app/<route>/page.tsx`; dynamic segments `[slug]`/`[focus]`; define metadata where useful. Most public content is force-dynamic, which overrides the fetch cache back to `no-store`. The landing page is the exception: it is cached for 60 s, because rendering it per request meant reaching the lab backend from Vercel on every visit, and a timed-out news fetch silently removed its news and events bands. Rendering region is pinned to `sin1` in `frontend/vercel.json`, near the backend and the audience.
 - **CSS:** All production styling is in `frontend/src/app/globals.css`; semantic kebab-case selectors; reuse root tokens (`--brand-navy`, `--brand-gold`, `--cream`, `--ink`, `--shell`, `--font-sans`, `--font-serif`). Brand palette is navy/gold/cream/white with focus accents. Typography is Segoe UI Variable/Segoe UI/Arial + Georgia only; avoid oversized headings that force unnecessary 2–3-line wraps. Maintain responsive breakpoints, visible keyboard focus, `prefers-reduced-motion`, semantic HTML, ARIA labels, and alt text.
 - **Assets:** Public runtime paths start `/assets/...`; source assets live under `frontend/public/assets/**`. Keep attribution files for externally sourced images. Do not reuse an image in unrelated sections.
 - **Python:** PEP 8, 4-space indent, snake_case fields/functions, PascalCase models/serializers/viewsets. CMS collections are Wagtail `@register_snippet` models inheriting `OrderedModel`; expose fields via explicit serializers/panels.
