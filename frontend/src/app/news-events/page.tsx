@@ -81,8 +81,11 @@ export default async function NewsEventsPage() {
               </div>
             </div>
             {stories.length > 0 ? (
+              /* Every published story, not the newest nine. The cap made
+                 older articles unreachable from the site as soon as the
+                 archive outgrew it, with no pagination to reach them. */
               <div className="story-grid">
-                {stories.slice(0, 9).map((item) => (
+                {stories.map((item) => (
                   <StoryCard item={item} key={item.id} />
                 ))}
               </div>
@@ -108,7 +111,7 @@ export default async function NewsEventsPage() {
             </div>
             {events.length > 0 ? (
               <div className="story-grid compact-stories">
-                {events.slice(0, 6).map((item) => (
+                {events.map((item) => (
                   <StoryCard item={item} key={item.id} />
                 ))}
               </div>
