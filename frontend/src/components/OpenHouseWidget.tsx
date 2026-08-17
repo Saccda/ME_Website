@@ -356,10 +356,10 @@ export default function OpenHouseWidget() {
                 </div>
               </div>
 
-              <p className="experience-label">What you will experience</p>
+              <p className="experience-label">What You Will Experience</p>
               <ul className="experience-list">
                 <li>Hands-on activities</li>
-                <li>Live equipment demos</li>
+                <li>Live equipment demonstrations</li>
                 <li>Guided laboratory tour</li>
               </ul>
             </div>
@@ -375,7 +375,7 @@ export default function OpenHouseWidget() {
                     setToastVisible(true);
                   }}
                 >
-                  Register free <span aria-hidden="true">→</span>
+                  Register for free <span aria-hidden="true">→</span>
                 </a>
                 <a
                   className="details-action"
