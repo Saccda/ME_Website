@@ -68,7 +68,7 @@ export default async function ResearchProjectPage({
   const project = lookup.project;
   const image =
     getResearchImage(project.title, project.image || "") ||
-    "/assets/hero-lab.png";
+    "/assets/hero-lab.webp";
 
   return (
     <>

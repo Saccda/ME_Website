@@ -63,7 +63,7 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
           <img
             src={getFocusHeroImage(
               focus.code,
-              focus.image || "/assets/hero-lab.png",
+              focus.image || "/assets/hero-lab.webp",
             )}
             alt={`${focus.title} learning environment`}
           />
@@ -276,7 +276,7 @@ export default async function FocusAreaPage({ params }: FocusPageProps) {
                         src={
                           getResearchImage(project.title, project.image || "") ||
                           focus.image ||
-                          "/assets/hero-lab.png"
+                          "/assets/hero-lab.webp"
                         }
                         alt=""
                       />

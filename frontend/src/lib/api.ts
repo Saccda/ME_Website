@@ -382,7 +382,7 @@ const focusAreas: FocusArea[] = [
     description:
       "Learn how ideas become real products—from creative design to modern manufacturing methods that shape everything we use.",
     accent_color: "#061b2b",
-    image: "/assets/focus-dmp.png",
+    image: "/assets/focus-dmp.webp",
     ...focusSectionCopy("Design & Manufacturing Lab"),
     research_question:
       "How can an idea become a reliable, manufacturable, and more sustainable product?",
@@ -408,7 +408,7 @@ const focusAreas: FocusArea[] = [
     description:
       "Engineer systems to utilize energy through generation, transfer, and storage—from cooling and heating to sustainable energy.",
     accent_color: "#dcae42",
-    image: "/assets/focus-tes.png",
+    image: "/assets/focus-tes.webp",
     ...focusSectionCopy("Thermofluid & Energy Systems Lab"),
     research_question:
       "How can energy and thermal systems work more efficiently in Cambodia’s climate?",
@@ -434,7 +434,7 @@ const focusAreas: FocusArea[] = [
     description:
       "Discover how mechanical, electrical, and computer systems work together—building smart machines for Industry 4.0.",
     accent_color: "#176ab5",
-    image: "/assets/focus-mas.png",
+    image: "/assets/focus-mas.webp",
     ...focusSectionCopy("Mechatronics & Automation Lab"),
     research_question:
       "How can machines sense, decide, and act with greater accuracy and autonomy?",
@@ -460,7 +460,7 @@ const focusAreas: FocusArea[] = [
     description:
       "Gain skills in safety, standards, and project management—ensuring solutions are reliable, efficient, and ready for the real world.",
     accent_color: "#3e8b56",
-    image: "/assets/focus-ecm.png",
+    image: "/assets/focus-ecm.webp",
     ...focusSectionCopy("Engineering Compliance & Management Lab"),
     research_question:
       "How can engineering solutions remain safe, dependable, compliant, and well managed?",
@@ -518,7 +518,7 @@ const fallbackData: HomeData = {
     hero_emphasis: "Serve Cambodia.",
     hero_description:
       "Build the machines, energy systems, and intelligent technologies that move our nation forward.",
-    hero_image: "/assets/hero-lab.png",
+    hero_image: "/assets/hero-lab.webp",
     what_is_me_eyebrow: "What is mechanical engineering?",
     what_is_me_heading: "Designed by engineers. Built for the world.",
     what_is_me_intro:

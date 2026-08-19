@@ -176,7 +176,7 @@ function authoredWorkCards(member: FacultyMember): WorkCard[] {
       image:
         item.image ||
         getFocusHeroImage(member.focus_areas[0]?.code ?? "") ||
-        "/assets/hero-lab.png",
+        "/assets/hero-lab.webp",
       cta: item.link_label,
     }));
 }
@@ -208,14 +208,14 @@ function buildWorkCards(
     image:
       getResearchImage(project.title, project.image || "") ||
       getFocusHeroImage(project.focus_areas[0]?.code ?? "") ||
-      "/assets/hero-lab.png",
+      "/assets/hero-lab.webp",
     cta: "Explore the project",
   }));
 
   // Research themes are optional in the CMS, so an area without any still
   // contributes a card — the area itself — rather than leaving a gap.
   const themeCards: WorkCard[] = member.focus_areas.flatMap((area) => {
-    const image = getFocusHeroImage(area.code, area.image || "/assets/hero-lab.png");
+    const image = getFocusHeroImage(area.code, area.image || "/assets/hero-lab.webp");
     if (area.research_themes.length === 0) {
       return [
         {
@@ -253,7 +253,7 @@ function buildWorkCards(
       href: `/focus/${area.slug}`,
       image: getFocusTeachingImage(
         area.code,
-        area.image || "/assets/hero-lab.png",
+        area.image || "/assets/hero-lab.webp",
       ),
       cta: "Explore the teaching",
     }));

@@ -21,7 +21,7 @@ export const impactProjects: ImpactProject[] = [
     field: "Drone design",
     description:
       "Aerodynamics, lightweight structures, propulsion, sensors, and controls work together so unmanned aircraft can fly farther and perform missions too risky for pilots.",
-    image: "/assets/impact/drone-global-hawk.jpg",
+    image: "/assets/impact/drone-global-hawk.webp",
     alt: "A NASA Global Hawk unmanned aircraft being prepared before sunrise",
     accent: "#2387c9",
     accentText: "light",
@@ -39,7 +39,7 @@ export const impactProjects: ImpactProject[] = [
     field: "Automotive manufacturing",
     description:
       "The Strati showed how mechanical design, materials, large-scale 3D printing, machining, and assembly can radically shorten the path from concept to vehicle.",
-    image: "/assets/impact/automotive-strati.jpg",
+    image: "/assets/impact/automotive-strati.webp",
     alt: "The Strati, a driveable car with a 3D-printed body developed with Oak Ridge National Laboratory",
     accent: "#d73528",
     accentText: "light",
@@ -55,7 +55,7 @@ export const impactProjects: ImpactProject[] = [
     field: "Satellite engineering",
     description:
       "A satellite must survive launch, deploy precisely, and manage extreme temperatures—demanding lightweight structures, reliable mechanisms, vibration control, and thermal engineering.",
-    image: "/assets/impact/james-webb-space-telescope.png",
+    image: "/assets/impact/james-webb-space-telescope.webp",
     alt: "The fully deployed James Webb Space Telescope against a field of stars",
     accent: "#e5b84f",
     accentText: "dark",
@@ -72,7 +72,7 @@ export const impactProjects: ImpactProject[] = [
     field: "Robotics",
     description:
       "Actuators, joints, sensors, controls, and durable structures turn software into motion, helping robots work alongside people or enter hazardous environments.",
-    image: "/assets/impact/robotics-valkyrie.jpg",
+    image: "/assets/impact/robotics-valkyrie.webp",
     alt: "NASA's white and gold Valkyrie humanoid robot",
     accent: "#2c39c9",
     accentText: "light",
@@ -88,7 +88,7 @@ export const impactProjects: ImpactProject[] = [
     field: "Data-center thermal systems",
     description:
       "Pumps, fluid loops, heat exchangers, cold plates, and immersion systems remove intense heat so high-density servers can operate safely and efficiently.",
-    image: "/assets/impact/datacenter-liquid-cooling.jpg",
+    image: "/assets/impact/datacenter-liquid-cooling.webp",
     alt: "Two Microsoft engineers working inside a two-phase immersion cooling tank",
     accent: "#3aaa55",
     accentText: "light",

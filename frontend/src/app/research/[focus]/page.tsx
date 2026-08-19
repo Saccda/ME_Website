@@ -148,7 +148,7 @@ export default async function ResearchAreaPage({
                         src={
                           getResearchImage(project.title, project.image || "") ||
                           area.image ||
-                          "/assets/hero-lab.png"
+                          "/assets/hero-lab.webp"
                         }
                         alt=""
                       />

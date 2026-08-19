@@ -45,7 +45,7 @@ export default async function Home() {
         <section className="hero" id="top">
           <img
             className="hero-image"
-            src={program.hero_image || "/assets/hero-lab.png"}
+            src={program.hero_image || "/assets/hero-lab.webp"}
             alt="Mechanical engineering students working in a robotics laboratory"
           />
           <div className="hero-overlay" />

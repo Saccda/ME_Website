@@ -86,7 +86,7 @@ export default function SiteFooter({
       <div className="shell footer-directory">
         <div className="footer-identity">
           <img
-            src="/assets/brand/me-wordmark.png"
+            src="/assets/brand/me-wordmark.webp"
             alt="Mechanical Engineering — Nature, Nurture, Nourish"
           />
           <address>

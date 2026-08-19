@@ -30,7 +30,7 @@ export const quadrupleHelix: HelixStrand[] = [
       "Universities and research institutes that advance engineering knowledge, train graduates, and test ideas before industry adopts them.",
     accent: "var(--accent-1-ink)",
     onGold: "var(--accent-1-on-gold)",
-    image: "/assets/partnership/partnership-academia.jpg",
+    image: "/assets/partnership/partnership-academia.webp",
     alt: "A lecturer speaking with students in a university lecture hall",
     summary:
       "Academic partners keep the program honest. Joint supervision, shared laboratories, and external review test our teaching and research against practice elsewhere, and give students and staff a route into wider research networks.",
@@ -49,7 +49,7 @@ export const quadrupleHelix: HelixStrand[] = [
       "Companies and manufacturers that turn research into products, processes, and the workplaces our graduates enter.",
     accent: "var(--accent-2-ink)",
     onGold: "var(--accent-2-on-gold)",
-    image: "/assets/partnership/partnership-industry.jpg",
+    image: "/assets/partnership/partnership-industry.webp",
     alt: "A manufacturing hall lined with CNC machining centres",
     summary:
       "Industry partners tell us what engineering practice actually demands. Companies scope real problems as student projects, host internships, and use our laboratories for testing and prototyping that would be costly to run in-house.",
@@ -68,7 +68,7 @@ export const quadrupleHelix: HelixStrand[] = [
       "Ministries and public agencies that set national priorities, standards, and the regulation engineering work must meet.",
     accent: "var(--accent-3-ink)",
     onGold: "var(--accent-3-on-gold)",
-    image: "/assets/partnership/partnership-government.jpg",
+    image: "/assets/partnership/partnership-government.webp",
     alt: "Rows of desks and microphones in an empty legislative chamber",
     summary:
       "Government partners connect the program to national priorities. Public agencies shape the standards our graduates must work to, and draw on the faculty for technical studies, testing, and workforce development.",
@@ -87,7 +87,7 @@ export const quadrupleHelix: HelixStrand[] = [
       "Communities whose needs decide which problems matter, keeping engineering accountable to the people it serves.",
     accent: "var(--accent-4-ink)",
     onGold: "var(--accent-4-on-gold)",
-    image: "/assets/partnership/partnership-society.jpg",
+    image: "/assets/partnership/partnership-society.webp",
     alt: "An aerial view of Phnom Penh showing the city and the riverfront",
     summary:
       "Society decides what engineering is for. Working with communities, schools, and civil society keeps the program pointed at problems that matter locally, and shows students that technical decisions carry public consequences.",

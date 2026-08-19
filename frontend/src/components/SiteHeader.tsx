@@ -84,20 +84,20 @@ export default function SiteHeader({ settings }: SiteHeaderProps) {
             <span className="brand-marks" aria-hidden="true">
               <img
                 className="rupp-mark"
-                src="/assets/brand/rupp-logo.png"
+                src="/assets/brand/rupp-logo.webp"
                 alt=""
               />
               <img
                 className="fe-mark"
-                src="/assets/brand/fe-logo-transparent.png"
+                src="/assets/brand/fe-logo-transparent.webp"
                 alt=""
               />
-              <img className="me-mark" src="/assets/me-logo.png" alt="" />
+              <img className="me-mark" src="/assets/me-logo.webp" alt="" />
             </span>
             <span className="brand-divider" aria-hidden="true" />
             <img
               className="me-wordmark"
-              src="/assets/brand/me-wordmark.png"
+              src="/assets/brand/me-wordmark.webp"
               alt="Mechanical Engineering — Nature, Nurture, Nourish"
             />
           </Link>

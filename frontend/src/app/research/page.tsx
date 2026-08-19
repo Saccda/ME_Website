@@ -53,7 +53,7 @@ export default async function ResearchPage({
         <section className="research-showcase-hero">
           <img
             className="research-showcase-background"
-            src={home.settings.hero_image || "/assets/hero-lab.png"}
+            src={home.settings.hero_image || "/assets/hero-lab.webp"}
             alt=""
           />
           <div className="research-showcase-overlay" />
@@ -158,7 +158,7 @@ export default async function ResearchPage({
                               getResearchImage(
                                 project.title,
                                 project.image || "",
-                              ) || "/assets/hero-lab.png"
+                              ) || "/assets/hero-lab.webp"
                             }
                             alt=""
                           />
