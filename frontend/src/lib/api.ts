@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
 
@@ -824,75 +826,131 @@ function getFallbackFocusArea(slug: string): FocusAreaDetail | null {
 }
 
 /**
- * One request to the CMS, retried once.
+ * One request to the CMS, retried once -- but only when the first attempt
+ * failed quickly.
  *
- * The budget is deliberately generous. The API answers in about 300ms warm,
- * but the first request over a freshly opened connection has been measured at
- * nearly seven seconds -- the page is rendered in Vercel's US region while the
- * backend is a lab machine in Phnom Penh behind a Cloudflare tunnel, so a cold
- * path is slow in a way a nearby request never shows. The previous 2.5s cut
- * those off, and because a failed collection fetch reads as "no content", the
- * landing page silently dropped its news and events bands instead of
- * reporting anything.
+ * The budget is generous because the API answers in about 300ms warm while a
+ * first request over a freshly opened connection has been measured at nearly
+ * seven seconds. The previous 2.5s cut those off, and since a failed
+ * collection fetch reads as "no content", the landing page silently dropped
+ * its news and events bands rather than reporting anything.
  *
- * The retry is what actually fixes it: the second attempt travels a warm
- * connection and returns in a fraction of the first attempt's time.
+ * A timeout is not retried. If the backend spent the whole budget without
+ * answering it is slow rather than absent, and a second attempt would spend
+ * the budget again -- so the reader waits sixteen seconds to be shown the same
+ * fallback. Quick failures are different: a dropped connection or a tunnel
+ * that is down (Cloudflare answers 530 in milliseconds when the school's
+ * internet is out) costs nothing to try again, and often succeeds.
  *
- * Caching was tried here and removed. Pinning the rendering region beside the
- * backend already brought every page to about 250ms, so a cache bought no
- * measurable speed -- and because Vercel prerenders a cached page during the
- * build, from a US build container that cannot reach the lab backend reliably,
- * each deploy published a landing page with its news bands missing until the
- * first revalidation. Rendering per request from the right region is both
- * faster to publish and always current.
+ * Full-page caching was tried here and removed. Vercel prerenders a cached
+ * page during the build, from a US container that cannot reach the lab backend
+ * reliably, so each deploy published a landing page with its news bands
+ * missing until the first revalidation. Caching the data instead, below, has
+ * none of that problem.
  */
 const REQUEST_TIMEOUT_MS = 8000;
 const RETRY_DELAY_MS = 150;
 
-async function fetchOnce(url: string): Promise<Response | null> {
+type Attempt = { response: Response | null; timedOut: boolean };
+
+async function fetchOnce(url: string): Promise<Attempt> {
   try {
     const response = await fetch(url, {
       cache: "no-store",
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
-    // A 4xx is a real answer and must not be retried; only 5xx and network
-    // failures are worth a second attempt.
-    return response.ok || response.status < 500 ? response : null;
-  } catch {
-    return null;
+    // A 4xx is a real answer and must not be retried; only 5xx is worth a
+    // second attempt.
+    return {
+      response: response.status < 500 ? response : null,
+      timedOut: false,
+    };
+  } catch (error) {
+    const timedOut = (error as Error | undefined)?.name === "TimeoutError";
+    return { response: null, timedOut };
   }
 }
 
 async function fetchCms(url: string): Promise<Response | null> {
   const first = await fetchOnce(url);
-  if (first) return first;
+  if (first.response) return first.response;
+  if (first.timedOut) return null;
 
   await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-  return fetchOnce(url);
+  return (await fetchOnce(url)).response;
 }
 
-export async function getHomeData(): Promise<HomeData> {
+/**
+ * Remember a successful answer for a minute.
+ *
+ * The lab backend goes down with the school's internet, and every page is
+ * rendered fresh, so an outage used to reach the reader immediately: the news
+ * and events bands vanished on the first request that failed. A cached answer
+ * keeps the site whole through a blip and through the cold-connection spells,
+ * and spares the lab machine most of the traffic.
+ *
+ * A failure is never cached. The wrapped function throws instead of returning
+ * an empty result, because storing "nothing" would turn a moment's outage into
+ * a full minute of missing content, and would be indistinguishable from a
+ * program that genuinely has no news.
+ *
+ * This is not protection against a long outage: once the minute is up the
+ * answer has to be fetched again, and if the tunnel is still down the bands go
+ * with it. It buys a minute, not an afternoon.
+ */
+const CACHE_SECONDS = 60;
+
+function remembered<T>(key: string, load: () => Promise<T | null>) {
+  const cached = unstable_cache(
+    async () => {
+      const value = await load();
+      if (value === null) throw new Error(`cms:${key} unavailable`);
+      return value;
+    },
+    ["cms", key],
+    { revalidate: CACHE_SECONDS, tags: ["cms"] },
+  );
+
+  return async (): Promise<T | null> => {
+    try {
+      return await cached();
+    } catch {
+      return null;
+    }
+  };
+}
+
+async function loadHomeData(): Promise<Partial<HomeData> | null> {
   try {
     const response = await fetchCms(`${API_BASE_URL}/home/`);
-    if (!response || !response.ok) return fallbackData;
+    if (!response || !response.ok) return null;
     const data = (await response.json()) as Partial<HomeData>;
-    if (!data.settings) return fallbackData;
-
-    return {
-      ...fallbackData,
-      ...data,
-      settings: {
-        ...fallbackData.settings,
-        ...data.settings,
-      },
-      focus_areas: data.focus_areas?.length
-        ? withFocusAreaFallbacks(data.focus_areas)
-        : fallbackData.focus_areas,
-      opportunities: data.opportunities ?? fallbackData.opportunities,
-    };
+    // Settings are what every page needs; a payload without them is not an
+    // answer worth remembering.
+    return data.settings ? data : null;
   } catch {
-    return fallbackData;
+    return null;
   }
+}
+
+const rememberedHomeData = remembered("home", loadHomeData);
+
+export async function getHomeData(): Promise<HomeData> {
+  const data = await rememberedHomeData();
+  if (!data) return fallbackData;
+
+  return {
+    ...fallbackData,
+    ...data,
+    settings: {
+      ...fallbackData.settings,
+      ...data.settings,
+    },
+    focus_areas: data.focus_areas?.length
+      ? withFocusAreaFallbacks(data.focus_areas)
+      : fallbackData.focus_areas,
+    opportunities: data.opportunities ?? fallbackData.opportunities,
+  };
 }
 
 export async function getFocusArea(
@@ -925,7 +983,7 @@ export async function getFocusArea(
  * no projects") and must not be replaced with sample content, while a failed
  * request is the case fallbacks exist for.
  */
-async function fetchCollection<T>(path: string): Promise<T[] | null> {
+async function loadCollection<T>(path: string): Promise<T[] | null> {
   try {
     const [pathname, query] = path.split("?", 2);
     const response = await fetchCms(
@@ -937,6 +995,19 @@ async function fetchCollection<T>(path: string): Promise<T[] | null> {
   } catch {
     return null;
   }
+}
+
+// One cache entry per path, built once and reused, so `research` and
+// `news?type=event` never share an answer.
+const collectionLoaders = new Map<string, () => Promise<unknown[] | null>>();
+
+async function fetchCollection<T>(path: string): Promise<T[] | null> {
+  let loader = collectionLoaders.get(path);
+  if (!loader) {
+    loader = remembered(path, () => loadCollection<T>(path));
+    collectionLoaders.set(path, loader);
+  }
+  return (await loader()) as T[] | null;
 }
 
 async function getCollection<T>(path: string): Promise<T[]> {
