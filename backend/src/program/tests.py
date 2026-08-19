@@ -1,5 +1,6 @@
 import json
 import tempfile
+from types import SimpleNamespace
 from datetime import timedelta
 
 from django.core import mail
@@ -14,6 +15,20 @@ from wagtail.images import get_image_model
 from wagtail.images.tests.utils import get_test_image_file
 from wagtail.models import Collection, Site
 
+from .serializers import (
+    BODY_IMAGE,
+    CARD_IMAGE,
+    HERO_IMAGE,
+    LOGO_IMAGE,
+    PANEL_IMAGE,
+    PORTRAIT_IMAGE,
+    POSTER_IMAGE,
+    rendition_url,
+    WIDE_IMAGE,
+    FocusAreaSerializer,
+    PartnerSerializer,
+    ProgramSettingsSerializer,
+)
 from .management.commands.fix_article_dates import CONFIRMED, UNDATED
 from .management.commands.seed_article_bank import ARTICLES, PUBLISHED_ON
 from .models import (
@@ -1228,3 +1243,83 @@ class NewsEventPeriodTests(TestCase):
         ]
         self.assertEqual(slugs.index(late.slug), 0)
         self.assertLess(slugs.index(late.slug), slugs.index(early.slug))
+
+
+class ImagesAreServedResizedTests(TestCase):
+    """No public image may be served at its uploaded size.
+
+    The landing page once shipped 12 MB of pictures, nearly 7 MB of it
+    originals the CMS handed over untouched: a 1.7 MB hero, four focus cards
+    approaching a megabyte each. Wagtail will resize on request, and the
+    specs to do it were already defined -- these fields simply were not
+    wired to them.
+    """
+
+    def setUp(self):
+        self.image = get_image_model().objects.create(
+            title="Test", file=get_test_image_file()
+        )
+
+    def assert_resized(self, url, field):
+        self.assertIsNotNone(url, f"{field} returned nothing")
+        self.assertNotIn(
+            "original_images", url, f"{field} is still served at its full size"
+        )
+
+    def test_the_hero_is_resized(self):
+        # ProgramSettings is a per-site setting, so it needs the site Wagtail
+        # creates in its own migrations.
+        settings_obj = ProgramSettings.objects.create(
+            site=Site.objects.first(), hero_image=self.image
+        )
+        data = ProgramSettingsSerializer(settings_obj).data
+        self.assert_resized(data["hero_image"], "hero_image")
+
+    def test_focus_area_images_are_resized(self):
+        area = FocusArea.objects.create(
+            code="DMP", title="Design", slug="design", image=self.image
+        )
+        self.assert_resized(FocusAreaSerializer(area).data["image"], "focus image")
+
+    def test_partner_logos_are_resized_but_never_cropped(self):
+        partner = Partner.objects.create(name="ACME", logo=self.image)
+        self.assert_resized(PartnerSerializer(partner).data["logo"], "partner logo")
+        # A cropped logo loses an edge, so the logo spec must fit rather than fill.
+        self.assertTrue(LOGO_IMAGE.startswith("max-"), LOGO_IMAGE)
+
+    def test_every_spec_asks_for_webp(self):
+        """The format change is most of the saving; a spec that forgets it
+        keeps a photograph in PNG."""
+        for name, spec in [
+            ("CARD_IMAGE", CARD_IMAGE),
+            ("WIDE_IMAGE", WIDE_IMAGE),
+            ("BODY_IMAGE", BODY_IMAGE),
+            ("HERO_IMAGE", HERO_IMAGE),
+            ("PANEL_IMAGE", PANEL_IMAGE),
+            ("POSTER_IMAGE", POSTER_IMAGE),
+            ("PORTRAIT_IMAGE", PORTRAIT_IMAGE),
+            ("LOGO_IMAGE", LOGO_IMAGE),
+        ]:
+            self.assertIn("format-webp", spec, f"{name} does not ask for WebP")
+
+    def test_a_rendition_failure_falls_back_rather_than_breaking(self):
+        """A bad upload should degrade to a large image, not a missing one.
+
+        Wagtail measures an image as it is saved, so a file this broken cannot
+        be created through the ORM at all -- the contract is tested directly
+        instead: when resizing raises, the original's URL is returned rather
+        than the exception reaching the endpoint. Willow raises
+        UnrecognisedImageFormatError, which subclasses IOError and so is
+        already covered by the OSError arm.
+        """
+
+        class Unresizable:
+            file = SimpleNamespace(url="/media/original_images/broken.png")
+
+            def get_rendition(self, spec):
+                raise OSError("cannot identify image file")
+
+        self.assertEqual(
+            rendition_url(Unresizable(), PANEL_IMAGE),
+            "/media/original_images/broken.png",
+        )

@@ -29,11 +29,26 @@ def image_url(image, request=None):
 # Sizes matched to the boxes these images actually land in. Serving the
 # original means a 5712px photograph is downloaded to fill a 460px card, and
 # the browser does the cropping the CMS should have done.
-CARD_IMAGE = "fill-900x563"  # 16:10, the news and event card crop
-WIDE_IMAGE = "width-2400"  # full-bleed story lead
-BODY_IMAGE = "width-1600"  # a figure inside the story band
-ROW_IMAGE = "fill-1200x800"  # 3:2, the image-row crop
-THUMB_IMAGE = "fill-600x400"  # 3:2, a gallery thumbnail
+#
+# Everything is delivered as WebP. These photographs were uploaded as PNG,
+# which is close to the worst format for a photograph: the landing page hero
+# alone was 1.7 MB of it. The resize is what the box needs; the format change
+# is most of the saving.
+#
+# Widths are roughly twice the box, so nothing softens on a high-DPI screen.
+# Only the crops use `fill-`; anything whose composition matters -- a logo, a
+# portrait -- is fitted rather than cropped.
+WEBP = "format-webp|webpquality-80"
+CARD_IMAGE = f"fill-900x563|{WEBP}"  # 16:10, the news and event card crop
+WIDE_IMAGE = f"width-2400|{WEBP}"  # full-bleed story lead
+BODY_IMAGE = f"width-1600|{WEBP}"  # a figure inside the story band
+ROW_IMAGE = f"fill-1200x800|{WEBP}"  # 3:2, the image-row crop
+THUMB_IMAGE = f"fill-600x400|{WEBP}"  # 3:2, a gallery thumbnail
+HERO_IMAGE = f"width-2000|{WEBP}"  # the landing page hero, full-bleed at 1265px
+PANEL_IMAGE = f"width-900|{WEBP}"  # focus, why-choose and facility cards
+POSTER_IMAGE = f"width-1200|{WEBP}"  # an opportunity announcement
+PORTRAIT_IMAGE = f"width-800|{WEBP}"  # a faculty photograph, never cropped
+LOGO_IMAGE = f"max-400x240|{WEBP}"  # partner marquee; fitted, so no logo loses an edge
 
 
 def document_url(document, request=None):
@@ -60,10 +75,14 @@ def rendition_url(image, spec, request=None):
 
 
 class ImageSerializerMixin:
+    # Overridable, so a serializer whose image lands in a different box can ask
+    # for a different size.
+    image_spec = PANEL_IMAGE
+
     def get_image(self, obj):
         request = self.context.get("request")
         image = getattr(obj, self.image_field, None)
-        return image_url(image, request)
+        return rendition_url(image, self.image_spec, request)
 
 
 def story_blocks(stream_value, request=None, gallery_items=None):
@@ -513,7 +532,7 @@ class PartnerSerializer(serializers.ModelSerializer):
     logo = serializers.SerializerMethodField()
 
     def get_logo(self, obj):
-        return image_url(obj.logo, self.context.get("request"))
+        return rendition_url(obj.logo, LOGO_IMAGE, self.context.get("request"))
 
     class Meta:
         model = Partner
@@ -536,8 +555,9 @@ class OpportunitySerializer(serializers.ModelSerializer):
     )
 
     def get_announcement_image(self, obj):
-        return image_url(
+        return rendition_url(
             obj.announcement_image,
+            POSTER_IMAGE,
             self.context.get("request"),
         )
 
@@ -633,7 +653,9 @@ class FacultyWorkItemSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
 
     def get_image(self, obj):
-        return image_url(obj.image, self.context.get("request"))
+        return rendition_url(
+            obj.image, PANEL_IMAGE, self.context.get("request")
+        )
 
     class Meta:
         model = FacultyWorkItem
@@ -660,7 +682,9 @@ class FacultyMemberSerializer(serializers.ModelSerializer):
     publications = serializers.SerializerMethodField()
 
     def get_photo(self, obj):
-        return image_url(obj.photo, self.context.get("request"))
+        return rendition_url(
+            obj.photo, PORTRAIT_IMAGE, self.context.get("request")
+        )
 
     @staticmethod
     def _lines(value):
@@ -820,7 +844,9 @@ class ProgramSettingsSerializer(serializers.ModelSerializer):
     hero_image = serializers.SerializerMethodField()
 
     def get_hero_image(self, obj):
-        return image_url(obj.hero_image, self.context.get("request"))
+        return rendition_url(
+            obj.hero_image, HERO_IMAGE, self.context.get("request")
+        )
 
     class Meta:
         model = ProgramSettings
