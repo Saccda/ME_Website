@@ -78,27 +78,37 @@ export default async function NewsEventsPage() {
           </div>
         </section>
 
-        {upcoming.length > 0 ? (
-          <section className="section cream" id="upcoming">
+        {/* Always rendered, empty state and all: the header links to
+            #upcoming, and an anchor that exists only when there happens to be
+            an event is an anchor that breaks. */}
+        <section className="section cream" id="upcoming">
             <div className="shell">
               <div className="detail-section-heading">
                 <div>
                   <p className="eyebrow">Upcoming</p>
                   <h2>
-                    {upcoming.length === 1
-                      ? "One event coming up"
-                      : `${upcoming.length} events coming up`}
+                    {upcoming.length === 0
+                      ? "Events and open houses"
+                      : upcoming.length === 1
+                        ? "One event coming up"
+                        : `${upcoming.length} events coming up`}
                   </h2>
                 </div>
               </div>
-              <div className="upcoming-grid">
-                {upcoming.map((item) => (
-                  <UpcomingCard item={item} key={item.id} />
-                ))}
-              </div>
+              {upcoming.length > 0 ? (
+                <div className="upcoming-grid">
+                  {upcoming.map((item) => (
+                    <UpcomingCard item={item} key={item.id} />
+                  ))}
+                </div>
+              ) : (
+                <p className="section-empty-copy">
+                  Nothing is scheduled at the moment. Past events are in the
+                  archive below.
+                </p>
+              )}
             </div>
           </section>
-        ) : null}
 
         <section className="section white archive-section" id="latest">
           <div className="shell">

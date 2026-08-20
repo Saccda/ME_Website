@@ -597,6 +597,10 @@ class FacilitySerializer(ImageSerializerMixin, serializers.ModelSerializer):
         source="get_availability_status_display",
         read_only=True,
     )
+    # The link has been on the model and in the Wagtail panels all along; it
+    # was simply never sent, so the catalogue could not be filtered by the area
+    # a machine belongs to. The compact shape is enough for a filter chip.
+    focus_areas = OpportunityFocusAreaSerializer(many=True, read_only=True)
     image_field = "image"
 
     class Meta:
@@ -609,6 +613,7 @@ class FacilitySerializer(ImageSerializerMixin, serializers.ModelSerializer):
             "reference_url",
             "availability_status",
             "availability_label",
+            "focus_areas",
             "image",
         )
 

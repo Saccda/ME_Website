@@ -20,6 +20,10 @@
      text on white or cream — vivid green and gold are light colors and fail
      contrast as small text (2.05 and 1.85), so they get darker companions.
      Red and blue already pass, so their ink values are unchanged. */
+  /* The fixed header's height, so anything pinned beneath it (the curriculum
+     year tabs) lands flush rather than guessing. Kept in step with
+     .header-inner's min-height plus its 3px gold border. */
+  --header-h: 100px;
   --accent-1: #d40909;
   --accent-2: #0909d2;
   --accent-3: #08d208;
@@ -500,6 +504,72 @@ img {
 
 .directory-hero.is-compact > .shell > p:last-child {
   font-size: 1rem;
+}
+
+/* Equipment catalogue filters. Two questions get asked of a catalogue --
+   which area is this for, and can I use it yet -- so there are two groups
+   rather than one undifferentiated row of chips. */
+.catalog-section {
+  padding-top: clamp(30px, 3.4vw, 48px);
+}
+
+.catalog-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px clamp(20px, 3vw, 36px);
+  margin: 0 0 clamp(22px, 2.6vw, 32px);
+  padding-bottom: clamp(18px, 2vw, 24px);
+  border-bottom: 1px solid rgba(10, 33, 100, 0.12);
+}
+
+.catalog-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.catalog-filter-label {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+/* An area chip takes its own accent when active, so the filter and the badges
+   on the cards below it agree at a glance. */
+.catalog-filter-group .archive-filter[aria-pressed="true"] {
+  color: #fff;
+}
+
+.catalog-clear {
+  padding: 0;
+  color: #a66f00;
+  font: inherit;
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.equipment-areas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.equipment-areas li {
+  padding: 2px 8px;
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 820;
+  letter-spacing: 0.04em;
+  background: var(--chip, var(--brand-navy));
+  border-radius: 4px;
 }
 
 /* FAQs.
@@ -2113,7 +2183,10 @@ img {
 .curriculum-card {
   display: grid;
   grid-template-columns: minmax(300px, 0.78fr) 1.7fr;
-  overflow: hidden;
+  /* `clip` rather than `hidden`: both trim the children to the card, but
+     `hidden` makes this a scroll container, which confines the sticky year
+     tabs inside it and lets them scroll away with the card. `clip` does not. */
+  overflow: clip;
   border: 1px solid var(--line);
   background: var(--white);
   box-shadow: 0 20px 56px rgba(6, 26, 42, 0.08);
@@ -2193,10 +2266,25 @@ img {
   padding: 38px;
 }
 
+/* Pinned below the fixed header, which stands 100px tall.
+   A year's courses run past a screen, so with the tabs scrolled away the only
+   route to another year was back to the top -- the switch has to stay within
+   reach of the list it switches. The opaque background matters: the courses
+   would otherwise show through as they pass underneath. */
 .year-tabs {
+  position: sticky;
+  z-index: 20;
+  top: var(--header-h);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  background: var(--white);
   border-bottom: 1px solid var(--line);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 .year-tabs button {
@@ -7208,6 +7296,10 @@ a.partner-logo:focus-visible {
     padding-top: 99px;
   }
 
+  :root {
+    --header-h: 99px;
+  }
+
   .header-inner {
     min-height: 96px;
   }
@@ -7273,6 +7365,10 @@ a.partner-logo:focus-visible {
 
   .header-shell {
     width: calc(100vw - 20px);
+  }
+
+  :root {
+    --header-h: 76px;
   }
 
   .header-inner {

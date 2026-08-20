@@ -316,11 +316,14 @@ export type NewsEvent = {
 };
 
 export type Facility = {
+  id?: number;
   name: string;
   description: string;
   reference_url: string;
   availability_status: "available" | "new" | "commissioning" | "planned";
   availability_label: string;
+  /** Empty on a backend that predates the field being serialised. */
+  focus_areas: OpportunityFocusArea[];
   image: string | null;
 };
 
@@ -823,6 +826,9 @@ function getFallbackFocusArea(slug: string): FocusAreaDetail | null {
         commissioning: "Commissioning",
         planned: "Planned",
       }[availability_status],
+      // This equipment is already listed under the focus area whose page it
+      // appears on, so repeating the badge on every card says nothing.
+      focus_areas: [],
       image: null,
     })),
     outcomes: toItems(detail.outcomes),
@@ -1252,8 +1258,21 @@ export async function getOpportunity(slug: string): Promise<OpportunityLookup> {
     : { status: "not-found" };
 }
 
-export function getFacilities(): Promise<Facility[]> {
-  return getCollection<Facility>("facilities");
+export async function getFacilities(): Promise<Facility[]> {
+  const items = await getCollection<Partial<Facility>>("facilities");
+  // focus_areas is absent on a backend that has not yet been rebuilt, and the
+  // catalogue filters on it, so it is normalised to an array here rather than
+  // guarded at every use.
+  return items.map((item, index) => ({
+    id: item.id ?? index,
+    name: item.name ?? "",
+    description: item.description ?? "",
+    reference_url: item.reference_url ?? "",
+    availability_status: item.availability_status ?? "available",
+    availability_label: item.availability_label ?? "Available",
+    focus_areas: Array.isArray(item.focus_areas) ? item.focus_areas : [],
+    image: item.image ?? null,
+  }));
 }
 
 export async function getResearchProjects(

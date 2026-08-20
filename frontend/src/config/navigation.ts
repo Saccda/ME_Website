@@ -79,9 +79,9 @@ export const navigationItems: readonly NavigationSection[] = [
     label: "News & Events",
     links: [
       { label: "Job Opportunities", href: "/#opportunities" },
-      { label: "Lab Open House", href: "/news-events#lab-openhouse" },
-      { label: "Seminar Series", href: "/news-events#seminar-series" },
-      { label: "Publication", href: "/news-events#publication" },
+      // #lab-openhouse, #seminar-series and #publication were removed with the
+      // News & Events redesign; these point at sections that still exist.
+      { label: "Upcoming Events", href: "/news-events#upcoming" },
       { label: "Latest News", href: "/news-events#latest" },
     ],
   },

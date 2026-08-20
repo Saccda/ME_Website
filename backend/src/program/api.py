@@ -170,9 +170,15 @@ class FacultyMemberViewSet(PublicReadOnlyViewSet):
 
 
 class FacilityViewSet(PublicReadOnlyViewSet):
-    queryset = Facility.objects.select_related("image").all()
+    # focus_areas is prefetched because it is now serialised: without it,
+    # thirty facilities cost thirty extra queries.
+    queryset = (
+        Facility.objects.select_related("image")
+        .prefetch_related("focus_areas")
+        .all()
+    )
     serializer_class = FacilitySerializer
-    search_fields = ("name", "description")
+    search_fields = ("name", "description", "focus_areas__code")
     ordering_fields = ("sort_order", "name")
 
 

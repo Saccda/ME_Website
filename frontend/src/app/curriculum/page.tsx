@@ -16,7 +16,7 @@ export default async function CurriculumPage() {
         <Breadcrumbs
           trail={[{ label: "Teaching & Learning" }, { label: "Curriculum" }]}
         />
-        <section className="directory-hero">
+        <section className="directory-hero is-compact">
           <div className="shell">
             <p className="eyebrow light">Academics</p>
             <h1>Curriculum</h1>

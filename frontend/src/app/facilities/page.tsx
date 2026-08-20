@@ -1,5 +1,5 @@
-/* eslint-disable @next/next/no-img-element */
 import Breadcrumbs from "@/components/Breadcrumbs";
+import FacilityCatalog from "@/components/FacilityCatalog";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getFacilities, getHomeData } from "@/lib/api";
@@ -19,7 +19,9 @@ export default async function FacilitiesPage() {
         <Breadcrumbs
           trail={[{ label: "Teaching & Learning" }, { label: "Facilities" }]}
         />
-        <section className="directory-hero">
+        {/* Compact: the full-height hero spent 60% of the first screen on a
+            title and one sentence. */}
+        <section className="directory-hero is-compact">
           <div className="shell">
             <p className="eyebrow light">Teaching & learning</p>
             <h1>Facilities</h1>
@@ -30,7 +32,7 @@ export default async function FacilitiesPage() {
           </div>
         </section>
 
-        <section className="section cream">
+        <section className="section cream catalog-section">
           <div className="shell">
             <div className="equipment-section-heading">
               <div>
@@ -51,43 +53,7 @@ export default async function FacilitiesPage() {
             </div>
 
             {facilities.length > 0 ? (
-              <div className="focus-equipment-grid">
-                {facilities.map((facility, index) => (
-                  <article
-                    className={`equipment-card status-${facility.availability_status}`}
-                    key={`${facility.name}-${index}`}
-                  >
-                    <div className="equipment-media">
-                      {facility.image ? (
-                        <img src={facility.image} alt={facility.name} />
-                      ) : (
-                        <div
-                          className="equipment-image-placeholder"
-                          aria-hidden="true"
-                        >
-                          <svg viewBox="0 0 64 64" focusable="false">
-                            <path d="M13 51h38M17 47V14h30v33M22 20h20v16H22zM27 24h10v8H27zM23 42h18" />
-                            <circle cx="42" cy="42" r="2" />
-                          </svg>
-                          <span>ME</span>
-                        </div>
-                      )}
-                      <span className="equipment-index">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      {facility.availability_status !== "available" ? (
-                        <small className="equipment-status">
-                          {facility.availability_label}
-                        </small>
-                      ) : null}
-                    </div>
-                    <div className="equipment-card-body">
-                      <h3>{facility.name}</h3>
-                      <p>{facility.description}</p>
-                    </div>
-                  </article>
-                ))}
-              </div>
+              <FacilityCatalog facilities={facilities} />
             ) : (
               <div className="content-empty-state">
                 <h3>The facility directory is being prepared.</h3>
