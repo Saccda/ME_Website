@@ -983,15 +983,40 @@ export async function getFocusArea(
  * no projects") and must not be replaced with sample content, while a failed
  * request is the case fallbacks exist for.
  */
+/**
+ * Every page of a collection, not just the first.
+ *
+ * The API paginates at twenty. Reading only the first page silently truncated
+ * anything longer: the facilities catalogue holds thirty machines, so ten of
+ * them had never appeared on the site at all -- present in the CMS, served by
+ * the API, and unreachable from every page.
+ *
+ * The cap exists so a runaway `next` chain cannot hang a page render. Twenty
+ * pages is four hundred records, far beyond anything this CMS holds.
+ */
+const MAX_PAGES = 20;
+
 async function loadCollection<T>(path: string): Promise<T[] | null> {
   try {
     const [pathname, query] = path.split("?", 2);
-    const response = await fetchCms(
-      `${API_BASE_URL}/${pathname}/${query ? `?${query}` : ""}`,
-    );
-    if (!response || !response.ok) return null;
-    const data = (await response.json()) as T[] | { results?: T[] };
-    return Array.isArray(data) ? data : data.results ?? [];
+    let url = `${API_BASE_URL}/${pathname}/${query ? `?${query}` : ""}`;
+    const all: T[] = [];
+
+    for (let page = 0; page < MAX_PAGES; page += 1) {
+      const response = await fetchCms(url);
+      if (!response || !response.ok) return all.length > 0 ? all : null;
+
+      const data = (await response.json()) as
+        | T[]
+        | { results?: T[]; next?: string | null };
+      if (Array.isArray(data)) return [...all, ...data];
+
+      all.push(...(data.results ?? []));
+      if (!data.next) return all;
+      url = data.next;
+    }
+
+    return all;
   } catch {
     return null;
   }
