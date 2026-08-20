@@ -12,6 +12,7 @@ from .models import (
     CurriculumYear,
     Facility,
     FacultyMember,
+    FaqItem,
     FocusArea,
     Inquiry,
     NewsEvent,
@@ -25,6 +26,7 @@ from .serializers import (
     CurriculumYearSerializer,
     FacilitySerializer,
     FacultyMemberSerializer,
+    FaqItemSerializer,
     FocusAreaDetailSerializer,
     FocusAreaSerializer,
     InquirySerializer,
@@ -189,6 +191,15 @@ class NewsEventViewSet(PublicReadOnlyViewSet):
         )
         content_type = self.request.query_params.get("type")
         return queryset.filter(content_type=content_type) if content_type else queryset
+
+
+class FaqItemViewSet(PublicReadOnlyViewSet):
+    # `visible()` requires an answer as well as the published tick, so a
+    # question filed but not yet written up cannot reach the site.
+    queryset = FaqItem.visible()
+    serializer_class = FaqItemSerializer
+    search_fields = ("question", "answer")
+    ordering_fields = ("sort_order", "category")
 
 
 class InquiryCreateView(generics.CreateAPIView):

@@ -7,6 +7,7 @@ from .models import (
     Facility,
     FacultyMember,
     FacultyWorkItem,
+    FaqItem,
     FocusArea,
     FocusAreaDetailItem,
     Inquiry,
@@ -932,3 +933,13 @@ class InquirySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop("website", None)
         return super().create(validated_data)
+
+
+class FaqItemSerializer(serializers.ModelSerializer):
+    category_label = serializers.CharField(
+        source="get_category_display", read_only=True
+    )
+
+    class Meta:
+        model = FaqItem
+        fields = ("id", "sort_order", "category", "category_label", "question", "answer")

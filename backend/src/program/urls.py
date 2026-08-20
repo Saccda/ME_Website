@@ -5,6 +5,7 @@ from .api import (
     CurriculumYearViewSet,
     FacilityViewSet,
     FacultyMemberViewSet,
+    FaqItemViewSet,
     FocusAreaViewSet,
     InquiryCreateView,
     NewsEventViewSet,
@@ -22,6 +23,7 @@ router.register("research", ResearchProjectViewSet, basename="research")
 router.register("partners", PartnerViewSet, basename="partner")
 router.register("facilities", FacilityViewSet, basename="facility")
 router.register("faculty", FacultyMemberViewSet, basename="faculty")
+router.register("faqs", FaqItemViewSet, basename="faq")
 router.register("news", NewsEventViewSet, basename="news")
 router.register("opportunities", OpportunityViewSet, basename="opportunity")
 

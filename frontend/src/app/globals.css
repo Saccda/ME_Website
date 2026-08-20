@@ -502,6 +502,181 @@ img {
   font-size: 1rem;
 }
 
+/* FAQs.
+   Built on <details>, so a question opens without JavaScript, is reachable by
+   keyboard, and is announced as expandable by a screen reader without any
+   aria wiring of our own. */
+.faq-section {
+  padding-top: clamp(30px, 3.4vw, 48px);
+}
+
+.faq-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 clamp(26px, 3vw, 38px);
+}
+
+.faq-jump a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  color: var(--brand-navy);
+  font-size: 0.83rem;
+  font-weight: 780;
+  background: #fff;
+  border: 1px solid rgba(10, 33, 100, 0.18);
+  border-radius: 999px;
+  transition:
+    border-color 170ms ease,
+    background 170ms ease;
+}
+
+.faq-jump a span {
+  padding: 1px 7px;
+  color: #596782;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: rgba(10, 33, 100, 0.07);
+  border-radius: 999px;
+}
+
+.faq-jump a:hover,
+.faq-jump a:focus-visible {
+  border-color: var(--brand-gold);
+  background: var(--cream);
+}
+
+.faq-groups {
+  display: grid;
+  gap: clamp(32px, 4vw, 52px);
+  max-width: 860px;
+}
+
+.faq-group h2 {
+  margin: 0 0 16px;
+  padding-bottom: 10px;
+  font-size: var(--step-1);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  border-bottom: 2px solid var(--brand-gold);
+}
+
+.faq-list {
+  display: grid;
+  gap: 10px;
+}
+
+.faq-item {
+  background: #fff;
+  border: 1px solid rgba(10, 33, 100, 0.14);
+  border-radius: 10px;
+}
+
+.faq-item summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  color: var(--brand-navy);
+  font-size: 1rem;
+  font-weight: 720;
+  line-height: 1.42;
+  cursor: pointer;
+  list-style: none;
+}
+
+/* The default disclosure triangle is replaced by the chevron below. */
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary:hover {
+  color: #a66f00;
+}
+
+.faq-item summary:focus-visible {
+  outline: 2px solid var(--brand-gold);
+  outline-offset: 2px;
+}
+
+.faq-item summary i {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 190ms ease;
+}
+
+.faq-item[open] summary i {
+  transform: rotate(-135deg);
+}
+
+.faq-item[open] {
+  border-color: rgba(10, 33, 100, 0.24);
+}
+
+.faq-answer {
+  padding: 0 18px 18px;
+  color: var(--ink);
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
+
+.faq-answer > :first-child {
+  margin-top: 0;
+}
+
+.faq-answer > :last-child {
+  margin-bottom: 0;
+}
+
+.faq-answer a {
+  color: #a66f00;
+  text-decoration: underline;
+}
+
+.faq-ask {
+  max-width: 860px;
+  margin-top: clamp(38px, 4.4vw, 60px);
+  padding: clamp(24px, 3vw, 34px);
+  background: var(--cream);
+  border-radius: 14px;
+}
+
+.faq-ask h2 {
+  margin: 0 0 8px;
+  font-size: 1.3rem;
+}
+
+.faq-ask p {
+  margin: 0 0 18px;
+  max-width: 60ch;
+  color: var(--muted);
+}
+
+.faq-ask-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+@media (pointer: coarse) {
+  .faq-jump a {
+    min-height: 44px;
+  }
+
+  .faq-item summary {
+    padding-block: 18px;
+  }
+}
+
 /* The hero already separates this band from the header, so it does not need a
    full section's padding on top of it as well. */
 .archive-section {

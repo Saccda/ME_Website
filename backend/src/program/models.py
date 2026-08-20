@@ -1274,3 +1274,64 @@ class Inquiry(models.Model):
 
     def __str__(self):
         return f"{self.name}: {self.subject}"
+
+
+@register_snippet
+class FaqItem(OrderedModel):
+    """A question the program is asked often enough to answer once.
+
+    An answer is optional so a question can be filed the moment it is noticed
+    and written up later. What an unanswered question must never do is reach
+    the public site: `visible()` requires an answer as well as the published
+    tick, so a half-finished entry cannot appear as a question the program
+    declines to answer.
+    """
+
+    CATEGORIES = (
+        ("admissions", "Admissions"),
+        ("program", "The program"),
+        ("learning", "Teaching and learning"),
+        ("facilities", "Facilities and equipment"),
+        ("careers", "Careers"),
+        ("support", "Fees and support"),
+    )
+
+    category = models.CharField(
+        max_length=20,
+        choices=CATEGORIES,
+        default="admissions",
+        help_text="Groups the question on the FAQ page.",
+    )
+    question = models.CharField(max_length=300)
+    answer = RichTextField(
+        blank=True,
+        help_text=(
+            "Left empty, the question stays off the site however this is "
+            "ticked. Answer it, then publish."
+        ),
+    )
+    is_published = models.BooleanField(
+        default=False,
+        help_text="Published questions appear on the FAQ page once answered.",
+    )
+
+    panels = [
+        FieldPanel("sort_order"),
+        FieldPanel("category"),
+        FieldPanel("question"),
+        FieldPanel("answer"),
+        FieldPanel("is_published"),
+    ]
+
+    class Meta(OrderedModel.Meta):
+        verbose_name = "FAQ"
+        verbose_name_plural = "FAQs"
+
+    @classmethod
+    def visible(cls):
+        """Published and actually answered. A blank answer never reaches the
+        site, whatever the tick says."""
+        return cls.objects.filter(is_published=True).exclude(answer="")
+
+    def __str__(self):
+        return self.question

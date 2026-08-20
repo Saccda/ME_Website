@@ -272,6 +272,16 @@ export type StoryBlock =
       entries: { citation: string; url: string }[];
     };
 
+export type FaqItem = {
+  id: number;
+  sort_order: number;
+  category: string;
+  category_label: string;
+  question: string;
+  /** Rich text from Wagtail, already expanded to HTML by the serializer. */
+  answer: string;
+};
+
 export type NewsEvent = {
   id: number;
   content_type: "news" | "event";
@@ -1190,6 +1200,14 @@ async function fetchNewsEvents(): Promise<NewsEvent[] | null> {
     published_at: item.published_at ?? "",
     period: item.period ?? "",
   }));
+}
+
+/**
+ * Only answered, published questions ever leave the API -- the backend
+ * withholds a question whose answer is blank -- so nothing needs guarding here.
+ */
+export function getFaqs(): Promise<FaqItem[]> {
+  return getCollection<FaqItem>("faqs");
 }
 
 export function getNewsEvents(): Promise<NewsEvent[]> {

@@ -37,6 +37,7 @@ from .models import (
     Facility,
     FacultyMember,
     FacultyWorkItem,
+    FaqItem,
     FocusArea,
     FocusAreaDetailItem,
     Inquiry,
@@ -1323,3 +1324,67 @@ class ImagesAreServedResizedTests(TestCase):
             rendition_url(Unresizable(), PANEL_IMAGE),
             "/media/original_images/broken.png",
         )
+
+
+class FaqTests(TestCase):
+    """An unanswered question must never reach the site.
+
+    The questions are seeded ahead of their answers, so the published tick
+    alone cannot be the gate: a half-finished entry would otherwise appear as a
+    question the program declines to answer.
+    """
+
+    def test_an_answered_published_question_is_served(self):
+        FaqItem.objects.create(
+            category="admissions",
+            question="How long is the program?",
+            answer="<p>Four years.</p>",
+            is_published=True,
+        )
+        results = self.client.get(reverse("faq-list")).json()["results"]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["question"], "How long is the program?")
+        self.assertEqual(results[0]["category_label"], "Admissions")
+
+    def test_a_published_question_with_no_answer_is_withheld(self):
+        FaqItem.objects.create(
+            category="support",
+            question="How much does it cost?",
+            answer="",
+            is_published=True,
+        )
+        self.assertEqual(self.client.get(reverse("faq-list")).json()["count"], 0)
+
+    def test_an_answered_but_unpublished_question_is_withheld(self):
+        FaqItem.objects.create(
+            category="careers",
+            question="What jobs do graduates take?",
+            answer="<p>Drafted, not approved.</p>",
+            is_published=False,
+        )
+        self.assertEqual(self.client.get(reverse("faq-list")).json()["count"], 0)
+
+    def test_seeding_files_questions_without_answering_them(self):
+        call_command("seed_faq_questions", verbosity=0)
+
+        self.assertTrue(FaqItem.objects.exists())
+        for item in FaqItem.objects.all():
+            self.assertEqual(item.answer, "")
+            self.assertFalse(item.is_published)
+        # None of them are on the site, which is the whole point.
+        self.assertEqual(self.client.get(reverse("faq-list")).json()["count"], 0)
+
+    def test_reseeding_never_overwrites_an_answer(self):
+        call_command("seed_faq_questions", verbosity=0)
+        answered = FaqItem.objects.first()
+        answered.answer = "<p>Written by an author.</p>"
+        answered.is_published = True
+        answered.save()
+        before = FaqItem.objects.count()
+
+        call_command("seed_faq_questions", verbosity=0)
+
+        answered.refresh_from_db()
+        self.assertEqual(answered.answer, "<p>Written by an author.</p>")
+        self.assertTrue(answered.is_published)
+        self.assertEqual(FaqItem.objects.count(), before)

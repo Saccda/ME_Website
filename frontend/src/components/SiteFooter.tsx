@@ -107,6 +107,7 @@ export default function SiteFooter({
           <Link href="/curriculum">Curriculum</Link>
           <Link href="/people#faculty-staff">Faculty</Link>
           <Link href="/facilities">Facilities</Link>
+          <Link href="/faqs">FAQs</Link>
         </nav>
 
         <nav aria-label="Focus-area footer links" className="footer-areas">
