@@ -1,6 +1,9 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { NewsEvent } from "@/lib/api";
 
 /**
  * ME Lab Open House event widget.
@@ -21,9 +24,44 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const OPEN_DELAY_MS = 1080;
 
-export default function OpenHouseWidget() {
+/**
+ * Formatted in the program's own timezone, not UTC and not the reader's.
+ *
+ * An event happens in a place. Formatting in UTC put a 1am start on the 31st
+ * in Phnom Penh onto the 30th, and leaving it to the reader's clock would show
+ * a different date to someone abroad than to the students who would attend.
+ * Django stores these with `TIME_ZONE = "Asia/Phnom_Penh"`; this matches it.
+ */
+const TZ = "Asia/Phnom_Penh";
+
+const fmt = (value: string, options: Intl.DateTimeFormatOptions) =>
+  new Intl.DateTimeFormat("en-GB", { timeZone: TZ, ...options }).format(
+    new Date(value),
+  );
+
+/** "9:00 am - 12:00 pm", or just the start when no end is recorded. */
+function timeRange(event: NewsEvent) {
+  if (!event.event_date) return "";
+  const at = (value: string) =>
+    fmt(value, { hour: "numeric", minute: "2-digit", hour12: true });
+  const start = at(event.event_date);
+  const sameDay = (a: string, b: string) =>
+    fmt(a, { dateStyle: "short" }) === fmt(b, { dateStyle: "short" });
+  return event.event_end_date && sameDay(event.event_end_date, event.event_date)
+    ? `${start} – ${at(event.event_end_date)}`
+    : start;
+}
+
+export default function OpenHouseWidget({ event }: { event: NewsEvent | null }) {
+  /**
+   * The full pill belongs to the landing page, where promoting the event is
+   * part of the job. Everywhere else the reader came for the page they are on,
+   * and a 260px pill riding over it -- across the footer, across a form -- is
+   * in the way. So elsewhere it shrinks to the mascot alone: still there, still
+   * opens the same panel, no longer covering the words underneath.
+   */
+  const onLanding = usePathname() === "/";
   const [state, setState] = useState<"closed" | "opening" | "open">("closed");
-  const [toastVisible, setToastVisible] = useState(false);
   const launcherRef = useRef<HTMLButtonElement>(null);
   const timerRef = useRef<number | null>(null);
 
@@ -38,7 +76,6 @@ export default function OpenHouseWidget() {
 
     if (!open) {
       setState("closed");
-      setToastVisible(false);
       return;
     }
 
@@ -63,10 +100,15 @@ export default function OpenHouseWidget() {
     launcherRef.current?.focus();
   }, [setOpen]);
 
+  // Nothing ticked in the CMS, or the last one has been and gone: the corner
+  // stays empty rather than advertising a date that has passed.
+  if (!event || !event.event_date) return null;
+
   const layerClass = [
     "event-layer",
     state === "opening" ? "is-opening" : "",
     state === "open" ? "is-open" : "",
+    onLanding ? "" : "is-compact",
   ]
     .filter(Boolean)
     .join(" ");
@@ -325,86 +367,93 @@ export default function OpenHouseWidget() {
               </div>
 
               <div className="event-hero">
-                <div className="date-plate" aria-label="Saturday 15 August 2026">
-                  <span>AUG</span>
-                  <strong>15</strong>
-                  <small>SAT 2026</small>
+                <div
+                  className="date-plate"
+                  aria-label={fmt(event.event_date, { dateStyle: "full" })}
+                >
+                  <span>
+                    {fmt(event.event_date, { month: "short" }).toUpperCase()}
+                  </span>
+                  <strong>{fmt(event.event_date, { day: "numeric" })}</strong>
+                  <small>
+                    {`${fmt(event.event_date, { weekday: "short" })} ${fmt(
+                      event.event_date,
+                      { year: "numeric" },
+                    )}`.toUpperCase()}
+                  </small>
                 </div>
                 <div>
-                  <p className="event-kicker">Upcoming event</p>
+                  <p className="event-kicker">
+                    {event.category || "Upcoming event"}
+                  </p>
                   <h2 className="event-title" id="me-event-title">
-                    ME Lab Open House 2026
+                    {event.title}
                   </h2>
-                  <p className="event-subtitle">Explore. Experience. Engineer.</p>
+                  {event.excerpt ? (
+                    <p className="event-subtitle">{event.excerpt}</p>
+                  ) : null}
                 </div>
               </div>
             </div>
 
+            {/* A row appears only when the CMS has something for it, so an
+                event with no venue recorded shows a time and nothing else
+                rather than an icon beside an empty line. */}
             <div className="fold-section fold-section-middle">
               <div className="event-meta">
-                <div className="meta-row">
-                  <span className="meta-icon" aria-hidden="true">
-                    ◷
-                  </span>
-                  <span>9:00 AM–12:00 PM</span>
-                </div>
-                <div className="meta-row">
-                  <span className="meta-icon" aria-hidden="true">
-                    ⌖
-                  </span>
-                  <span>ME CDIO Learning Workspace</span>
-                </div>
+                {timeRange(event) ? (
+                  <div className="meta-row">
+                    <span className="meta-icon" aria-hidden="true">
+                      ◷
+                    </span>
+                    <span>{timeRange(event)}</span>
+                  </div>
+                ) : null}
+                {event.venue ? (
+                  <div className="meta-row">
+                    <span className="meta-icon" aria-hidden="true">
+                      ⌖
+                    </span>
+                    <span>{event.venue}</span>
+                  </div>
+                ) : null}
               </div>
-
-              <p className="experience-label">What You Will Experience</p>
-              <ul className="experience-list">
-                <li>Hands-on activities</li>
-                <li>Live equipment demonstrations</li>
-                <li>Guided laboratory tour</li>
-              </ul>
             </div>
 
             <div className="fold-section fold-section-bottom">
+              {/* Both buttons go somewhere real now. They pointed at
+                  "#registration-form-placeholder" and popped a developer
+                  toast, so the card invited a reader to register and then did
+                  nothing. Register appears only when a link is recorded. */}
               <div className="event-actions">
-                <a
-                  className="register-action"
-                  id="me-register-action"
-                  href="#registration-form-placeholder"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    setToastVisible(true);
-                  }}
-                >
-                  Register for free <span aria-hidden="true">→</span>
-                </a>
-                <a
+                {event.announcement_url ? (
+                  <a
+                    className="register-action"
+                    id="me-register-action"
+                    href={event.announcement_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Register <span aria-hidden="true">→</span>
+                  </a>
+                ) : null}
+                <Link
                   className="details-action"
                   id="me-details-action"
-                  href="#event-details-placeholder"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    setToastVisible(true);
-                  }}
+                  href={`/news-events/${event.slug}`}
                 >
-                  Details
-                </a>
-              </div>
-              <p className="event-footnote">
-                Free admission · Advance registration required
-              </p>
-              <div
-                className={`event-toast${toastVisible ? " is-visible" : ""}`}
-                id="me-event-toast"
-                role="status"
-              >
-                Replace this placeholder with the official registration-form
-                link.
+                  {event.announcement_cta || "Event details"}
+                </Link>
               </div>
             </div>
           </section>
         </div>
 
         <button
+          aria-label={`Upcoming event: ${event.title}, ${fmt(event.event_date, {
+            day: "numeric",
+            month: "long",
+          })}`}
           className="event-launcher"
           id="me-event-launcher"
           type="button"
@@ -413,11 +462,18 @@ export default function OpenHouseWidget() {
           onClick={() => setOpen(true)}
           ref={launcherRef}
         >
-          <span className="new-tag">NEW</span>
+          <span className="new-tag" aria-hidden="true">
+            NEW
+          </span>
           <span className="launcher-mascot" aria-hidden="true"></span>
-          <span className="launcher-copy">
-            <small>Upcoming event</small>
-            <strong>ME Lab Open House · 15 Aug</strong>
+          {/* Hidden rather than dropped when compact: the button keeps its
+              own aria-label, so the text here is decorative either way. */}
+          <span className="launcher-copy" aria-hidden="true">
+            <small>{event.category || "Upcoming event"}</small>
+            <strong>
+              {event.title} ·{" "}
+              {fmt(event.event_date, { day: "numeric", month: "short" })}
+            </strong>
           </span>
         </button>
       </div>

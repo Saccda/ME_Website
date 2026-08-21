@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import OpenHouseWidget from "@/components/OpenHouseWidget";
+import { getAnnouncedEvent } from "@/lib/api";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,14 +14,19 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Fetched here because the card sits outside every page. The collection is
+  // cached, so this costs one request a minute across the whole site rather
+  // than one per page.
+  const announced = await getAnnouncedEvent();
+
   return (
     <html lang="en">
       <body>
         {children}
-        <OpenHouseWidget />
+        <OpenHouseWidget event={announced} />
       </body>
     </html>
   );

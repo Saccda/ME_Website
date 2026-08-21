@@ -10837,6 +10837,27 @@ a.partner-logo:focus-visible {
   pointer-events: auto;
 }
 
+/* Away from the landing page the launcher keeps only its mascot, so it sits in
+   the corner instead of lying across whatever the reader came to read. The
+   panel it opens is unchanged. */
+#me-open-house-widget-demo .event-layer.is-compact .event-launcher {
+  gap: 0;
+  min-height: 0;
+  max-width: none;
+  padding: 7px;
+}
+
+#me-open-house-widget-demo .event-layer.is-compact .launcher-copy {
+  display: none;
+}
+
+#me-open-house-widget-demo .event-layer.is-compact .new-tag {
+  right: -4px;
+  top: -6px;
+  padding: 3px 5px;
+  font-size: 8px;
+}
+
 #me-open-house-widget-demo .event-layer:is(.is-opening, .is-open) .event-launcher {
   opacity: 0;
   transform: translateY(12px);

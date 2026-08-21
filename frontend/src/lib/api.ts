@@ -320,6 +320,8 @@ export type NewsEvent = {
   has_video: boolean;
   announce: boolean;
   announcement_cta: string;
+  announcement_url: string;
+  venue: string;
   event_date: string | null;
   /** Only set for an event running over more than one day. */
   event_end_date: string | null;
@@ -1223,6 +1225,8 @@ async function fetchNewsEvents(): Promise<NewsEvent[] | null> {
     has_video: item.has_video ?? false,
     announce: item.announce ?? false,
     announcement_cta: item.announcement_cta ?? "",
+    announcement_url: item.announcement_url ?? "",
+    venue: item.venue ?? "",
     event_date: item.event_date ?? null,
     event_end_date: item.event_end_date ?? null,
     published_at: item.published_at ?? "",
@@ -1240,6 +1244,39 @@ export function getFaqs(): Promise<FaqItem[]> {
 
 export function getNewsEvents(): Promise<NewsEvent[]> {
   return fetchNewsEvents().then((items) => items ?? []);
+}
+
+/**
+ * The event the corner announcement card should show, or nothing.
+ *
+ * The rule was already written in the CMS field's own help text -- "surfaces
+ * this entry in the small card... an event stops showing once its date has
+ * passed" -- it simply was never applied. The card used to carry a hard-coded
+ * date, which is how it came to be advertising an open house five days after
+ * it happened.
+ *
+ * Soonest first among those still to come, so ticking a second event queues it
+ * rather than fighting over the corner.
+ */
+export async function getAnnouncedEvent(): Promise<NewsEvent | null> {
+  const items = await fetchNewsEvents();
+  if (items === null) return null;
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const when = (item: NewsEvent) => Date.parse(item.event_date ?? "");
+  // A multi-day event is still on while it runs, so the end date decides.
+  const finishes = (item: NewsEvent) =>
+    Date.parse(item.event_end_date ?? "") || when(item);
+
+  const upcoming = items
+    .filter((item) => item.announce && item.content_type === "event")
+    .filter((item) => !Number.isNaN(when(item)))
+    .filter((item) => finishes(item) >= startOfToday.getTime())
+    .sort((a, b) => when(a) - when(b));
+
+  return upcoming[0] ?? null;
 }
 
 export type NewsEventLookup =

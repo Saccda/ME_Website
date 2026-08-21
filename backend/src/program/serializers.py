@@ -859,6 +859,8 @@ class NewsEventSerializer(serializers.ModelSerializer):
             "has_video",
             "announce",
             "announcement_cta",
+            "announcement_url",
+            "venue",
             "event_date",
             "event_end_date",
             "published_at",

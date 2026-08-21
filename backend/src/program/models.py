@@ -1176,6 +1176,22 @@ class NewsEvent(ClusterableModel, OrderedModel):
         blank=True,
         help_text="Button on the announcement card. Defaults to Event details.",
     )
+    venue = models.CharField(
+        max_length=180,
+        blank=True,
+        help_text=(
+            "Where it happens, for example ME CDIO Learning Workspace. Shown "
+            "on the announcement card beside the time."
+        ),
+    )
+    announcement_url = models.URLField(
+        blank=True,
+        verbose_name="Registration link",
+        help_text=(
+            "Where the announcement card's Register button goes. Leave empty "
+            "and the card offers only the event page."
+        ),
+    )
     is_published = models.BooleanField(default=True)
 
     panels = [
@@ -1196,6 +1212,8 @@ class NewsEvent(ClusterableModel, OrderedModel):
             [
                 FieldPanel("announce"),
                 FieldPanel("announcement_cta"),
+                FieldPanel("announcement_url"),
+                FieldPanel("venue"),
             ],
             heading="Announcement card",
         ),
