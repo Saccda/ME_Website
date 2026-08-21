@@ -953,6 +953,17 @@ class FacultyMember(ClusterableModel, OrderedModel):
         related_name="+",
     )
     focus_areas = models.ManyToManyField(FocusArea, blank=True, related_name="faculty")
+    research_projects = models.ManyToManyField(
+        "ResearchProject",
+        blank=True,
+        related_name="faculty",
+        verbose_name="Research projects",
+        help_text=(
+            "Tick the projects this person actually works on. These appear in "
+            "the Selected work row. Leave empty and the row is left out "
+            "entirely, rather than filled with the focus area's own copy."
+        ),
+    )
     is_published = models.BooleanField(default=True)
 
     panels = [
@@ -988,16 +999,22 @@ class FacultyMember(ClusterableModel, OrderedModel):
             ],
             heading="Profile",
         ),
-        InlinePanel(
-            "work_items",
+        MultiFieldPanel(
+            [
+                FieldPanel("research_projects"),
+                InlinePanel(
+                    "work_items",
+                    heading="Hand-written cards",
+                    label="Card",
+                    help_text=(
+                        "Only for work that is not a research project -- a "
+                        "publication, an award, a course. A card written here "
+                        "replaces the ticked projects rather than joining "
+                        "them, so use one or the other."
+                    ),
+                ),
+            ],
             heading="Selected work",
-            label="Card",
-            help_text=(
-                "Cards shown in the Selected work row on this member's profile "
-                "page. Leave empty to build the row automatically from the "
-                "research projects, research themes, and teaching of the focus "
-                "areas above."
-            ),
         ),
         FieldPanel("is_published"),
     ]

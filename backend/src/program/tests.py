@@ -1388,3 +1388,84 @@ class FaqTests(TestCase):
         self.assertEqual(answered.answer, "<p>Written by an author.</p>")
         self.assertTrue(answered.is_published)
         self.assertEqual(FaqItem.objects.count(), before)
+
+
+class FacultySelectedWorkTests(TestCase):
+    """Selected work is chosen, never inferred.
+
+    The row used to be assembled from the focus areas a member belonged to, so
+    every member of an area got the same cards under a heading naming them
+    personally -- the page asserted something untrue about a real person.
+    """
+
+    def setUp(self):
+        self.area = FocusArea.objects.create(
+            code="DMP", title="Design and Manufacturing Process", slug="dmp"
+        )
+        self.member = FacultyMember.objects.create(
+            name="Dr Example", role="Lecturer", is_published=True
+        )
+        self.member.focus_areas.add(self.area)
+
+    def fetch(self):
+        results = self.client.get(reverse("faculty-list")).json()["results"]
+        return next(r for r in results if r["name"] == "Dr Example")
+
+    def test_a_member_with_nothing_ticked_offers_no_work(self):
+        """Sharing a focus area with a project is not the same as working on
+        it, so an untouched record contributes nothing."""
+        ResearchProject.objects.create(
+            title="Someone Else's Project",
+            slug="someone-elses-project",
+            summary="Shares this member's focus area, but not their work.",
+        ).focus_areas.add(self.area)
+
+        self.assertEqual(self.fetch()["research_projects"], [])
+
+    def test_ticked_projects_are_served(self):
+        project = ResearchProject.objects.create(
+            title="Metal Recycling",
+            slug="metal-recycling",
+            summary="Recovering and reusing metal.",
+        )
+        project.focus_areas.add(self.area)
+        self.member.research_projects.add(project)
+
+        served = self.fetch()["research_projects"]
+        self.assertEqual([p["title"] for p in served], ["Metal Recycling"])
+        self.assertEqual(served[0]["slug"], "metal-recycling")
+        self.assertEqual([a["code"] for a in served[0]["focus_areas"]], ["DMP"])
+
+    def test_the_card_payload_stays_small(self):
+        """A profile draws three cards; it must not pull the full body of every
+        project to do it."""
+        project = ResearchProject.objects.create(
+            title="Heavy Project",
+            slug="heavy-project",
+            summary="Short.",
+            body=json.dumps([{"type": "heading", "value": "A body block"}]),
+        )
+        self.member.research_projects.add(project)
+
+        served = self.fetch()["research_projects"][0]
+        self.assertNotIn("body", served)
+        self.assertEqual(
+            sorted(served),
+            ["focus_areas", "id", "image", "slug", "status", "summary", "title"],
+        )
+
+    def test_a_member_carries_only_their_own_projects(self):
+        mine = ResearchProject.objects.create(
+            title="Mine", slug="mine", summary="x"
+        )
+        theirs = ResearchProject.objects.create(
+            title="Theirs", slug="theirs", summary="x"
+        )
+        self.member.research_projects.add(mine)
+
+        other = FacultyMember.objects.create(
+            name="Dr Other", role="Lecturer", is_published=True
+        )
+        other.research_projects.add(theirs)
+
+        self.assertEqual([p["title"] for p in self.fetch()["research_projects"]], ["Mine"])

@@ -678,10 +678,29 @@ class FacultyWorkItemSerializer(serializers.ModelSerializer):
         )
 
 
+class FacultyProjectSerializer(ImageSerializerMixin, serializers.ModelSerializer):
+    """Just enough of a project to draw a card on someone's profile.
+
+    Deliberately not the full project serializer: a member's page needs a
+    title, a line of summary, a picture and somewhere to go, and sending the
+    whole body of every project a person works on would be several hundred
+    kilobytes to render three cards.
+    """
+
+    image = serializers.SerializerMethodField()
+    focus_areas = OpportunityFocusAreaSerializer(many=True, read_only=True)
+    image_field = "image"
+
+    class Meta:
+        model = ResearchProject
+        fields = ("id", "title", "slug", "summary", "status", "focus_areas", "image")
+
+
 class FacultyMemberSerializer(serializers.ModelSerializer):
     photo = serializers.SerializerMethodField()
     work_items = FacultyWorkItemSerializer(many=True, read_only=True)
     focus_areas = FocusAreaSerializer(many=True, read_only=True)
+    research_projects = FacultyProjectSerializer(many=True, read_only=True)
     research_interests = serializers.SerializerMethodField()
     education = serializers.SerializerMethodField()
     courses_taught = serializers.SerializerMethodField()
@@ -729,6 +748,7 @@ class FacultyMemberSerializer(serializers.ModelSerializer):
             "courses_taught",
             "publications",
             "work_items",
+            "research_projects",
             "photo",
             "focus_areas",
         )

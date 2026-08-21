@@ -8,13 +8,10 @@ import SiteHeader from "@/components/SiteHeader";
 import {
   getFacultyMember,
   getHomeData,
-  getResearchProjects,
   type FacultyMember,
-  type ResearchProject,
 } from "@/lib/api";
 import {
   getFocusHeroImage,
-  getFocusTeachingImage,
   getResearchImage,
 } from "@/lib/editorialImages";
 
@@ -129,28 +126,6 @@ function profilePoints(member: FacultyMember) {
   ].filter(Boolean) as Array<{ label: string; value: string }>;
 }
 
-/** Projects from any of this member's focus areas, de-duplicated. */
-async function relatedProjects(
-  member: FacultyMember,
-): Promise<ResearchProject[]> {
-  if (member.focus_areas.length === 0) return [];
-
-  const groups = await Promise.all(
-    member.focus_areas.map((area) => getResearchProjects(area.code)),
-  );
-
-  const seen = new Set<string>();
-  const projects: ResearchProject[] = [];
-  for (const group of groups) {
-    for (const project of group) {
-      if (seen.has(project.slug)) continue;
-      seen.add(project.slug);
-      projects.push(project);
-    }
-  }
-  return projects;
-}
-
 type WorkCard = {
   key: string;
   badge: string;
@@ -182,92 +157,39 @@ function authoredWorkCards(member: FacultyMember): WorkCard[] {
 }
 
 /**
- * Cards authored on the member's record win outright — an author who has filled
- * the Selected work panel in gets exactly what they wrote, in their order.
+ * What this person's Selected work row shows, in order of authority.
  *
- * Otherwise the row is assembled, because a member's work is not only research:
- * it mixes the kinds of work the CMS already holds — published projects, the
- * research themes of their focus areas, and the teaching those areas are taught
- * through. One of each is taken first so the three cards are varied, then any
- * remaining slot is backfilled from whichever pool still has entries.
+ * Hand-written cards first, then the research projects ticked on their record,
+ * then nothing at all.
+ *
+ * The row used to be assembled from the focus areas a member belongs to when
+ * neither was set -- a research theme, a teaching blurb, whichever project
+ * happened to share an area. Every member of the same area got the same cards,
+ * under a heading naming them personally. That is not a layout problem: a page
+ * saying "Learn more about Dr X's work" over the DMP area's own description is
+ * asserting something untrue about a real person. An empty section is honest;
+ * an invented one is not.
  */
-function buildWorkCards(
-  member: FacultyMember,
-  projects: ResearchProject[],
-): WorkCard[] {
+function buildWorkCards(member: FacultyMember): WorkCard[] {
   const authored = authoredWorkCards(member);
   if (authored.length > 0) return authored;
 
-  const projectCards: WorkCard[] = projects.map((project) => ({
+  return member.research_projects.map((project) => ({
     key: `project-${project.slug}`,
-    badge: "Research project",
+    badge: project.status === "completed" ? "Research project" : "Current research",
     meta: project.focus_areas.map((area) => area.code).join(" · "),
     title: project.title,
     summary: project.summary,
     href: `/research/projects/${project.slug}`,
+    // The project's own picture, then the editorial stand-in kept for projects
+    // that have none. Both are real images of the work, not of its area.
     image:
-      getResearchImage(project.title, project.image || "") ||
+      project.image ||
+      getResearchImage(project.title) ||
       getFocusHeroImage(project.focus_areas[0]?.code ?? "") ||
       "/assets/hero-lab.webp",
     cta: "Explore the project",
   }));
-
-  // Research themes are optional in the CMS, so an area without any still
-  // contributes a card — the area itself — rather than leaving a gap.
-  const themeCards: WorkCard[] = member.focus_areas.flatMap((area) => {
-    const image = getFocusHeroImage(area.code, area.image || "/assets/hero-lab.webp");
-    if (area.research_themes.length === 0) {
-      return [
-        {
-          key: `area-${area.code}`,
-          badge: "Research area",
-          meta: area.code,
-          title: area.research_question || area.title,
-          summary: area.research_overview || area.description,
-          href: `/research/${area.code.toLowerCase()}`,
-          image,
-          cta: "Explore the research",
-        },
-      ];
-    }
-    return area.research_themes.map((theme, index) => ({
-      key: `theme-${area.code}-${index}`,
-      badge: "Research theme",
-      meta: area.title,
-      title: theme.title,
-      summary: theme.description,
-      href: `/research/${area.code.toLowerCase()}`,
-      image,
-      cta: "Explore the work",
-    }));
-  });
-
-  const teachingCards: WorkCard[] = member.focus_areas
-    .filter((area) => area.learning_heading)
-    .map((area) => ({
-      key: `teaching-${area.code}`,
-      badge: "Teaching & research",
-      meta: area.title,
-      title: area.learning_heading,
-      summary: area.learning_intro,
-      href: `/focus/${area.slug}`,
-      image: getFocusTeachingImage(
-        area.code,
-        area.image || "/assets/hero-lab.webp",
-      ),
-      cta: "Explore the teaching",
-    }));
-
-  const pools = [projectCards, themeCards, teachingCards];
-  const picked: WorkCard[] = [];
-  for (const pool of pools) {
-    const card = pool.shift();
-    if (card) picked.push(card);
-  }
-  for (const pool of pools) {
-    while (picked.length < 3 && pool.length > 0) picked.push(pool.shift()!);
-  }
-  return picked.slice(0, 3);
 }
 
 export default async function FacultyProfilePage({ params }: ProfilePageProps) {
@@ -307,8 +229,7 @@ export default async function FacultyProfilePage({ params }: ProfilePageProps) {
   }
 
   const member = lookup.member;
-  const projects = await relatedProjects(member);
-  const workCards = buildWorkCards(member, projects);
+  const workCards = buildWorkCards(member);
   const { statement, paragraphs } = profileCopy(member);
   const points = profilePoints(member);
   const tags = tagsFor(member);
@@ -543,8 +464,8 @@ export default async function FacultyProfilePage({ params }: ProfilePageProps) {
                   <h2>Learn more about {member.name}&rsquo;s work</h2>
                 </div>
                 <p>
-                  Research projects, research themes, and teaching from the
-                  focus areas this member of staff works in.
+                  Research projects this member of staff works on, chosen on
+                  their record in the CMS.
                 </p>
               </header>
 

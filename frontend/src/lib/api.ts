@@ -171,6 +171,17 @@ export type FacultyWorkItem = {
   link_label: string;
 };
 
+/** Enough of a project to draw a card on someone's profile. */
+export type FacultyProject = {
+  id: number;
+  title: string;
+  slug: string;
+  summary: string;
+  status: ResearchProject["status"];
+  focus_areas: OpportunityFocusArea[];
+  image: string | null;
+};
+
 export type FacultyMember = {
   id: number;
   name: string;
@@ -190,6 +201,12 @@ export type FacultyMember = {
   photo: string | null;
   focus_areas: FocusArea[];
   work_items: FacultyWorkItem[];
+  /**
+   * Projects ticked on this person's record. Empty on a backend that predates
+   * the field, which reads the same as "none chosen" -- the Selected work row
+   * is then left out rather than invented.
+   */
+  research_projects: FacultyProject[];
 };
 
 export type GalleryItem = {
@@ -1095,6 +1112,11 @@ async function fetchFacultyMembers(): Promise<FacultyMember[] | null> {
       link_url: item.link_url ?? "",
       link_label: item.link_label ?? "",
     })),
+    // Absent on a backend that has not been rebuilt yet, which reads the same
+    // as no project ticked: the Selected work row is simply left out.
+    research_projects: Array.isArray(member.research_projects)
+      ? member.research_projects
+      : [],
   }));
 }
 

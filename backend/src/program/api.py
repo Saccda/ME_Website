@@ -162,6 +162,9 @@ class FacultyMemberViewSet(PublicReadOnlyViewSet):
             "focus_areas__image",
             "work_items",
             "work_items__image",
+            "research_projects",
+            "research_projects__image",
+            "research_projects__focus_areas",
         )
     )
     serializer_class = FacultyMemberSerializer
