@@ -27,8 +27,48 @@ export const admissionsContent = {
   ] satisfies EntranceSubject[],
   pastExamsUrl: "https://gqr.sh/yGBu",
   applicationForm: {
-    downloadUrl: null as string | null,
+    downloadUrl:
+      "/assets/admissions/rupp-application-forms-sample.pdf" as string | null,
     previewImage: null as string | null,
     status: "hard-copy-only" as const,
+    /**
+     * Photographs of a completed set, so an applicant can see how much goes in
+     * each field before they are handed the paper.
+     *
+     * Three things are covered and nothing else: the name in both scripts, the
+     * signature, and the photograph. Everything else stays legible -- the
+     * birthplace, the schools, the dates, the ticked faculty, the department --
+     * because a sample an applicant cannot read teaches them nothing.
+     *
+     * Those three stay covered because they are what identifies a real person
+     * rather than describing a form. A signature in particular is worth
+     * keeping off a public page whatever else is shown.
+     */
+    sheets: [
+      {
+        image: "/assets/admissions/01-biography.webp",
+        title: "Personal history",
+        khmer: "ជីវប្រវត្តិសង្ខេប",
+        note: "Family details, address, and the schools attended.",
+      },
+      {
+        image: "/assets/admissions/02-exam-application.webp",
+        title: "Faculty choice",
+        khmer: "ពាក្យសុំចុះឈ្មោះប្រឡង",
+        note: "Tick one faculty. Engineering is ticked here, with the department written at the foot.",
+      },
+      {
+        image: "/assets/admissions/03-registration.webp",
+        title: "Application to sit the entrance examination",
+        khmer: "ពាក្យសុំចុះឈ្មោះ",
+        note: "Carries the checklist of documents to attach, including three 4x6 photographs.",
+      },
+      {
+        image: "/assets/admissions/04-identity-slips.webp",
+        title: "Identity slips",
+        khmer: "សលាកបត្រឯកត្តជន",
+        note: "The same slip twice on one sheet; fill in both.",
+      },
+    ],
   },
 };

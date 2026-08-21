@@ -9852,11 +9852,90 @@ a.partner-logo:focus-visible {
   font-size: 0.9rem;
 }
 
+/* Four sheets need the full width, so the copy sits above them rather than
+   beside a single preview. */
 .admissions-form-grid {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(460px, 0.78fr);
+  gap: clamp(28px, 4vw, 44px);
+}
+
+.admissions-form-privacy {
+  padding: 14px 16px;
+  border-left: 3px solid var(--brand-gold);
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 0.92rem;
+}
+
+.admissions-form-sheets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: clamp(18px, 2.4vw, 28px);
+}
+
+.admissions-sheet {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  background: #fff;
+  border: 1px solid rgba(10, 33, 100, 0.14);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* The sheets are portrait scans of different heights; a fixed aspect keeps the
+   row even without cropping any of them out of shape. */
+.admissions-sheet img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  object-position: top center;
+  background: var(--cream);
+}
+
+.admissions-sheet figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 16px 16px;
+}
+
+.admissions-sheet figcaption strong {
+  color: var(--brand-navy);
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.admissions-sheet figcaption strong span {
+  color: #a66f00;
+  font-size: 0.78rem;
+  font-weight: 820;
+}
+
+.admissions-sheet figcaption > span {
+  color: #596782;
+  font-size: 0.86rem;
+}
+
+.admissions-form-download {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: clamp(46px, 8vw, 104px);
+  gap: 14px 20px;
+  margin: clamp(20px, 2.4vw, 30px) 0 0;
+}
+
+.admissions-form-download span {
+  max-width: 46ch;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.admissions-sheet figcaption small {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
 }
 
 .admissions-form-copy > p:not(.admissions-kicker):not(.admissions-form-note) {

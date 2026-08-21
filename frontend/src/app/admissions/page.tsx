@@ -116,6 +116,25 @@ export default async function AdmissionsPage() {
               ))}
             </div>
 
+            {admissionsContent.applicationForm.downloadUrl ? (
+              <p className="admissions-form-download">
+                <a
+                  className="button button-navy"
+                  href={admissionsContent.applicationForm.downloadUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  All four sheets as one PDF{" "}
+                  <span aria-hidden="true">&darr;</span>
+                </a>
+                <span>
+                  For reference while you fill in the paper forms. It is not a
+                  submission form &mdash; the university issues and accepts
+                  only the printed originals.
+                </span>
+              </p>
+            ) : null}
+
             <div className="admissions-past-exams">
               <div>
                 <strong>Prepare with previous examinations.</strong>
@@ -139,12 +158,17 @@ export default async function AdmissionsPage() {
           <div className="shell admissions-form-grid">
             <div className="admissions-form-copy">
               <p className="admissions-kicker">03 · Registration form</p>
-              <h2>Application form preview</h2>
+              <h2>How the application forms are filled</h2>
               <p>
-                The official ME registration form is currently available only
-                as a hard copy. This preview shows the types of information a
-                student can prepare in advance; it is not an official
-                submission form.
+                The RUPP application is a set of four paper sheets, issued and
+                submitted by hand. These are photographs of a completed set, so
+                you can see what goes in each field before you are handed the
+                paper.
+              </p>
+              <p className="admissions-form-privacy">
+                Only the applicant&rsquo;s name, signature and photograph have
+                been covered. Everything else is left as written, so you can
+                see exactly what each field expects.
               </p>
 
               <div className="admissions-form-status">
@@ -165,59 +189,26 @@ export default async function AdmissionsPage() {
               </p>
             </div>
 
-            <div
-              className="admissions-form-preview"
-              aria-label="Illustrative application form preview"
-            >
-              {admissionsContent.applicationForm.previewImage ? (
-                <img
-                  src={admissionsContent.applicationForm.previewImage}
-                  alt="Sample Mechanical Engineering registration form"
-                />
-              ) : (
-                <div className="sample-form-sheet">
-                  <header>
-                    <span>ME</span>
-                    <div>
-                      <strong>Registration form preview</strong>
-                      <small>Preparation guide · not for submission</small>
-                    </div>
-                  </header>
-                  <div className="sample-form-photo">Photo</div>
-                  <div className="sample-form-field wide">
-                    <span>Applicant name</span>
-                  </div>
-                  <div className="sample-form-field">
-                    <span>Date of birth</span>
-                  </div>
-                  <div className="sample-form-field">
-                    <span>Telephone</span>
-                  </div>
-                  <div className="sample-form-field wide">
-                    <span>Email address</span>
-                  </div>
-                  <div className="sample-form-field wide">
-                    <span>Previous school / education background</span>
-                  </div>
-                  <div className="sample-form-field">
-                    <span>Applicant signature</span>
-                  </div>
-                  <div className="sample-form-field">
-                    <span>Date</span>
-                  </div>
-                  <footer>Illustrative preview only</footer>
-                </div>
-              )}
-
-              {admissionsContent.applicationForm.downloadUrl ? (
-                <a
-                  href={admissionsContent.applicationForm.downloadUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Download the sample form <span aria-hidden="true">↗</span>
-                </a>
-              ) : null}
+            <div className="admissions-form-sheets">
+              {admissionsContent.applicationForm.sheets.map((sheet, index) => (
+                <figure className="admissions-sheet" key={sheet.image}>
+                  <img
+                    src={sheet.image}
+                    alt={`${sheet.title} sheet, completed, with the applicant's personal details removed`}
+                    loading={index === 0 ? undefined : "lazy"}
+                  />
+                  <figcaption>
+                    <strong>
+                      <span aria-hidden="true">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>{" "}
+                      {sheet.title}
+                    </strong>
+                    <span lang="km">{sheet.khmer}</span>
+                    <small>{sheet.note}</small>
+                  </figcaption>
+                </figure>
+              ))}
             </div>
           </div>
         </section>
