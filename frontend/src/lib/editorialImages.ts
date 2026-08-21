@@ -1,4 +1,4 @@
-const editorial = (name: string) => `/assets/editorial/${name}.jpg`;
+const editorial = (name: string) => `/assets/editorial/${name}.webp`;
 
 const focusHeroImages: Record<string, string> = {
   DMP: editorial("focus-dmp-hero"),

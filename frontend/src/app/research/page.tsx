@@ -115,7 +115,7 @@ export default async function ResearchPage({
                     <img
                       src={
                         area.image ||
-                        `/assets/focus-${area.code.toLowerCase()}.png`
+                        `/assets/focus-${area.code.toLowerCase()}.webp`
                       }
                       alt=""
                     />

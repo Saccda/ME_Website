@@ -68,7 +68,7 @@ export default async function ResearchAreaPage({
         <section className="research-area-showcase-hero">
           <img
             className="research-showcase-background"
-            src={area.image || `/assets/focus-${area.code.toLowerCase()}.png`}
+            src={area.image || `/assets/focus-${area.code.toLowerCase()}.webp`}
             alt=""
           />
           <div className="research-showcase-overlay" />
