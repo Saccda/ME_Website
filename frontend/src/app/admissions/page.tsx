@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 import type { Metadata } from "next";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import FormSheets from "@/components/FormSheets";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { admissionsContent } from "@/lib/admissions";
@@ -189,27 +189,7 @@ export default async function AdmissionsPage() {
               </p>
             </div>
 
-            <div className="admissions-form-sheets">
-              {admissionsContent.applicationForm.sheets.map((sheet, index) => (
-                <figure className="admissions-sheet" key={sheet.image}>
-                  <img
-                    src={sheet.image}
-                    alt={`${sheet.title} sheet, completed, with the applicant's personal details removed`}
-                    loading={index === 0 ? undefined : "lazy"}
-                  />
-                  <figcaption>
-                    <strong>
-                      <span aria-hidden="true">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>{" "}
-                      {sheet.title}
-                    </strong>
-                    <span lang="km">{sheet.khmer}</span>
-                    <small>{sheet.note}</small>
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
+            <FormSheets sheets={admissionsContent.applicationForm.sheets} />
           </div>
         </section>
 

@@ -46,12 +46,6 @@ export const admissionsContent = {
      */
     sheets: [
       {
-        image: "/assets/admissions/01-biography.webp",
-        title: "Personal history",
-        khmer: "ជីវប្រវត្តិសង្ខេប",
-        note: "Family details, address, and the schools attended.",
-      },
-      {
         image: "/assets/admissions/02-exam-application.webp",
         title: "Faculty choice",
         khmer: "ពាក្យសុំចុះឈ្មោះប្រឡង",
@@ -62,6 +56,12 @@ export const admissionsContent = {
         title: "Application to sit the entrance examination",
         khmer: "ពាក្យសុំចុះឈ្មោះ",
         note: "Carries the checklist of documents to attach, including three 4x6 photographs.",
+      },
+      {
+        image: "/assets/admissions/01-biography.webp",
+        title: "Personal history",
+        khmer: "ជីវប្រវត្តិសង្ខេប",
+        note: "Family details, address, and the schools attended.",
       },
       {
         image: "/assets/admissions/04-identity-slips.webp",
