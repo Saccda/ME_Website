@@ -10851,6 +10851,19 @@ a.partner-logo:focus-visible {
   display: none;
 }
 
+/* Collapsed means collapsed. Hiding the panel only faded the card itself --
+   the scene holding it stayed laid out, and the robot arm inside it went on
+   being drawn over whatever the reader was looking at, 64x88 of it, with the
+   layer still occupying 486x446. Away from the landing page nothing should
+   remain but the badge.
+   Scoped to the closed state so the scene, and the arm with it, come back the
+   moment the card is opened. */
+#me-open-house-widget-demo
+  .event-layer.is-compact:not(.is-open):not(.is-opening)
+  .panel-scene {
+  display: none;
+}
+
 #me-open-house-widget-demo .event-layer.is-compact .new-tag {
   right: -4px;
   top: -6px;
