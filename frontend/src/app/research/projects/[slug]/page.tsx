@@ -3,11 +3,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import MediaGallery from "@/components/MediaGallery";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import StoryBody from "@/components/StoryBody";
 import { getHomeData, getResearchProject } from "@/lib/api";
 import { getResearchImage } from "@/lib/editorialImages";
+import { getProjectPlatform } from "@/lib/projectPlatform";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +71,7 @@ export default async function ResearchProjectPage({
   const image =
     getResearchImage(project.title, project.image || "") ||
     "/assets/hero-lab.webp";
+  const platform = getProjectPlatform(project.slug);
 
   return (
     <>
@@ -179,6 +182,26 @@ export default async function ResearchProjectPage({
                 ) : null}
               </aside>
             </div>
+
+            {/* Full width, below the prose column: a dashboard is unreadable
+                at aside width, and this set is the evidence for everything
+                claimed above it. */}
+            {platform ? (
+              <div className="research-platform">
+                <MediaGallery
+                  action={{
+                    // The CMS fields win once the backend carrying them is
+                    // deployed; until then the editorial set supplies both, so
+                    // the link is live rather than waiting on a rebuild.
+                    href: project.platform_url || platform.url,
+                    label: project.platform_label || platform.label,
+                  }}
+                  caption={platform.caption}
+                  heading={platform.heading}
+                  items={platform.items}
+                />
+              </div>
+            ) : null}
 
             <p className="research-detail-back">
               <Link className="text-link" href="/research">

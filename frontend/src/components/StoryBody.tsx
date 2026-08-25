@@ -43,23 +43,24 @@ export default function StoryBody({
               </figure>
             );
 
+          // Same row of pictures it has always been, now openable. The block
+          // carries no heading, so the gallery renders headerless.
           case "gallery":
             return (
-              <figure className="story-gallery" key={key}>
-                <div data-count={block.images.length}>
-                  {block.images.map((entry) => (
-                    <img
-                      alt={entry.alt_text}
-                      key={entry.url}
-                      loading="lazy"
-                      src={entry.url}
-                    />
-                  ))}
-                </div>
-                {block.caption ? (
-                  <figcaption>{block.caption}</figcaption>
-                ) : null}
-              </figure>
+              <MediaGallery
+                caption={block.caption}
+                heading=""
+                items={block.images.map((entry) => ({
+                  kind: "image" as const,
+                  url: entry.url,
+                  file_url: null,
+                  thumb: null,
+                  caption: "",
+                  alt_text: entry.alt_text,
+                }))}
+                key={key}
+                layout="row"
+              />
             );
 
           case "media_gallery":

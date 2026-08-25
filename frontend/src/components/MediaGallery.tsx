@@ -1,7 +1,7 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { GalleryItem } from "@/lib/api";
 import { videoEmbedUrl, videoThumbnail } from "@/lib/video";
 
@@ -55,12 +55,27 @@ export default function MediaGallery({
   caption,
   items,
   galleryTitle,
+  action,
+  layout = "mosaic",
 }: {
   heading: string;
   caption: string;
   items: GalleryItem[];
   /** The activity or event the set belongs to, shown as a chip. */
   galleryTitle?: string;
+  /**
+   * "mosaic" stands three tiles in for the whole set, which keeps a forty-photo
+   * story short. "row" shows every picture abreast -- the shape a body gallery
+   * block already had before it could be opened, kept so that making the
+   * pictures clickable did not also rearrange them.
+   */
+  layout?: "mosaic" | "row";
+  /**
+   * An external destination the set is a preview of -- a live platform, say.
+   * Sits where the chip sits, so a reader finds it before browsing rather
+   * than after five screenshots.
+   */
+  action?: { href: string; label: string };
 }) {
   const [index, setIndex] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -69,7 +84,10 @@ export default function MediaGallery({
   const railRef = useRef<HTMLDivElement>(null);
 
   const total = items.length;
-  const headingId = "article-gallery-title";
+  // Unique per instance: an article may carry more than one gallery, and a
+  // fixed id would repeat, leaving aria-labelledby pointing at whichever
+  // heading came first.
+  const headingId = `article-gallery-title-${useId()}`;
 
   // Native showModal gives focus trapping for free.
   useEffect(() => {
@@ -99,9 +117,13 @@ export default function MediaGallery({
 
   if (total === 0) return null;
 
-  const preview = items.slice(0, PREVIEW);
+  const isRow = layout === "row";
+  const preview = isRow ? items : items.slice(0, PREVIEW);
   const remaining = total - preview.length;
   const current = items[index];
+  // A body gallery block carries a caption but no heading, and a section with
+  // no heading cannot be labelled by one.
+  const labelled = Boolean(heading);
 
   /** Wraps continuously, so the set has no dead ends. */
   function select(next: number) {
@@ -135,20 +157,41 @@ export default function MediaGallery({
   }
 
   return (
-    <section aria-labelledby={headingId} className="article-gallery">
-      <header className="article-gallery__head">
-        <div>
-          <h2 id={headingId}>{heading || "Gallery"}</h2>
-          {caption ? <p>{caption}</p> : null}
-        </div>
-        {galleryTitle ? (
-          <span className="article-gallery__badge" title={galleryTitle}>
-            {galleryTitle}
-          </span>
-        ) : null}
-      </header>
+    <section
+      aria-label={labelled ? undefined : caption || "Gallery"}
+      aria-labelledby={labelled ? headingId : undefined}
+      className={`article-gallery${isRow ? " article-gallery--row" : ""}`}
+    >
+      {/* Rendered only with a heading. `hidden` would not do it: the UA's
+          `[hidden] { display: none }` loses to this element's own `display`. */}
+      {labelled ? (
+        <header className="article-gallery__head">
+          <div>
+            <h2 id={headingId}>{heading}</h2>
+            {caption ? <p>{caption}</p> : null}
+          </div>
+          {action ? (
+            <a
+              className="article-gallery__action"
+              href={action.href}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              {action.label} <span aria-hidden="true">↗</span>
+            </a>
+          ) : null}
+          {galleryTitle ? (
+            <span className="article-gallery__badge" title={galleryTitle}>
+              {galleryTitle}
+            </span>
+          ) : null}
+        </header>
+      ) : null}
 
-      <div className="article-gallery__mosaic" data-count={preview.length}>
+      <div
+        className={isRow ? "article-gallery__row" : "article-gallery__mosaic"}
+        data-count={preview.length}
+      >
         {preview.map((item, position) => (
           <button
             aria-label={`Open ${itemTitle(item, position)} in the gallery viewer`}
@@ -161,9 +204,13 @@ export default function MediaGallery({
             {item.kind === "video" ? (
               <span aria-hidden="true" className="article-gallery__play" />
             ) : null}
-            <span className="article-gallery__label">
-              {itemTitle(item, position)}
-            </span>
+            {/* A row shows the whole set, so a plate reading "Photograph 2"
+                over every picture is noise. Only a real caption earns one. */}
+            {isRow && !item.caption ? null : (
+              <span className="article-gallery__label">
+                {itemTitle(item, position)}
+              </span>
+            )}
             {position === preview.length - 1 && remaining > 0 ? (
               <span className="article-gallery__more">+{remaining} more</span>
             ) : null}
@@ -171,16 +218,24 @@ export default function MediaGallery({
         ))}
       </div>
 
-      <footer className="article-gallery__foot">
-        <p>
-          {remaining > 0
-            ? `${preview.length} of ${total} shown. Open any photograph to browse the full set.`
-            : `${total} ${total === 1 ? "photograph" : "photographs"}.`}
-        </p>
-        <span className="article-gallery__count">
-          {total} {total === 1 ? "item" : "items"}
-        </span>
-      </footer>
+      {/* A row stands for the whole set, so there is no remainder to count.
+          Its caption sits below the pictures, where the block had it. */}
+      {isRow ? (
+        caption ? (
+          <p className="article-gallery__row-caption">{caption}</p>
+        ) : null
+      ) : (
+        <footer className="article-gallery__foot">
+          <p>
+            {remaining > 0
+              ? `${preview.length} of ${total} shown. Open any photograph to browse the full set.`
+              : `${total} ${total === 1 ? "photograph" : "photographs"}.`}
+          </p>
+          <span className="article-gallery__count">
+            {total} {total === 1 ? "item" : "items"}
+          </span>
+        </footer>
+      )}
 
       <dialog
         aria-label={`${heading || "Gallery"} viewer`}
