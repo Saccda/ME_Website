@@ -507,9 +507,33 @@ class ResearchProjectSerializer(ImageSerializerMixin, serializers.ModelSerialize
     image_field = "image"
     focus_areas = FocusAreaSerializer(many=True, read_only=True)
     body = serializers.SerializerMethodField()
+    landing_story = serializers.SerializerMethodField()
+    showcase_image = serializers.SerializerMethodField()
 
     def get_body(self, obj):
         return story_blocks(obj.body, self.context.get("request"))
+
+    def get_landing_story(self, obj):
+        """The steps block, flattened to the list the landing band draws."""
+        for child in obj.landing_story:
+            if child.block_type == "steps":
+                return [
+                    {
+                        "title": step.get("title", ""),
+                        "description": step.get("description", ""),
+                    }
+                    for step in child.value.get("steps", [])
+                    if step.get("title")
+                ]
+        return []
+
+    def get_showcase_image(self, obj):
+        request = self.context.get("request")
+        # Falls back to the project image, so a featured project without a
+        # dedicated picture still leads with something.
+        return rendition_url(
+            obj.showcase_image or obj.image, WIDE_IMAGE, request
+        )
 
     class Meta:
         model = ResearchProject
@@ -526,6 +550,11 @@ class ResearchProjectSerializer(ImageSerializerMixin, serializers.ModelSerialize
             "image",
             "focus_areas",
             "published_at",
+            "is_featured",
+            "landing_story",
+            "showcase_image",
+            "platform_url",
+            "platform_label",
         )
 
 

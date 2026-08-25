@@ -107,6 +107,9 @@ export type CurriculumYear = {
   courses: Course[];
 };
 
+/** One step of the story a featured project tells on the landing page. */
+export type LandingStoryPoint = { title: string; description: string };
+
 export type ResearchProject = {
   title: string;
   slug: string;
@@ -117,6 +120,12 @@ export type ResearchProject = {
   body: StoryBlock[];
   image: string | null;
   focus_areas: FocusArea[];
+  is_featured: boolean;
+  landing_story: LandingStoryPoint[];
+  /** Falls back to `image` on the backend, so this is set whenever one is. */
+  showcase_image: string | null;
+  platform_url: string;
+  platform_label: string;
 };
 
 type ResearchProjectApi = Omit<ResearchProject, "focus_areas"> & {
@@ -658,6 +667,13 @@ const fallbackData: HomeData = {
       body: [],
       image: relatedFocusAreas[0]?.image || null,
       focus_areas: relatedFocusAreas,
+      // Never featured. The landing band is a claim about what this program
+      // built; sample content must not make it.
+      is_featured: false,
+      landing_story: [],
+      showcase_image: relatedFocusAreas[0]?.image || null,
+      platform_url: "",
+      platform_label: "",
     };
   }),
   partners: [
@@ -1365,6 +1381,32 @@ export async function getResearchProjects(
     return {
       ...project,
       focus_areas: withFocusAreaFallbacks(relatedAreas),
+      // Absent on a backend that predates the landing-page panel, which reads
+      // the same as "not featured": the band is simply left out.
+      is_featured: project.is_featured ?? false,
+      landing_story: Array.isArray(project.landing_story)
+        ? project.landing_story
+        : [],
+      showcase_image: project.showcase_image ?? project.image ?? null,
+      platform_url: project.platform_url ?? "",
+      platform_label: project.platform_label ?? "",
     };
   });
+}
+
+/**
+ * Projects for the landing page's research band.
+ *
+ * The landing page explains the discipline with borrowed pictures of
+ * telescopes, Mars rovers and a 3D-printed car -- all credited to somebody
+ * else. What it lacked was anything this program built itself, which is what
+ * the band is for.
+ *
+ * Every project is a candidate, because the band is a sample of the research
+ * page rather than a separate editorial selection; the band itself decides how
+ * many it shows and puts a featured one first. So this is `getResearchProjects`
+ * under a name that says what the landing page wants it for.
+ */
+export async function getFeaturedResearch(): Promise<ResearchProject[]> {
+  return getResearchProjects();
 }

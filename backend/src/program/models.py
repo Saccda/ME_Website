@@ -14,7 +14,7 @@ from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Orderable
 from wagtail.snippets.models import register_snippet
 
-from .blocks import NewsBodyBlock, ResearchBodyBlock
+from .blocks import NewsBodyBlock, ResearchBodyBlock, StepsBlock
 
 
 class OrderedModel(models.Model):
@@ -612,6 +612,50 @@ class ResearchProject(OrderedModel):
     is_published = models.BooleanField(default=True)
     published_at = models.DateTimeField(default=timezone.now)
 
+    is_featured = models.BooleanField(
+        default=False,
+        verbose_name="Show on the landing page",
+        help_text=(
+            "Leads the landing page's research band. One project at a time -- "
+            "the first ticked wins, so a story is told properly rather than "
+            "four told thinly."
+        ),
+    )
+    landing_story = StreamField(
+        [("steps", StepsBlock())],
+        blank=True,
+        max_num=1,
+        verbose_name="Landing page story",
+        help_text=(
+            "The few steps that carry this project on the landing page: the "
+            "problem, what was built, and where it ended up. Written for "
+            "somebody deciding whether to apply, not for a reviewer."
+        ),
+    )
+    showcase_image = models.ForeignKey(
+        "wagtailimages.Image",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        help_text=(
+            "The picture the landing page leads with -- a dashboard, a rig, "
+            "the thing itself. Falls back to the project image."
+        ),
+    )
+    platform_url = models.URLField(
+        blank=True,
+        help_text="A system built for this project that a reader can go and look at.",
+    )
+    platform_label = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text=(
+            "What that link is called, for example FarmOS. Say plainly if it "
+            "needs an account."
+        ),
+    )
+
     panels = [
         FieldPanel("sort_order"),
         FieldPanel("title"),
@@ -625,6 +669,16 @@ class ResearchProject(OrderedModel):
         FieldPanel("image"),
         FieldPanel("is_published"),
         FieldPanel("published_at"),
+        MultiFieldPanel(
+            [
+                FieldPanel("is_featured"),
+                FieldPanel("landing_story"),
+                FieldPanel("showcase_image"),
+                FieldPanel("platform_url"),
+                FieldPanel("platform_label"),
+            ],
+            heading="Landing page",
+        ),
     ]
 
     def __str__(self):

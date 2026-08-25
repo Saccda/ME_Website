@@ -1,12 +1,13 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import CardMedia from "@/components/CardMedia";
+import FeaturedResearch from "@/components/FeaturedResearch";
 import ImpactStory from "@/components/ImpactStory";
 import OpportunityBoard from "@/components/OpportunityBoard";
 import QuadrupleHelix from "@/components/QuadrupleHelix";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
-import { getHomeData, getNewsEvents } from "@/lib/api";
+import { getFeaturedResearch, getHomeData, getNewsEvents } from "@/lib/api";
 import {
   selectLatestNews,
   selectUpcomingEvents,
@@ -31,7 +32,11 @@ function EditorialSectionHeading({ text }: { text: string }) {
 }
 
 export default async function Home() {
-  const [data, newsEvents] = await Promise.all([getHomeData(), getNewsEvents()]);
+  const [data, newsEvents, featured] = await Promise.all([
+    getHomeData(),
+    getNewsEvents(),
+    getFeaturedResearch(),
+  ]);
   const program = data.settings;
   const partners = [...data.partners, ...data.partners];
   const latestNews = selectLatestNews(newsEvents);
@@ -323,6 +328,10 @@ export default async function Home() {
             telegramUrl={program.telegram_url}
           />
         </section>
+
+        {featured.length > 0 ? (
+          <FeaturedResearch projects={featured} />
+        ) : null}
       </main>
 
       <SiteFooter focusAreas={data.focus_areas} settings={program} />

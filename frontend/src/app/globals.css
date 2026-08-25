@@ -2604,6 +2604,160 @@ img {
   line-height: 1.6;
 }
 
+/* Research opens as a section, not as a second hero: the band is named on the
+   left, the way out sits on the right at the same baseline, and a rule closes
+   it. That distinguishes it from the centred display masthead above at a
+   glance, and it returns 131px of height at 1440px -- the heading drops from
+   display scale to section scale, and the closing button leaves the desktop
+   layout entirely. */
+.home-feed-head.split {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 18px clamp(28px, 4vw, 72px);
+  margin-bottom: clamp(30px, 3.4vw, 46px);
+  padding-bottom: clamp(20px, 2.2vw, 28px);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+
+/* The gold segment sitting on the hairline is the same mark that opens a
+   section elsewhere on the site (.section-masthead). Reusing it keeps this
+   band inside the existing vocabulary rather than adding a device of its own. */
+.home-feed-head.split::after {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 84px;
+  height: 3px;
+  content: "";
+  background: var(--gold);
+}
+
+.home-feed-lead {
+  min-width: 0;
+}
+
+/* No character cap on the heading. A `max-width` in `ch` is what squeezed this
+   title into a column while the band ran 1368px wide; the grid track is the
+   only bound it needs. */
+.home-feed-head.split h2 {
+  max-width: 100%;
+  margin: 0;
+  color: var(--brand-navy);
+  font-size: var(--step-1);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  text-wrap: pretty;
+}
+
+/* The gold serif emphasis the hero and the admissions masthead already use. */
+.home-feed-head.split h2 em {
+  color: #b17a06;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+.home-feed-head.split .home-feed-intro {
+  max-width: min(64ch, 100%);
+  margin-top: 16px;
+  font-size: 1.04rem;
+}
+
+.home-feed-aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  padding-bottom: 4px;
+  text-align: right;
+}
+
+.home-feed-count {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.home-feed-all span {
+  margin-left: 7px;
+  display: inline-block;
+  transition: transform 240ms ease;
+}
+
+.home-feed-all:hover span {
+  transform: translateX(4px);
+}
+
+/* The masthead link is the only way out on a wide screen. On a phone the cards
+   stack, so by the foot of the band that link is three cards away. */
+.home-feed-tail {
+  display: none;
+  margin: clamp(28px, 4vw, 40px) 0 0;
+  justify-content: center;
+}
+
+.home-feed-tail .button {
+  min-height: 54px;
+  gap: 16px;
+  padding: 0 30px;
+  border-radius: 8px;
+  font-size: 1rem;
+  letter-spacing: 0.005em;
+  text-transform: none;
+}
+
+@media (max-width: 700px) {
+  .home-feed-head.split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-feed-aside {
+    flex-direction: row-reverse;
+    align-items: baseline;
+    justify-content: space-between;
+    width: 100%;
+    padding-bottom: 0;
+  }
+
+  .home-feed-tail {
+    display: flex;
+  }
+}
+
+/* What tells a project card from a news card: the focus area it belongs to,
+   in that area's own colour. The swatch is decoration carrying the same
+   meaning as the code beside it, so it is hidden from assistive software
+   rather than described twice. */
+.research-areas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+}
+
+.research-area {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.research-area i {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.18);
+}
+
 .home-feed-action {
   margin: clamp(34px, 4vw, 52px) 0 0;
   display: flex;
@@ -2709,6 +2863,19 @@ img {
 
 .news-card-media img.is-current {
   opacity: 1;
+}
+
+/* Shown when a card has no picture at all, so the row keeps its rhythm
+   instead of one card starting with its title. */
+.news-card-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(10, 33, 100, 0.28);
+  font-size: 2rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
 }
 
 .news-card:hover .news-card-media img.is-current {
