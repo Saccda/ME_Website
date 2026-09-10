@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { getResearchImage } from "./editorialImages";
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
@@ -665,13 +666,17 @@ const fallbackData: HomeData = {
       keywords: "",
       summary,
       body: [],
-      image: relatedFocusAreas[0]?.image || null,
+      // Its own picture, not its focus area's. Borrowing the area image gave
+      // two DMP projects the same photograph and showed a wind farm for a
+      // spraying rig -- so whenever the CMS was unreachable the research band
+      // filled with pictures of the wrong thing, twice over.
+      image: getResearchImage(title) || relatedFocusAreas[0]?.image || null,
       focus_areas: relatedFocusAreas,
       // Never featured. The landing band is a claim about what this program
       // built; sample content must not make it.
       is_featured: false,
       landing_story: [],
-      showcase_image: relatedFocusAreas[0]?.image || null,
+      showcase_image: getResearchImage(title) || relatedFocusAreas[0]?.image || null,
       platform_url: "",
       platform_label: "",
     };
