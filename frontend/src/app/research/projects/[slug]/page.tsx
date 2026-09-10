@@ -132,36 +132,72 @@ export default async function ResearchProjectPage({
 
               {/* Sticky beside the prose: a reader checking the status or the
                   focus area partway down should not have to scroll back. */}
+              {/* Facts as separate cards rather than one flat band: a status,
+                  a date, an area and a keyword list are four different kinds of
+                  thing, and the old strip set them all in the same weight. The
+                  status carries a live dot, the areas carry their own colour,
+                  and the keywords become tags you can read one at a time. */}
               <aside className="research-aside">
-                <dl className="research-facts">
-              <div>
-                <dt>Status</dt>
-                <dd>
-                  {project.status === "completed"
-                    ? "Completed"
-                    : project.status === "proposed"
-                      ? "Proposed"
-                      : "Ongoing"}
-                </dd>
-              </div>
-              {project.period ? (
-                <div>
-                  <dt>Period</dt>
-                  <dd>{project.period}</dd>
-                </div>
-              ) : null}
-              {project.focus_areas.length > 0 ? (
-                <div>
-                  <dt>Focus area</dt>
-                  <dd>
-                    {project.focus_areas.map((area) => area.code).join(" · ")}
-                  </dd>
-                </div>
-              ) : null}
+                <dl className="project-facts">
+                  <div className="project-fact">
+                    <dt>Status</dt>
+                    <dd>
+                      <span
+                        className="project-status"
+                        data-status={project.status}
+                      >
+                        <i aria-hidden="true" />
+                        {project.status === "completed"
+                          ? "Completed"
+                          : project.status === "proposed"
+                            ? "Proposed"
+                            : "Ongoing"}
+                      </span>
+                    </dd>
+                  </div>
+
+                  {project.period ? (
+                    <div className="project-fact">
+                      <dt>Period</dt>
+                      <dd className="project-period">{project.period}</dd>
+                    </div>
+                  ) : null}
+
+                  {project.focus_areas.length > 0 ? (
+                    <div className="project-fact">
+                      <dt>Focus area</dt>
+                      <dd>
+                        <span className="project-areas">
+                          {project.focus_areas.map((area) => (
+                            <Link
+                              className="project-area"
+                              href={`/research/${area.code.toLowerCase()}`}
+                              key={area.code}
+                              style={{ ["--chip" as string]: area.accent_color }}
+                              title={area.title}
+                            >
+                              {area.code}
+                            </Link>
+                          ))}
+                        </span>
+                      </dd>
+                    </div>
+                  ) : null}
+
                   {project.keywords ? (
-                    <div>
+                    <div className="project-fact project-fact-wide">
                       <dt>Keywords</dt>
-                      <dd>{project.keywords}</dd>
+                      <dd>
+                        <span className="project-keywords">
+                          {project.keywords
+                            .split(",")
+                            .map((word) => word.trim())
+                            .filter(Boolean)
+                            .map((word) => (
+                              <span key={word}>{word}</span>
+                            ))}
+                        </span>
+                      </dd>
                     </div>
                   ) : null}
                 </dl>

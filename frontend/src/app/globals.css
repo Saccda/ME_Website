@@ -3078,13 +3078,15 @@ img {
 }
 
 /* Story detail page.
-   Two measures, not one: prose sits on a column narrow enough to read, while
-   pictures, video and image rows run out to the full width of the band. That
-   difference is what makes a story page feel like a magazine spread rather
-   than a document. */
+   Prose and pictures share the band: the text runs to the same width as the
+   photograph above it, which is what the program asked for after seeing a
+   1080px column under a 1440px picture and reading the gap as a fault rather
+   than a measure. Lines are long by typographic convention at this width; the
+   alignment was judged to matter more. `--story-measure` is still the single
+   lever, so narrowing the column again is a one-line change here. */
 .story-page {
   --shell: min(1440px, calc(100vw - clamp(24px, 5vw, 80px)));
-  --story-measure: min(1080px, 100%);
+  --story-measure: 100%;
   background: var(--white);
 }
 
@@ -11773,32 +11775,6 @@ a.partner-logo:focus-visible {
 
 /* Who did the work. A project page that omits this reads as though the
    research appeared on its own. */
-.research-facts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
-  gap: 18px 26px;
-  margin: 0 0 clamp(28px, 3.2vw, 40px);
-  padding: 24px;
-  background: var(--cream);
-}
-
-.research-facts dt {
-  margin: 0 0 4px;
-  color: var(--muted);
-  font-size: 0.68rem;
-  font-weight: 850;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
-.research-facts dd {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-/* Who did the work. A project page that omits this reads as though the
-   research appeared on its own. */
 .story-team ul {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
@@ -11940,7 +11916,7 @@ a.partner-logo:focus-visible {
    shell and kept the card alongside it the whole way down. */
 .research-detail {
   --shell: min(1440px, calc(100vw - clamp(24px, 5vw, 80px)));
-  --story-measure: min(1080px, 100%);
+  --story-measure: 100%;
 }
 
 .research-layout {
@@ -11962,7 +11938,7 @@ a.partner-logo:focus-visible {
 .research-main .research-detail-summary,
 .research-main .story-body > p,
 .research-main .story-rich-text {
-  max-width: 72ch;
+  max-width: var(--story-measure);
 }
 
 /* The facts close the article instead of following it down the page. Status,
@@ -13824,7 +13800,7 @@ a.partner-logo:focus-visible {
    sequence, then a photograph of the thing itself. */
 .machine-detail {
   --shell: min(1440px, calc(100vw - clamp(24px, 5vw, 80px)));
-  --story-measure: min(1080px, 100%);
+  --story-measure: 100%;
 }
 
 .machine-head {
@@ -13961,3 +13937,181 @@ a.partner-logo:focus-visible {
   outline-offset: 3px;
 }
 
+/* Project facts.
+   Four separate cards instead of one cream band. A status, a date, an area and
+   a keyword list are four kinds of thing, and setting them all in the same
+   weight on the same slab is what made the old strip read as filler. Each gets
+   its own plate; the status gets a live dot, the areas their own colour, and
+   the keywords become tags a reader can take one at a time. */
+/* Tracks are capped rather than given `1fr`: auto-fit hands all the spare
+   width to whatever tracks survive, so a project with only a status and an
+   area got two 713px plates holding one small pill each. */
+.project-facts {
+  margin: 0 0 clamp(24px, 3vw, 34px);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 300px));
+  justify-content: start;
+  gap: 14px;
+}
+
+.project-fact {
+  padding: 18px 20px 20px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  transition: border-color 200ms ease;
+}
+
+.project-fact:hover {
+  border-color: rgba(10, 33, 100, 0.28);
+}
+
+/* Keywords run long; on a wide row they take the space two plates would. */
+.project-fact-wide {
+  grid-column: span 2;
+}
+
+@media (max-width: 700px) {
+  .project-fact-wide {
+    grid-column: span 1;
+  }
+}
+
+.project-fact dt {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.project-fact dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.project-period {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Status, with a dot that says at a glance whether the work is live. */
+.project-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 14px 7px 11px;
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--brand-navy);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.project-status i {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Running work gets a pulse; finished and proposed work sits still, because a
+   heartbeat on a closed project would be saying something untrue. */
+.project-status[data-status="ongoing"] {
+  background: rgba(62, 139, 86, 0.13);
+  color: #256b3c;
+}
+
+.project-status[data-status="ongoing"] i {
+  animation: project-pulse 2.4s ease-in-out infinite;
+}
+
+.project-status[data-status="completed"] {
+  background: rgba(10, 33, 100, 0.1);
+  color: var(--brand-navy);
+}
+
+.project-status[data-status="proposed"] {
+  background: rgba(231, 185, 77, 0.22);
+  color: #7a5a06;
+}
+
+@keyframes project-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 107, 60, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(37, 107, 60, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-status[data-status="ongoing"] i {
+    animation: none;
+  }
+}
+
+/* Focus areas as their own colour, the same scheme the rest of the site uses. */
+.project-areas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-area {
+  padding: 6px 12px 6px 24px;
+  position: relative;
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--brand-navy);
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: background 200ms ease;
+}
+
+.project-area::before {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border-radius: 2px;
+  content: "";
+  background: var(--chip, var(--brand-navy));
+}
+
+.project-area:hover {
+  background: #e9e2d3;
+}
+
+.project-area:focus-visible {
+  outline: 2px solid var(--brand-gold);
+  outline-offset: 2px;
+}
+
+/* One tag per keyword. A comma-separated string in a bold line is a list
+   pretending to be a sentence. */
+.project-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.project-keywords span {
+  padding: 5px 11px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 0.83rem;
+  font-weight: 650;
+}
