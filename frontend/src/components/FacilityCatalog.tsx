@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { Facility } from "@/lib/api";
 
@@ -177,7 +178,18 @@ export default function FacilityCatalog({ facilities }: { facilities: Facility[]
                 ) : null}
               </div>
               <div className="equipment-card-body">
-                <h3>{facility.name}</h3>
+                {/* Only a machine with a write-up gets a link; the rest keep
+                    the card they have always had, because a page holding one
+                    sentence is worse than no page. */}
+                <h3>
+                  {facility.has_detail && facility.slug ? (
+                    <Link href={`/facilities/${facility.slug}`}>
+                      {facility.name}
+                    </Link>
+                  ) : (
+                    facility.name
+                  )}
+                </h3>
                 <p>{facility.description}</p>
                 {facility.focus_areas.length > 0 ? (
                   <ul className="equipment-areas">

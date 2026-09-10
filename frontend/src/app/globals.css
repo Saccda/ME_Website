@@ -13786,3 +13786,147 @@ a.partner-logo:focus-visible {
   }
 }
 
+/* Machine detail page.
+   Built on the story page's two measures -- prose on a readable column,
+   pictures out to the full band -- because the write-up is exactly that shape:
+   paragraphs explaining a principle, then numbered parts and a numbered
+   sequence, then a photograph of the thing itself. */
+.machine-detail {
+  --shell: min(1440px, calc(100vw - clamp(24px, 5vw, 80px)));
+  --story-measure: min(1080px, 100%);
+}
+
+.machine-head {
+  margin-bottom: clamp(26px, 3vw, 40px);
+}
+
+.machine-head h1 {
+  margin: 0;
+  max-width: min(20ch, 100%);
+  font-size: var(--step-1);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.machine-summary {
+  margin: 18px 0 0;
+  max-width: var(--story-measure);
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.machine-tags {
+  margin-top: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.machine-status {
+  padding: 6px 13px;
+  background: var(--cream);
+  color: var(--brand-navy);
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* "New equipment" is the one status worth a reader noticing. */
+.machine-status[data-status="new"] {
+  background: var(--brand-gold);
+}
+
+.machine-area {
+  padding: 6px 13px 6px 24px;
+  position: relative;
+  border: 1px solid var(--line);
+  color: var(--brand-navy);
+  font-size: 0.8rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.machine-area::before {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border-radius: 2px;
+  content: "";
+  background: var(--chip, var(--brand-navy));
+}
+
+.machine-area:hover {
+  border-color: var(--brand-navy);
+}
+
+.machine-media {
+  margin: clamp(26px, 3vw, 40px) 0 0;
+}
+
+.machine-media img {
+  width: 100%;
+  max-height: 560px;
+  display: block;
+  object-fit: cover;
+}
+
+.machine-empty {
+  margin: clamp(30px, 4vw, 48px) 0 0;
+  color: var(--muted);
+  font-size: 1rem;
+  font-style: italic;
+}
+
+.machine-reference {
+  margin: clamp(28px, 3.4vw, 42px) 0 0;
+}
+
+.machine-reference a {
+  padding-bottom: 3px;
+  border-bottom: 2px solid var(--brand-gold);
+  color: var(--brand-navy);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.machine-reference a:hover {
+  color: #8a6011;
+}
+
+.machine-back {
+  margin: clamp(32px, 4vw, 52px) 0 0;
+}
+
+.machine-back .text-link {
+  color: var(--brand-navy);
+}
+
+.machine-back .text-link span {
+  margin-right: 10px;
+  color: var(--gold);
+}
+
+/* The card title becomes a link only when there is a page behind it. */
+.equipment-card-body h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.equipment-card-body h3 a:hover {
+  color: var(--brand-navy);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.equipment-card-body h3 a:focus-visible {
+  outline: 2px solid var(--brand-gold);
+  outline-offset: 3px;
+}
+

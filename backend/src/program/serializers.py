@@ -638,13 +638,35 @@ class FacilitySerializer(ImageSerializerMixin, serializers.ModelSerializer):
             "id",
             "sort_order",
             "name",
+            "slug",
             "description",
             "reference_url",
             "availability_status",
             "availability_label",
             "focus_areas",
             "image",
+            "has_detail",
         )
+
+    # The catalogue is thirty cards; sending every machine's full write-up to
+    # render them would be wasteful. The list says only whether a page exists,
+    # and the detail endpoint carries the write-up itself.
+    has_detail = serializers.SerializerMethodField()
+
+    def get_has_detail(self, obj):
+        return bool(obj.detail)
+
+
+class FacilityDetailSerializer(FacilitySerializer):
+    """One machine, with its write-up."""
+
+    detail = serializers.SerializerMethodField()
+
+    class Meta(FacilitySerializer.Meta):
+        fields = FacilitySerializer.Meta.fields + ("detail",)
+
+    def get_detail(self, obj):
+        return story_blocks(obj.detail, self.context.get("request"))
 
 
 class FocusAreaDetailItemSerializer(serializers.ModelSerializer):

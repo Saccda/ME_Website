@@ -347,6 +347,8 @@ export type NewsEvent = {
 export type Facility = {
   id?: number;
   name: string;
+  /** Empty on a backend that predates the machine pages. */
+  slug: string;
   description: string;
   reference_url: string;
   availability_status: "available" | "new" | "commissioning" | "planned";
@@ -354,6 +356,13 @@ export type Facility = {
   /** Empty on a backend that predates the field being serialised. */
   focus_areas: OpportunityFocusArea[];
   image: string | null;
+  /** Whether this machine has a write-up worth linking to. */
+  has_detail: boolean;
+};
+
+/** A machine with its write-up. The catalogue sends everything but `detail`. */
+export type FacilityDetail = Facility & {
+  detail: StoryBlock[];
 };
 
 export type FocusDetailItem = {
@@ -870,6 +879,10 @@ function getFallbackFocusArea(slug: string): FocusAreaDetail | null {
       // appears on, so repeating the badge on every card says nothing.
       focus_areas: [],
       image: null,
+      // Sample content has no machine page behind it, so the card stays a
+      // card rather than linking somewhere that cannot be rendered.
+      slug: "",
+      has_detail: false,
     })),
     outcomes: toItems(detail.outcomes),
     learning_activities: toItems(detail.activities),
@@ -1451,7 +1464,53 @@ export async function getFacilities(): Promise<Facility[]> {
     availability_label: item.availability_label ?? "Available",
     focus_areas: Array.isArray(item.focus_areas) ? item.focus_areas : [],
     image: item.image ?? null,
+    // Both absent until the backend carrying machine pages is deployed, which
+    // reads as "no page to link to" -- the catalogue then behaves as it did.
+    slug: item.slug ?? "",
+    has_detail: item.has_detail ?? false,
   }));
+}
+
+export type FacilityLookup =
+  | { status: "found"; facility: FacilityDetail }
+  | { status: "not-found" }
+  | { status: "unavailable" };
+
+/**
+ * One machine and its write-up.
+ *
+ * Fetched from the detail endpoint rather than filtered out of the catalogue,
+ * because the write-up is only sent for a single machine: thirty of them would
+ * make the catalogue response many times its useful size.
+ */
+export async function getFacility(slug: string): Promise<FacilityLookup> {
+  const response = await fetchCms(`${API_BASE_URL}/facilities/${slug}/`);
+  if (!response) return { status: "unavailable" };
+  if (response.status === 404) return { status: "not-found" };
+  if (!response.ok) return { status: "unavailable" };
+
+  try {
+    const item = (await response.json()) as Partial<FacilityDetail>;
+    if (!item.name) return { status: "not-found" };
+    return {
+      status: "found",
+      facility: {
+        id: item.id,
+        name: item.name,
+        slug: item.slug ?? slug,
+        description: item.description ?? "",
+        reference_url: item.reference_url ?? "",
+        availability_status: item.availability_status ?? "available",
+        availability_label: item.availability_label ?? "Available",
+        focus_areas: Array.isArray(item.focus_areas) ? item.focus_areas : [],
+        image: item.image ?? null,
+        has_detail: item.has_detail ?? false,
+        detail: Array.isArray(item.detail) ? item.detail : [],
+      },
+    };
+  } catch {
+    return { status: "unavailable" };
+  }
 }
 
 export async function getResearchProjects(

@@ -24,6 +24,7 @@ from .models import (
 )
 from .serializers import (
     CurriculumYearSerializer,
+    FacilityDetailSerializer,
     FacilitySerializer,
     FacultyMemberSerializer,
     FaqItemSerializer,
@@ -181,8 +182,16 @@ class FacilityViewSet(PublicReadOnlyViewSet):
         .all()
     )
     serializer_class = FacilitySerializer
+    lookup_field = "slug"
     search_fields = ("name", "description", "focus_areas__code")
     ordering_fields = ("sort_order", "name")
+
+    def get_serializer_class(self):
+        # The write-up rides on the single-machine response only; the catalogue
+        # would otherwise carry thirty of them to render thirty cards.
+        if self.action == "retrieve":
+            return FacilityDetailSerializer
+        return FacilitySerializer
 
 
 class NewsEventViewSet(PublicReadOnlyViewSet):

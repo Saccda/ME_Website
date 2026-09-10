@@ -877,7 +877,27 @@ class Facility(OrderedModel):
     )
 
     name = models.CharField(max_length=180)
-    description = models.TextField()
+    slug = models.SlugField(
+        max_length=200,
+        unique=True,
+        blank=True,
+        help_text="Web address for this machine's page. Left blank, it is made from the name.",
+    )
+    description = models.TextField(
+        help_text="One or two sentences for the catalogue card.",
+    )
+    detail = StreamField(
+        ResearchBodyBlock(),
+        blank=True,
+        verbose_name="Machine detail",
+        help_text=(
+            "What the machine is, what it is for, its main parts and how it "
+            "works. Numbered steps suit the parts list and the operating "
+            "sequence; a callout suits a safety note or a formula. A machine "
+            "with nothing written here keeps its catalogue card and has no "
+            "page of its own."
+        ),
+    )
     reference_url = models.URLField(
         blank=True,
         help_text="Manufacturer or technical reference page for this machine.",
@@ -908,13 +928,37 @@ class Facility(OrderedModel):
     panels = [
         FieldPanel("sort_order"),
         FieldPanel("name"),
+        FieldPanel("slug"),
         FieldPanel("description"),
-        FieldPanel("reference_url"),
-        FieldPanel("availability_status"),
         FieldPanel("image"),
-        FieldPanel("is_featured"),
+        FieldPanel("availability_status"),
         FieldPanel("focus_areas"),
+        FieldPanel("reference_url"),
+        FieldPanel("is_featured"),
+        FieldPanel("detail"),
     ]
+
+    def save(self, *args, **kwargs):
+        # A machine acquires its address from its name, once. Editing the name
+        # later leaves the slug alone, because a published link should not
+        # break over a spelling correction.
+        if not self.slug:
+            base = slugify(self.name)[:190] or "machine"
+            candidate = base
+            suffix = 2
+            while (
+                Facility.objects.exclude(pk=self.pk)
+                .filter(slug=candidate)
+                .exists()
+            ):
+                candidate = f"{base}-{suffix}"
+                suffix += 1
+            self.slug = candidate
+        super().save(*args, **kwargs)
+
+    def has_detail(self):
+        """Whether this machine has a page worth linking to."""
+        return len(self.detail) > 0
 
     def __str__(self):
         return self.name
