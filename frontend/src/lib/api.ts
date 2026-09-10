@@ -1251,11 +1251,110 @@ async function fetchNewsEvents(): Promise<NewsEvent[] | null> {
 }
 
 /**
- * Only answered, published questions ever leave the API -- the backend
- * withholds a question whose answer is blank -- so nothing needs guarding here.
+ * Questions this site already answers elsewhere.
+ *
+ * The CMS holds the full list, filed by `seed_faq_questions`, and every entry
+ * there arrives with a blank answer on purpose: tuition, entry requirements,
+ * intake numbers and accreditation are facts about this program, and guessing
+ * at them on a public university page is worse than saying nothing. Those stay
+ * blank until the program writes them.
+ *
+ * These are the other kind -- questions whose answers are already published on
+ * this site, in the curriculum, the focus areas, the research pages and the
+ * footer. Restating them here invents nothing, and it means the page is useful
+ * before anyone has opened Wagtail and while the API is unreachable.
+ *
+ * The CMS wins whenever it has anything to say: one answered question there
+ * replaces this list entirely, rather than the two being merged, so an author
+ * never has to fight a hard-coded answer they cannot see.
  */
-export function getFaqs(): Promise<FaqItem[]> {
-  return getCollection<FaqItem>("faqs");
+const fallbackFaqs: FaqItem[] = [
+  [
+    "program",
+    "Program",
+    "Is mechanical engineering still relevant in the age of artificial intelligence?",
+    "<p>Yes. AI is transforming many fields, but the core principles and applications of mechanical engineering remain vital, for several reasons.</p>" +
+      "<p><strong>Design and manufacturing.</strong> Mechanical engineers design and develop physical products, machinery and systems. AI can optimise those processes, but the fundamental expertise in materials, mechanics, thermodynamics and manufacturing technique is what makes the object exist.</p>" +
+      "<p><strong>Integration with AI technologies.</strong> Mechanical engineers contribute to intelligent systems — autonomous robots, intelligent manufacturing equipment, aerospace vehicles — working alongside AI specialists to embed sensors, actuate systems and develop control algorithms for physical devices.</p>" +
+      "<p><strong>Robotics and automation.</strong> Robotics is the clearest intersection of the two. Mechanical engineers design the robotic systems, the mechanical components and the automation processes that AI then controls, perceives with and decides through.</p>" +
+      "<p><strong>Energy and sustainable technologies.</strong> Mechanical engineers are central to renewable energy — solar, wind, geothermal — as well as storage and efficient thermodynamic systems. AI adds predictive maintenance, optimisation and data analysis on top; the domain expertise stays essential.</p>" +
+      "<p><strong>Physical systems and materials.</strong> Understanding physical properties, material behaviour and thermodynamics is fundamental to the discipline. AI supports that work rather than removing the need for it.</p>" +
+      "<p><strong>Innovation and problem solving.</strong> Engineers use physical principles to solve real problems. AI assists data-driven decisions, but human insight rooted in mechanical principles is indispensable.</p>" +
+      "<p>In short, AI is a powerful tool that complements and enhances mechanical engineering rather than replacing it — and the engineers who use it will be at the forefront of what comes next.</p>",
+  ],
+  [
+    "program",
+    "Program",
+    "Why should I choose mechanical engineering as my major?",
+    "<p>Each of the program's four areas of focus answers that differently.</p>" +
+      "<p><strong>Design and Manufacturing Process.</strong> You get to create innovative products and solutions, designing everything from everyday objects to complex machines. The skills are valued across automotive, aerospace, robotics and consumer electronics, and the work is hands-on — you see your ideas become prototypes and finished products.</p>" +
+      "<p><strong>Thermofluid and Energy Systems.</strong> The science behind generating and transferring energy: renewables, HVAC, thermal management. You can contribute to global energy challenges by designing efficient systems that reduce waste, and as the world shifts toward greener solutions this opens work on solar power, wind turbines and energy-efficient buildings.</p>" +
+      "<p><strong>Mechatronic and Automation Systems.</strong> You learn to integrate mechanical, electronic and computer systems, leading toward robotics, automation and smart manufacturing. As industry moves toward Industry 4.0 these skills are in demand, and you develop the ability to build intelligent machines that improve productivity and safety.</p>" +
+      "<p><strong>Engineering Compliance and Management.</strong> Engineers also ensure designs and products meet safety standards, regulations and environmental requirements, and can take on managerial roles overseeing projects, teams and production. That combination of technical and management skill prepares you for leadership.</p>" +
+      "<p>Taken together: creative design, sustainable energy, cutting-edge automation and the leadership to carry them — a versatile field with real room to make a difference.</p>",
+  ],
+  [
+    "program",
+    "Program",
+    "How long is the ME program?",
+    "Four years, taught over eight semesters. The first year is Foundations and discovery, worth 36 credits, and is designed to build mathematical confidence, engineering intuition and essential workshop skills before the later years move toward integrated design and professional practice.",
+  ],
+  [
+    "program",
+    "Program",
+    "What are DMP, TES, MAS and ECM, and do I have to choose one?",
+    "They are the program's four areas of focus: Design and Manufacturing Process, Thermofluid and Energy System, Mechatronic and Automation System, and Engineering Compliance and Management. They organise expertise without limiting collaboration across disciplines, and they are taught as course families you will meet as classes with credits — not as a track you must pick at the door.",
+  ],
+  [
+    "learning",
+    "Teaching & learning",
+    "Will I do practical work, or is it mostly theory?",
+    "Both. The four areas of focus run through the laboratories as well as the curriculum, and the first year already includes essential workshop skills. The program's research is built and tested in the ME laboratory rather than only written about.",
+  ],
+  [
+    "learning",
+    "Teaching & learning",
+    "Can I do research as an undergraduate?",
+    "The program runs active research projects in all four areas — among them an automated cooling and spraying system, composite particle board from agricultural residue and waste plastics, non-intrusive load monitoring, and metal recycling. Each project is published on the research pages with what it is trying to do.",
+  ],
+  [
+    "careers",
+    "Careers",
+    "What kind of work does this prepare me for?",
+    "The four areas point at different directions of practice: design and manufacturing, thermofluids and energy systems, mechatronics and automation, and engineering compliance and management. Current research spans agricultural machinery, materials made from local residue, and energy monitoring, which is a fair picture of the range.",
+  ],
+  [
+    "careers",
+    "Careers",
+    "Does the program work with industry?",
+    "Yes. The program works with academic institutions, industry, government and the communities around it under a quadruple-helix model, so that teaching, research and graduates answer real national needs. Industry partners scope real problems as student projects, host internships, and use the laboratories for testing and prototyping.",
+  ],
+  [
+    "facilities",
+    "Facilities",
+    "Where is the ME program based?",
+    "Mechanical Engineering sits in the Faculty of Engineering at the Royal University of Phnom Penh, on Russian Federation Boulevard (110), Phnom Penh, Cambodia.",
+  ],
+].map(([category, category_label, question, answer], index) => ({
+  id: -(index + 1),
+  sort_order: index,
+  category,
+  category_label,
+  question,
+  // Longer answers arrive as their own markup; short ones are a bare sentence
+  // and get the paragraph the page expects.
+  answer: answer.startsWith("<") ? answer : `<p>${answer}</p>`,
+}));
+
+/**
+ * Only answered, published questions ever leave the API -- the backend
+ * withholds a question whose answer is blank -- so an empty result means the
+ * program has not written any answer yet, or the API could not be reached.
+ * Either way the approved set above is better than a blank page.
+ */
+export async function getFaqs(): Promise<FaqItem[]> {
+  const faqs = await getCollection<FaqItem>("faqs");
+  return faqs.length > 0 ? faqs : fallbackFaqs;
 }
 
 export function getNewsEvents(): Promise<NewsEvent[]> {

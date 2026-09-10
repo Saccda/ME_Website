@@ -44,6 +44,24 @@ QUESTIONS = [
     ("support", "How much does the program cost?"),
     ("support", "Are scholarships available?"),
     ("support", "Is there support for students who need to work while studying?"),
+    # Asked by students who are still deciding whether engineering is for them,
+    # rather than by applicants who have already chosen it.
+    ("program", "What is the difference between mechanical engineering and the other engineering programs at RUPP?"),
+    ("program", "Do I need to be good at mathematics to study mechanical engineering?"),
+    ("program", "Will I learn to use CAD and other engineering software?"),
+    ("program", "Do I need my own laptop, and what should it be able to run?"),
+    ("learning", "How much programming is involved?"),
+    ("learning", "What does a typical week look like?"),
+    ("learning", "How are students assessed — examinations, projects, or both?"),
+    ("learning", "What happens in the final-year project?"),
+    ("facilities", "Do students work on real equipment or only simulations?"),
+    ("facilities", "Can students propose their own laboratory projects?"),
+    ("careers", "Can I work abroad with this degree?"),
+    ("careers", "What do students do during the summer between years?"),
+    ("admissions", "Can I transfer credits from another university or program?"),
+    ("admissions", "Is there a preparatory or foundation year before the program?"),
+    ("support", "Is accommodation available for students from the provinces?"),
+    ("support", "Who do I talk to if I am struggling with a subject?"),
 ]
 
 
