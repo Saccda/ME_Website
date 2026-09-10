@@ -27,6 +27,7 @@ export const navigationItems: readonly NavigationSection[] = [
         href: "/about#plos",
       },
       { label: "Area of Focus", href: "/#focus" },
+      { label: "Program Brochure", href: "/brochure" },
       { label: "FAQs", href: "/faqs" },
     ],
   },

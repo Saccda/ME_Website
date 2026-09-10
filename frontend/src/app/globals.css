@@ -11770,6 +11770,9 @@ a.partner-logo:focus-visible {
   text-transform: none;
 }
 
+
+/* Who did the work. A project page that omits this reads as though the
+   research appeared on its own. */
 .research-facts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
@@ -11805,6 +11808,9 @@ a.partner-logo:focus-visible {
   list-style: none;
 }
 
+/* Portrait beside the name, and initials where there is no portrait, so a
+   member without a published photograph keeps the same shape as one with it
+   rather than looking like a gap. */
 .story-team li {
   padding: 18px;
   background: var(--white);
@@ -11917,6 +11923,11 @@ a.partner-logo:focus-visible {
   min-width: 0;
 }
 
+/* No narrower than the same prose on a news article. This page used to cap its
+   paragraphs at 72ch, which put them at 621px under a 1440px picture -- 43% of
+   the band, against 75% for the identical layout on a story page. Two pages of
+   the same shape reading at two different widths is what made it look broken
+   rather than measured. `--story-measure` governs both now. */
 .research-main .research-detail-summary,
 .research-main .story-body > p,
 .research-main .story-rich-text {
@@ -11932,9 +11943,6 @@ a.partner-logo:focus-visible {
   margin-top: clamp(30px, 3.4vw, 46px);
 }
 
-.research-aside .research-facts {
-  margin: 0 0 26px;
-}
 
 .research-aside-links p {
   margin: 0 0 10px;
@@ -11973,9 +11981,6 @@ a.partner-logo:focus-visible {
     order: -1;
   }
 
-  .research-aside .research-facts {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
-  }
 }
 
 /* One sliding row per opportunity type. Grouping answers "are there
@@ -12293,3 +12298,1491 @@ a.partner-logo:focus-visible {
     font-size: 0.78rem;
   }
 }
+
+/* ==========================================================================
+   Program brochure — page-turning reader
+   --------------------------------------------------------------------------
+   Every selector is scoped to .flipbook. The publication is a thing inside the
+   site, not a restyling of it, so nothing here may reach a global heading,
+   button or background.
+
+   The reference publication this was ported from used its own blue/cyan
+   palette. That palette belonged to that publication; this one is the ME
+   program's own brochure, so it takes the site's brand tokens instead. What is
+   preserved from the reference is the structure: A4 proportions, the charcoal
+   viewer, alternating paper and dark spreads, editorial hierarchy, and the
+   physical sheet turn.
+
+   Type inside a page is sized in `cqi` against the page's own inline size, so
+   an A4 page reads identically whether it is a half-spread at 1440px, a single
+   page on a phone, or a printed sheet. Using viewport units here would size the
+   text against the window instead of the page and break that.
+   ========================================================================== */
+.flipbook {
+  --fb-navy: #07152e;
+  --fb-deep: var(--brand-navy);
+  --fb-gold: var(--brand-gold);
+  --fb-paper: #fffefa;
+  --fb-ink: #0b1730;
+  --fb-muted: #5b6780;
+  --fb-line: #d8dee8;
+  --fb-viewer: #252525;
+  --fb-viewer-hi: #3b3b3b;
+  margin: 0 0 clamp(40px, 5vw, 72px);
+}
+
+.fb-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.fb-icon {
+  width: 1em;
+  height: 1em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Bar above the viewer */
+.fb-bar {
+  height: 68px;
+  padding: 0 clamp(14px, 2vw, 22px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--white);
+  border: 1px solid #d7dce4;
+  border-bottom: 0;
+}
+
+.fb-bar-title {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.fb-bar-title > span {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  display: grid;
+  place-content: center;
+  background: var(--fb-gold);
+  color: var(--fb-deep);
+  font-weight: 950;
+  font-size: 15px;
+}
+
+.fb-bar-title > div {
+  padding-left: 12px;
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.fb-bar-title b {
+  font-size: 14px;
+  color: var(--fb-deep);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fb-bar-title small {
+  color: #778297;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.fb-bar-actions button {
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid #d6dbe4;
+  background: var(--white);
+  color: var(--fb-ink);
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fb-bar-actions button:hover {
+  border-color: var(--fb-deep);
+  color: var(--fb-deep);
+}
+
+/* Viewer. Taller than before: the publication is the reason the page exists,
+   so it takes the window rather than sitting in a letterbox halfway down it. */
+.fb-viewer {
+  position: relative;
+  min-height: 520px;
+  height: min(92vh, 1180px);
+  overflow: hidden;
+  background: var(--fb-viewer);
+  color: var(--white);
+}
+
+/* Fullscreen hands the element the whole screen; the caps above would waste
+   most of it. */
+.fb-viewer:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  max-height: none;
+}
+
+/* The stage is a sizing container so the book can be fitted against both of
+   its dimensions at once. Without this the book was capped at a fixed 1080px
+   and ignored the height entirely, which is why a fullscreen window left it
+   marooned in the middle of a very large grey field. */
+.fb-stage {
+  height: calc(100% - 104px);
+  padding: 16px 72px 12px;
+  display: grid;
+  place-content: center;
+  perspective: 2600px;
+  overflow: hidden;
+  container-type: size;
+}
+
+/* Fullscreen has more room to give the pages; the frame gets less of it. */
+.fb-viewer:fullscreen .fb-stage {
+  padding: 14px 66px 10px;
+}
+
+.fb-turn {
+  position: absolute;
+  z-index: 120;
+  top: 50%;
+  width: 62px;
+  height: 110px;
+  margin-top: -70px;
+  border: 0;
+  background: transparent;
+  color: var(--white);
+  font-size: 44px;
+  font-weight: 200;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.fb-turn:hover:not(:disabled) {
+  color: var(--fb-gold);
+}
+
+.fb-turn:disabled {
+  opacity: 0.15;
+  cursor: default;
+}
+
+.fb-turn:focus-visible {
+  outline: 2px solid var(--fb-gold);
+  outline-offset: -6px;
+}
+
+.fb-turn-left {
+  left: 6px;
+}
+
+.fb-turn-right {
+  right: 6px;
+}
+
+/* The book: two A4 pages side by side. */
+/* Two A4 pages side by side, fitted to whichever of the stage's dimensions
+   runs out first. 100cqh * 420/297 is the width the book would need to use the
+   full height; when that exceeds the stage, the width wins instead. */
+.fb-book {
+  width: min(100cqw, calc(100cqh * 420 / 297));
+  aspect-ratio: 420 / 297;
+  position: relative;
+  transform: scale(var(--fb-zoom, 1));
+  transform-style: preserve-3d;
+  transition: transform 0.2s ease;
+}
+
+.fb-book.is-front-closed {
+  transform: translateX(-25%) scale(var(--fb-zoom, 1));
+}
+
+.fb-book.is-back-closed {
+  transform: translateX(25%) scale(var(--fb-zoom, 1));
+}
+
+.fb-book-shadow {
+  position: absolute;
+  left: 2%;
+  right: 2%;
+  bottom: -3%;
+  height: 6%;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  filter: blur(18px);
+}
+
+/* The spine. Sits above the sheets so a turning page passes behind it. */
+.fb-book::after {
+  position: absolute;
+  z-index: 90;
+  left: 50%;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  content: "";
+  transform: translateX(-1px);
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.45),
+    rgba(255, 255, 255, 0.18),
+    rgba(0, 0, 0, 0.32)
+  );
+  pointer-events: none;
+}
+
+/* One physical sheet: hinged on the spine, a face on each side. */
+.fb-sheet {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: transform 0.88s cubic-bezier(0.52, 0.08, 0.2, 0.98);
+  will-change: transform;
+}
+
+.fb-sheet.is-flipped {
+  transform: rotateY(-180deg);
+}
+
+.fb-sheet.is-turning {
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.42));
+}
+
+.fb-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background: var(--fb-paper);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.28);
+}
+
+.fb-face-front {
+  transform: rotateY(0deg);
+}
+
+.fb-face-back {
+  transform: rotateY(180deg);
+}
+
+/* Shadow cast into the gutter as the sheet lifts. */
+.fb-face::after {
+  position: absolute;
+  z-index: 80;
+  inset: 0;
+  content: "";
+  opacity: 0;
+  transition: opacity 0.25s;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.36), transparent 45%);
+  pointer-events: none;
+}
+
+.fb-sheet.is-turning .fb-face::after {
+  opacity: 0.5;
+}
+
+.fb-gloss {
+  position: absolute;
+  z-index: 79;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  background: linear-gradient(
+    90deg,
+    transparent 0 65%,
+    rgba(255, 255, 255, 0.15) 85%,
+    rgba(0, 0, 0, 0.08)
+  );
+}
+
+/* Mobile: a single A4 page. */
+/* Mobile: a single A4 page, fitted the same way. */
+.fb-single {
+  display: none;
+  width: min(100cqw, calc(100cqh * 210 / 297));
+  aspect-ratio: 210 / 297;
+  position: relative;
+  transform: scale(var(--fb-zoom, 1));
+}
+
+.fb-single .fb-page {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+}
+
+/* A page. `container-type: inline-size` is what makes cqi units below resolve
+   against the page rather than the window. */
+.fb-page {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  container-type: inline-size;
+  background: var(--fb-paper);
+  color: var(--fb-ink);
+}
+
+.fb-tone-dark {
+  background: var(--fb-navy);
+  color: var(--white);
+}
+
+.fb-tone-cover,
+.fb-tone-back {
+  background: linear-gradient(145deg, #06142d, #0a2964 66%, #123a86);
+  color: var(--white);
+}
+
+.fb-page-head {
+  height: 7.4%;
+  padding: 0 6.8%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid var(--fb-line);
+  color: #657188;
+  font-size: 1.45cqi;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.fb-page-head b {
+  color: var(--fb-deep);
+  font-size: 1.7cqi;
+}
+
+.fb-tone-dark .fb-page-head {
+  border-color: rgba(255, 255, 255, 0.17);
+  color: #9cacca;
+}
+
+.fb-tone-dark .fb-page-head b {
+  color: var(--fb-gold);
+}
+
+.fb-page-foot {
+  position: absolute;
+  left: 6.8%;
+  right: 6.8%;
+  bottom: 0;
+  height: 5.5%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--fb-line);
+  color: #7a8498;
+  font-size: 1.25cqi;
+  letter-spacing: 0.11em;
+}
+
+.fb-page-foot b {
+  color: var(--fb-deep);
+  font-size: 1.65cqi;
+}
+
+.fb-tone-dark .fb-page-foot {
+  border-color: rgba(255, 255, 255, 0.17);
+  color: #8ea0c2;
+}
+
+.fb-tone-dark .fb-page-foot b {
+  color: var(--fb-gold);
+}
+
+.fb-page-pad {
+  height: 87.1%;
+  padding: 5.4% 6.8% 2%;
+  overflow: hidden;
+}
+
+.fb-page-plain {
+  height: 100%;
+}
+
+.fb-page h2 {
+  margin: 0;
+  font-size: 4.6cqi;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.fb-page p {
+  line-height: 1.45;
+}
+
+.fb-eyebrow {
+  margin: 0 0 2.6%;
+  color: var(--fb-deep);
+  font-size: 1.5cqi;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+}
+
+.fb-eyebrow.fb-gold {
+  color: var(--fb-gold);
+}
+
+.fb-lead {
+  margin: 4% 0 0;
+  color: var(--fb-muted);
+  font-size: 1.72cqi;
+}
+
+.fb-note {
+  margin: 5% 0 0;
+  color: #b9c6e0;
+  font-size: 1.5cqi;
+  line-height: 1.5;
+}
+
+.fb-note-dark {
+  color: var(--fb-muted);
+}
+
+.fb-quote {
+  margin: 6% 0 0;
+  padding-left: 4.5%;
+  border-left: 0.75cqi solid var(--fb-gold);
+  font-size: 2.35cqi;
+  font-weight: 700;
+  line-height: 1.42;
+}
+
+.fb-strip {
+  margin-top: 6%;
+  padding: 4%;
+  display: grid;
+  grid-template-columns: 5.4cqi 1fr;
+  gap: 4%;
+  align-items: center;
+  background: #f2ede1;
+}
+
+.fb-strip .fb-icon {
+  font-size: 5cqi;
+  color: var(--fb-deep);
+}
+
+.fb-strip p {
+  margin: 0;
+  font-size: 1.55cqi;
+}
+
+.fb-tone-dark .fb-strip {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.fb-tone-dark .fb-strip .fb-icon {
+  color: var(--fb-gold);
+}
+
+/* Two-panel mission spread. Each panel leads with a picture, so the page reads
+   as a spread rather than as two paragraphs in boxes. */
+.fb-duo {
+  margin-top: 5.5%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4%;
+}
+
+.fb-duo section {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: #eef1f7;
+  border-top: 0.8cqi solid var(--fb-deep);
+}
+
+.fb-duo section:last-child {
+  background: #fbf3dd;
+  border-top-color: var(--fb-gold);
+}
+
+.fb-duo img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: block;
+  object-fit: cover;
+}
+
+.fb-duo section > div {
+  padding: 7%;
+  display: grid;
+  align-content: start;
+  gap: 4%;
+}
+
+.fb-duo span {
+  color: #7a8498;
+  font-size: 1.3cqi;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+}
+
+.fb-duo p {
+  margin: 0;
+  color: #4d596e;
+  font-size: 1.52cqi;
+}
+
+/* Four areas of focus, each with its own photograph. */
+.fb-areas {
+  margin-top: 5%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3%;
+}
+
+.fb-areas section {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.fb-areas img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+  object-fit: cover;
+  filter: saturate(0.85) brightness(0.82);
+}
+
+.fb-areas section > div {
+  padding: 5% 5.5% 6%;
+  display: grid;
+  gap: 1.5cqi;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.fb-areas b {
+  color: var(--fb-gold);
+  font-size: 2.7cqi;
+  letter-spacing: 0.02em;
+}
+
+.fb-areas p {
+  margin: 0;
+  color: #c6d2e9;
+  font-size: 1.42cqi;
+  line-height: 1.35;
+}
+
+/* Year stack */
+.fb-stack {
+  margin-top: 5%;
+  display: grid;
+  border-top: 1px solid var(--fb-line);
+}
+
+.fb-stack section {
+  padding: 4% 0;
+  display: grid;
+  grid-template-columns: 10cqi 1fr 9cqi;
+  gap: 4%;
+  align-items: center;
+  border-bottom: 1px solid var(--fb-line);
+}
+
+.fb-stack-year {
+  color: var(--fb-deep);
+  font-size: 1.32cqi;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.fb-stack b {
+  font-size: 2.4cqi;
+}
+
+.fb-stack p {
+  margin: 2% 0 0;
+  color: var(--fb-muted);
+  font-size: 1.5cqi;
+}
+
+.fb-stack strong {
+  color: var(--fb-deep);
+  font-size: 4.6cqi;
+  text-align: right;
+  letter-spacing: -0.04em;
+}
+
+.fb-stack-rest strong {
+  color: var(--fb-gold);
+}
+
+/* Course families */
+.fb-families {
+  margin-top: 5%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2.6%;
+}
+
+.fb-families span {
+  padding: 4% 4.5%;
+  display: grid;
+  gap: 1.6cqi;
+  background: #eef1f7;
+  color: var(--fb-muted);
+  font-size: 1.3cqi;
+  line-height: 1.35;
+}
+
+.fb-families span.is-focus {
+  background: var(--fb-deep);
+  color: #c8d5f0;
+}
+
+.fb-families b {
+  color: var(--fb-deep);
+  font-size: 2.5cqi;
+  letter-spacing: 0.02em;
+}
+
+.fb-families span.is-focus b {
+  color: var(--fb-gold);
+}
+
+/* Research project cards, each led by its picture. */
+.fb-projects {
+  margin-top: 5%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3%;
+}
+
+.fb-projects section {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  border-left: 0.6cqi solid var(--fb-gold);
+}
+
+.fb-projects img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+  object-fit: cover;
+  filter: saturate(0.85) brightness(0.85);
+}
+
+.fb-projects section > div {
+  padding: 5%;
+  display: grid;
+  align-content: start;
+  gap: 1.6cqi;
+}
+
+.fb-projects span {
+  color: var(--fb-gold);
+  font-size: 1.2cqi;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+}
+
+.fb-projects b {
+  font-size: 1.95cqi;
+  line-height: 1.15;
+}
+
+.fb-projects p {
+  margin: 0;
+  color: #bfcbe4;
+  font-size: 1.32cqi;
+  line-height: 1.4;
+}
+
+/* Six machines from the program's own catalogue, named. */
+.fb-kit {
+  margin-top: 5%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3%;
+}
+
+.fb-kit figure {
+  margin: 0;
+  overflow: hidden;
+  background: #eef1f7;
+}
+
+.fb-kit img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: block;
+  object-fit: cover;
+}
+
+.fb-kit figcaption {
+  padding: 5% 6% 6%;
+  display: grid;
+  gap: 0.9cqi;
+}
+
+.fb-kit b {
+  font-size: 1.32cqi;
+  line-height: 1.28;
+}
+
+.fb-kit span {
+  color: var(--fb-deep);
+  font-size: 1.06cqi;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+/* The four strands, as type rather than stock photography: there is no
+   photograph of "policy", and inventing one adds nothing. */
+.fb-strands {
+  margin-top: 5.5%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2.6%;
+}
+
+.fb-strands section {
+  padding: 7% 5%;
+  display: grid;
+  gap: 1.4cqi;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.06);
+  border-top: 0.7cqi solid var(--fb-gold);
+}
+
+.fb-strands b {
+  font-size: 2.05cqi;
+}
+
+.fb-strands span {
+  color: #a9b8d6;
+  font-size: 1.24cqi;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+}
+
+/* Partner marks, on the white plates their logos are drawn for. */
+.fb-logos {
+  margin-top: 5.5%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2.2%;
+}
+
+.fb-logos span {
+  aspect-ratio: 5 / 3;
+  padding: 5%;
+  display: grid;
+  place-items: center;
+  background: var(--white);
+}
+
+.fb-logos img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Full-bleed photograph behind a cover, with a navy veil over it so the type
+   keeps its contrast whatever the picture is doing underneath. */
+.fb-bleed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fb-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    155deg,
+    rgba(6, 20, 45, 0.94),
+    rgba(10, 41, 100, 0.88) 58%,
+    rgba(18, 58, 134, 0.82)
+  );
+}
+
+/* A picture that opens a paper page. */
+.fb-figure {
+  margin: 0 0 5.5%;
+  overflow: hidden;
+}
+
+.fb-figure img {
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  display: block;
+  object-fit: cover;
+}
+
+/* Four small plates under the year stack: what the years actually look like. */
+.fb-strip-photos {
+  margin-top: 5%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2.4%;
+}
+
+.fb-strip-photos figure {
+  margin: 0;
+}
+
+.fb-strip-photos img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: block;
+  object-fit: cover;
+}
+
+.fb-strip-photos figcaption {
+  padding-top: 1.6cqi;
+  color: var(--fb-muted);
+  font-size: 1.2cqi;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Two working screens, side by side, each with what it shows. */
+.fb-case {
+  margin-top: 5%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3.4%;
+}
+
+.fb-case figure {
+  margin: 0;
+}
+
+.fb-case img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  display: block;
+  object-fit: cover;
+  border: 1px solid var(--fb-line);
+}
+
+.fb-case figcaption {
+  padding-top: 1.8cqi;
+  color: var(--fb-muted);
+  font-size: 1.28cqi;
+  line-height: 1.4;
+}
+
+/* Numbered process row, without icons: the numerals carry the sequence. */
+.fb-flow {
+  margin-top: 5%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2.6%;
+}
+
+.fb-flow section {
+  padding: 4.5% 4%;
+  display: grid;
+  align-content: start;
+  gap: 1.4cqi;
+  background: #eef1f7;
+  border-top: 0.55cqi solid var(--fb-deep);
+}
+
+.fb-flow span {
+  color: var(--fb-deep);
+  font-size: 2.6cqi;
+  font-weight: 950;
+  letter-spacing: -0.03em;
+  opacity: 0.42;
+}
+
+.fb-flow b {
+  font-size: 1.72cqi;
+}
+
+.fb-flow p {
+  margin: 0;
+  color: var(--fb-muted);
+  font-size: 1.22cqi;
+  line-height: 1.4;
+}
+
+/* The answer to the AI question, set above the reasoning that supports it. */
+.fb-answer {
+  margin: 4% 0 0;
+  padding-left: 4%;
+  border-left: 0.7cqi solid var(--fb-gold);
+  color: var(--fb-gold);
+  font-size: 1.95cqi;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+/* Six short reasons, three abreast. Numbered rather than bulleted: the reader
+   is being shown that the list is finite. */
+.fb-reasons {
+  margin-top: 5%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3%;
+}
+
+.fb-reasons section {
+  padding: 4.5% 4.5% 5%;
+  display: grid;
+  align-content: start;
+  gap: 1.2cqi;
+  background: rgba(255, 255, 255, 0.06);
+  border-top: 0.5cqi solid var(--fb-gold);
+}
+
+.fb-reasons span {
+  color: var(--fb-gold);
+  font-size: 1.9cqi;
+  font-weight: 950;
+  letter-spacing: -0.03em;
+  opacity: 0.6;
+}
+
+.fb-reasons b {
+  font-size: 1.5cqi;
+  line-height: 1.2;
+}
+
+.fb-reasons p {
+  margin: 0;
+  color: #bfcbe4;
+  font-size: 1.2cqi;
+  line-height: 1.42;
+}
+
+/* One reason per focus area, the area code carrying the row. */
+.fb-why {
+  margin-top: 5%;
+  display: grid;
+  gap: 2.6%;
+}
+
+.fb-why section {
+  padding: 3.4% 0;
+  display: grid;
+  grid-template-columns: 11cqi 1fr;
+  gap: 4%;
+  align-items: start;
+  border-top: 1px solid var(--fb-line);
+}
+
+.fb-why > section:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.fb-why > section > b {
+  color: var(--fb-deep);
+  font-size: 2.5cqi;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.fb-why strong {
+  display: block;
+  font-size: 1.85cqi;
+  line-height: 1.2;
+}
+
+.fb-why p {
+  margin: 1.6% 0 0;
+  color: var(--fb-muted);
+  font-size: 1.34cqi;
+  line-height: 1.45;
+}
+
+/* Cover and back cover */
+.fb-cover-grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(74, 135, 227, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 135, 227, 0.16) 1px, transparent 1px);
+  background-size: 9% 6.5%;
+  mask-image: linear-gradient(#000, transparent 88%);
+}
+
+.fb-cover-mark {
+  position: relative;
+  margin: 7% 7% 0;
+  display: flex;
+  align-items: center;
+  gap: 3.5%;
+}
+
+.fb-cover-mark > span {
+  width: 11cqi;
+  height: 11cqi;
+  display: grid;
+  place-content: center;
+  background: var(--fb-gold);
+  color: var(--fb-navy);
+  font-size: 4cqi;
+  font-weight: 950;
+}
+
+.fb-cover-mark p {
+  margin: 0;
+  color: #c6d3ed;
+  font-size: 1.42cqi;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  line-height: 1.5;
+}
+
+.fb-cover-copy {
+  position: relative;
+  margin: 11% 7% 0;
+}
+
+.fb-cover-copy > p {
+  margin: 0 0 4%;
+  color: var(--fb-gold);
+  font-size: 1.55cqi;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.fb-cover-copy h1 {
+  margin: 0;
+  font-size: 8.4cqi;
+  font-weight: 850;
+  line-height: 0.94;
+  letter-spacing: -0.055em;
+}
+
+.fb-cover-copy h1 em {
+  color: var(--fb-gold);
+  font-style: normal;
+}
+
+.fb-cover-rule {
+  display: block;
+  width: 18%;
+  height: 0.8cqi;
+  margin: 5% 0;
+  background: var(--fb-gold);
+}
+
+.fb-cover-copy h2 {
+  font-size: 2.5cqi;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: #cad6ee;
+}
+
+.fb-cover-areas {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  bottom: 11%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3%;
+}
+
+.fb-cover-areas > div {
+  min-height: 12cqi;
+  padding: 6%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12%;
+  border: 1px solid rgba(255, 255, 255, 0.23);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.fb-cover-areas .fb-icon {
+  font-size: 4.4cqi;
+  color: var(--fb-gold);
+}
+
+.fb-cover-areas b {
+  font-size: 1.5cqi;
+  letter-spacing: 0.08em;
+}
+
+.fb-cover-note {
+  position: absolute;
+  left: 7%;
+  bottom: 4.5%;
+  margin: 0;
+  color: #90a4ca;
+  font-size: 1.3cqi;
+  letter-spacing: 0.08em;
+}
+
+.fb-back-copy {
+  position: relative;
+  margin: 12% 7% 0;
+}
+
+.fb-back-copy h2 {
+  font-size: 3.4cqi;
+  line-height: 1.2;
+}
+
+.fb-back-links {
+  margin-top: 8%;
+  display: grid;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.fb-back-links span {
+  padding: 3.4% 0;
+  display: grid;
+  gap: 1cqi;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--fb-gold);
+  font-size: 1.4cqi;
+}
+
+.fb-back-links b {
+  color: var(--white);
+  font-size: 1.75cqi;
+}
+
+.fb-back-address {
+  margin-top: 9%;
+}
+
+.fb-back-address b {
+  color: var(--fb-gold);
+  font-size: 1.7cqi;
+}
+
+.fb-back-address p {
+  margin: 1.5% 0 0;
+  color: #b9c6e0;
+  font-size: 1.45cqi;
+}
+
+/* Controls */
+.fb-controls {
+  position: absolute;
+  z-index: 130;
+  left: 14px;
+  right: 14px;
+  bottom: 12px;
+  height: 57px;
+  padding: 0 11px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #151515;
+  border: 1px solid #444;
+  border-radius: 7px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.fb-controls > strong {
+  min-width: 82px;
+  font-size: 12px;
+}
+
+.fb-controls button {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  display: grid;
+  place-content: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #eee;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.fb-controls button:hover:not(:disabled),
+.fb-controls button.is-active {
+  background: var(--fb-viewer-hi);
+  color: var(--fb-gold);
+}
+
+.fb-controls button:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.fb-controls button:focus-visible,
+.fb-search:focus-visible,
+.fb-contents button:focus-visible {
+  outline: 2px solid var(--fb-gold);
+  outline-offset: 2px;
+}
+
+.fb-controls > input[type="range"] {
+  flex: 1;
+  max-width: 420px;
+  accent-color: var(--fb-gold);
+}
+
+.fb-zoom {
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  border-left: 1px solid #444;
+  border-right: 1px solid #444;
+}
+
+.fb-zoom span {
+  width: 44px;
+  text-align: center;
+  color: #aaa;
+  font-size: 9px;
+}
+
+/* Contents panel */
+.fb-panel {
+  position: absolute;
+  z-index: 125;
+  left: 0;
+  top: 38px;
+  bottom: 80px;
+  width: min(370px, 88vw);
+  padding: 18px;
+  overflow: auto;
+  background: #1c1c1c;
+  border-right: 1px solid #444;
+  box-shadow: 15px 0 30px rgba(0, 0, 0, 0.35);
+  transform: translateX(-105%);
+  transition: transform 0.25s;
+}
+
+.fb-panel.is-open {
+  transform: none;
+}
+
+.fb-panel-head {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fb-panel-head b {
+  font-size: 18px;
+}
+
+.fb-panel-head button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: #333;
+  color: var(--white);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.fb-search {
+  width: 100%;
+  height: 42px;
+  padding: 0 10px;
+  border: 1px solid #484848;
+  background: #303030;
+  color: var(--white);
+}
+
+.fb-contents {
+  margin-top: 12px;
+  display: grid;
+}
+
+.fb-contents button {
+  padding: 11px 8px;
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  align-items: start;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid #373737;
+  background: transparent;
+  color: var(--white);
+  cursor: pointer;
+}
+
+.fb-contents button:hover,
+.fb-contents button.is-active {
+  background: #313131;
+}
+
+.fb-contents span {
+  color: var(--fb-gold);
+  font-size: 9px;
+  font-weight: 850;
+  padding-top: 2px;
+}
+
+.fb-contents b {
+  font-size: 11.5px;
+}
+
+.fb-contents small {
+  display: block;
+  margin-top: 3px;
+  color: #999;
+  font-size: 9px;
+  font-weight: 400;
+}
+
+.fb-contents-empty {
+  margin: 16px 0 0;
+  color: #999;
+  font-size: 12px;
+}
+
+.fb-help {
+  height: 36px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d7dce4;
+  border-top: 0;
+  color: #687286;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.fb-print {
+  display: none;
+}
+
+/* Mobile: one page, no spread. */
+@media (max-width: 760px) {
+  .fb-bar {
+    height: 60px;
+    padding: 0 12px;
+  }
+
+  .fb-bar-actions {
+    display: none;
+  }
+
+  .fb-viewer {
+    min-height: 580px;
+    height: min(84vh, 700px);
+  }
+
+  .fb-topline span {
+    display: none;
+  }
+
+  .fb-topline b {
+    margin: auto;
+  }
+
+  .fb-stage {
+    height: calc(100% - 99px);
+    padding: 11px 42px 7px;
+  }
+
+  .fb-book {
+    display: none;
+  }
+
+  .fb-single {
+    display: block;
+  }
+
+  .fb-turn {
+    width: 38px;
+    height: 72px;
+    margin-top: -56px;
+    font-size: 32px;
+  }
+
+  .fb-controls {
+    left: 7px;
+    right: 7px;
+    bottom: 7px;
+    padding: 0 5px;
+  }
+
+  .fb-controls > strong {
+    min-width: 54px;
+    font-size: 9px;
+  }
+
+  .fb-controls button {
+    width: 33px;
+    height: 33px;
+  }
+
+  .fb-zoom {
+    display: none;
+  }
+
+  .fb-panel {
+    bottom: 69px;
+  }
+}
+
+/* A sheet that rotates in one hundredth of a second still rotates: the
+   mechanism is preserved, the motion is not imposed. */
+@media (prefers-reduced-motion: reduce) {
+  .fb-sheet,
+  .fb-book,
+  .fb-panel,
+  .fb-face::after {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* One A4 sheet per page, text intact. */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  .flipbook .fb-bar,
+  .flipbook .fb-viewer,
+  .flipbook .fb-help {
+    display: none !important;
+  }
+
+  .fb-print {
+    display: block !important;
+  }
+
+  .fb-print .fb-page {
+    width: 210mm;
+    height: 297mm;
+    break-after: page;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+
