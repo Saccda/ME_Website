@@ -11813,9 +11813,40 @@ a.partner-logo:focus-visible {
    rather than looking like a gap. */
 .story-team li {
   padding: 18px;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
   background: var(--white);
   border: 1px solid var(--line);
   border-left: 3px solid var(--gold);
+}
+
+.story-team-portrait {
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--brand-navy);
+  font-size: 0.86rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+}
+
+.story-team-portrait img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.story-team-who {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
 .story-team strong {

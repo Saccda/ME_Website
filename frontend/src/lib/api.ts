@@ -267,7 +267,13 @@ export type StoryBlock =
   | {
       type: "team";
       heading: string;
-      members: { name: string; role: string; detail: string }[];
+      members: {
+        name: string;
+        role: string;
+        detail: string;
+        /** Null unless written consent was recorded against this person. */
+        photo: string | null;
+      }[];
     }
   | {
       type: "timeline";

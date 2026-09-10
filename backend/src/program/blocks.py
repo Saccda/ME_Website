@@ -331,6 +331,15 @@ class TeamBlock(blocks.StructBlock):
     Research on a teaching programme is done by students under supervision,
     and a project page that does not say so reads as though it appeared on its
     own. Naming the people is also what lets a reader judge the work.
+
+    This is where interns and mentored students are credited: on the work they
+    did, rather than in a directory of their own. A project stays true after
+    they graduate, which a roster of current students does not.
+
+    A photograph is published only when `consent` is ticked. Publishing a
+    student's face is a higher bar than crediting their name, and the tick is
+    what stops the higher bar being cleared by forgetting -- the same reason a
+    question with no answer cannot reach the FAQ page.
     """
 
     heading = blocks.CharBlock(required=False, max_length=200, default="Project team")
@@ -351,6 +360,30 @@ class TeamBlock(blocks.StructBlock):
                         required=False,
                         max_length=200,
                         help_text="Year of study, department, or area of contribution.",
+                    ),
+                ),
+                (
+                    "photo",
+                    ImageChooserBlock(
+                        required=False,
+                        help_text=(
+                            "Optional portrait. Published only when written "
+                            "consent has been recorded below."
+                        ),
+                    ),
+                ),
+                (
+                    "consent",
+                    blocks.BooleanBlock(
+                        required=False,
+                        default=False,
+                        label="Written consent held for the photograph",
+                        help_text=(
+                            "Tick only when this person has given written "
+                            "consent for their photograph to appear on the "
+                            "public website. Unticked, the name and role are "
+                            "published and the photograph is not."
+                        ),
                     ),
                 ),
             ]

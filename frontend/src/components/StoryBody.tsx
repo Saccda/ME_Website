@@ -3,6 +3,15 @@ import type { StoryBlock } from "@/lib/api";
 import { videoEmbedUrl } from "@/lib/video";
 import MediaGallery from "./MediaGallery";
 
+/** Stands in for a portrait nobody has consented to publish. */
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "";
+  const first = parts[0][0] ?? "";
+  const last = parts.length > 1 ? (parts[parts.length - 1][0] ?? "") : "";
+  return (first + last).toUpperCase();
+}
+
 export default function StoryBody({
   blocks,
   galleryTitle,
@@ -161,6 +170,9 @@ export default function StoryBody({
               </section>
             );
 
+          // Students and supervisors credited on the work they did. A portrait
+          // appears only when the backend sent one, which it does only against
+          // recorded consent; everyone else keeps their initials.
           case "team":
             return (
               <section className="story-team" key={key}>
@@ -168,9 +180,18 @@ export default function StoryBody({
                 <ul>
                   {block.members.map((member) => (
                     <li key={`${member.name}-${member.role}`}>
-                      <strong>{member.name}</strong>
-                      <span>{member.role}</span>
-                      {member.detail ? <em>{member.detail}</em> : null}
+                      <span className="story-team-portrait" aria-hidden="true">
+                        {member.photo ? (
+                          <img alt="" loading="lazy" src={member.photo} />
+                        ) : (
+                          initials(member.name)
+                        )}
+                      </span>
+                      <span className="story-team-who">
+                        <strong>{member.name}</strong>
+                        <span>{member.role}</span>
+                        {member.detail ? <em>{member.detail}</em> : null}
+                      </span>
                     </li>
                   ))}
                 </ul>

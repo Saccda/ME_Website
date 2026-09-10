@@ -49,6 +49,7 @@ HERO_IMAGE = f"width-2000|{WEBP}"  # the landing page hero, full-bleed at 1265px
 PANEL_IMAGE = f"width-900|{WEBP}"  # focus, why-choose and facility cards
 POSTER_IMAGE = f"width-1200|{WEBP}"  # an opportunity announcement
 PORTRAIT_IMAGE = f"width-800|{WEBP}"  # a faculty photograph, never cropped
+TEAM_PORTRAIT = f"fill-320x320|{WEBP}"  # a square plate in a project team list
 LOGO_IMAGE = f"max-400x240|{WEBP}"  # partner marquee; fitted, so no logo loses an edge
 
 
@@ -326,6 +327,14 @@ def story_blocks(stream_value, request=None, gallery_items=None):
                     "name": member.get("name", ""),
                     "role": member.get("role", ""),
                     "detail": member.get("detail", ""),
+                    # The portrait leaves the API only when consent is
+                    # recorded. Withholding it here rather than in the template
+                    # means no future page can publish it by accident.
+                    "photo": (
+                        rendition_url(member.get("photo"), TEAM_PORTRAIT, request)
+                        if member.get("consent")
+                        else None
+                    ),
                 }
                 for member in value.get("members", [])
                 if member.get("name")
