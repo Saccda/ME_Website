@@ -15,7 +15,7 @@ export const admissionsContent = {
     // Non-breaking spaces keep each day+month together, so a range that has to
     // wrap breaks at the separator instead of splitting "30 September".
     { step: 1, title: "Registration", date: "17 August - 30 September" },
-    { step: 2, title: "Entrance Exam", date: "10 October" },
+    { step: 2, title: "Entrance Exam", date: "22 - 23 October" },
     { step: 3, title: "Results Announcement", date: "07 November" },
     { step: 4, title: "Tuition Fee Payment", date: "07 - 21 November" },
     { step: 5, title: "Start of Academic Year", date: "26 November" },
