@@ -23,11 +23,62 @@ import { videoEmbedUrl, videoThumbnail } from "@/lib/video";
 const PREVIEW = 3;
 
 function itemTitle(item: GalleryItem, index: number) {
-  return item.caption || item.alt_text || `Photograph ${index + 1}`;
+  const noun = item.kind === "video" ? "Video" : "Photograph";
+  return item.caption || item.alt_text || `${noun} ${index + 1}`;
 }
 
+/** What the set holds, by kind: "3 photographs and 2 videos". */
+function describeSet(items: GalleryItem[]) {
+  const videos = items.filter((item) => item.kind === "video").length;
+  const photographs = items.length - videos;
+  return [
+    photographs > 0
+      ? `${photographs} ${photographs === 1 ? "photograph" : "photographs"}`
+      : "",
+    videos > 0 ? `${videos} ${videos === 1 ? "video" : "videos"}` : "",
+  ]
+    .filter(Boolean)
+    .join(" and ");
+}
+
+/** The word for one item of the set, for the prompts addressed to a reader. */
+function itemNoun(items: GalleryItem[]) {
+  const kinds = new Set(items.map((item) => item.kind));
+  if (kinds.size > 1) return "item";
+  return kinds.has("video") ? "video" : "photograph";
+}
+
+/**
+ * A picture to stand for the item, or null when there is none.
+ *
+ * A video's own address is not a picture: handed to an <img> it draws as a
+ * broken image. So a video gets its poster, or its host's still, or nothing,
+ * and the caller decides what to show instead.
+ */
 function thumbSrc(item: GalleryItem) {
-  return item.thumb || videoThumbnail(item.url) || item.url;
+  if (item.kind === "image") return item.thumb || item.url;
+  return item.thumb || videoThumbnail(item.url);
+}
+
+/** A preview tile's picture. */
+function TileStill({ item }: { item: GalleryItem }) {
+  const src = thumbSrc(item);
+  if (src) return <img alt="" src={src} />;
+
+  // An uploaded clip nobody chose a poster for: the browser draws a frame of
+  // the clip itself. #t=0.1 asks for one just past the start, which some
+  // browsers need before they paint anything. A browser that cannot load the
+  // file leaves the tile's own ground and play badge, not a broken image.
+  if (item.file_url) {
+    return (
+      <video
+        aria-hidden="true"
+        preload="metadata"
+        src={`${item.file_url}#t=0.1`}
+      />
+    );
+  }
+  return null;
 }
 
 /** Only ever built for the item on the stage. */
@@ -124,6 +175,7 @@ export default function MediaGallery({
   // A body gallery block carries a caption but no heading, and a section with
   // no heading cannot be labelled by one.
   const labelled = Boolean(heading);
+  const noun = itemNoun(items);
 
   /** Wraps continuously, so the set has no dead ends. */
   function select(next: number) {
@@ -200,7 +252,7 @@ export default function MediaGallery({
             onClick={() => openAt(position)}
             type="button"
           >
-            <img alt="" src={thumbSrc(item)} />
+            <TileStill item={item} />
             {item.kind === "video" ? (
               <span aria-hidden="true" className="article-gallery__play" />
             ) : null}
@@ -228,8 +280,8 @@ export default function MediaGallery({
         <footer className="article-gallery__foot">
           <p>
             {remaining > 0
-              ? `${preview.length} of ${total} shown. Open any photograph to browse the full set.`
-              : `${total} ${total === 1 ? "photograph" : "photographs"}.`}
+              ? `${preview.length} of ${total} shown. Open any ${noun} to browse the full set.`
+              : `${describeSet(items)}.`}
           </p>
           <span className="article-gallery__count">
             {total} {total === 1 ? "item" : "items"}
@@ -291,21 +343,34 @@ export default function MediaGallery({
             <div className="article-gallery-dialog__foot">
               <p>{itemTitle(current, index)}</p>
               <div
-                aria-label="Choose a photograph"
+                aria-label={`Choose ${noun === "item" ? "an item" : `a ${noun}`}`}
                 className="article-gallery-dialog__thumbs"
                 ref={railRef}
               >
-                {items.map((item, position) => (
-                  <button
-                    aria-label={`${position + 1}: ${itemTitle(item, position)}`}
-                    className={`article-gallery-dialog__thumb${position === index ? " is-active" : ""}`}
-                    key={`d-${item.kind}-${position}`}
-                    onClick={() => select(position)}
-                    type="button"
-                  >
-                    <img alt="" loading="lazy" src={thumbSrc(item)} />
-                  </button>
-                ))}
+                {items.map((item, position) => {
+                  const still = thumbSrc(item);
+                  return (
+                    <button
+                      aria-label={`${position + 1}: ${itemTitle(item, position)}`}
+                      className={`article-gallery-dialog__thumb${position === index ? " is-active" : ""}`}
+                      key={`d-${item.kind}-${position}`}
+                      onClick={() => select(position)}
+                      type="button"
+                    >
+                      {/* The rail holds every item in the set, so drawing a
+                          frame from each clip would download them all at
+                          once. A video with no still gets a play mark. */}
+                      {still ? (
+                        <img alt="" loading="lazy" src={still} />
+                      ) : (
+                        <span
+                          aria-hidden="true"
+                          className="article-gallery-dialog__thumb-video"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>

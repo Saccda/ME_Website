@@ -3366,7 +3366,10 @@ img {
   cursor: pointer;
 }
 
-.article-gallery__tile img {
+/* An uploaded clip with no poster draws its own frame, so a tile's picture can
+   be a <video> as well as an <img>. */
+.article-gallery__tile img,
+.article-gallery__tile video {
   width: 100%;
   height: 100%;
   display: block;
@@ -3375,7 +3378,9 @@ img {
 }
 
 .article-gallery__tile:hover img,
-.article-gallery__tile:focus-visible img {
+.article-gallery__tile:hover video,
+.article-gallery__tile:focus-visible img,
+.article-gallery__tile:focus-visible video {
   transform: scale(1.03);
 }
 
@@ -3621,6 +3626,25 @@ img {
   object-fit: cover;
 }
 
+/* A video with no still: a play mark stands in rather than a broken image. */
+.article-gallery-dialog__thumb-video {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background: #25344a;
+}
+
+.article-gallery-dialog__thumb-video::after {
+  width: 0;
+  height: 0;
+  margin-left: 3px;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 11px solid #fff;
+  content: "";
+}
+
 .article-gallery-dialog__close:focus-visible,
 .article-gallery-dialog__arrow:focus-visible,
 .article-gallery-dialog__thumb:focus-visible {
@@ -3683,12 +3707,15 @@ img {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .article-gallery__tile img {
+  .article-gallery__tile img,
+  .article-gallery__tile video {
     transition: none;
   }
 
   .article-gallery__tile:hover img,
-  .article-gallery__tile:focus-visible img {
+  .article-gallery__tile:hover video,
+  .article-gallery__tile:focus-visible img,
+  .article-gallery__tile:focus-visible video {
     transform: none;
   }
 }
