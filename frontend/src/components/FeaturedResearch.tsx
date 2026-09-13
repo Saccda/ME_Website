@@ -31,8 +31,11 @@ const SHOWN = 3;
 
 export default function FeaturedResearch({
   projects,
+  tone = "white",
 }: {
   projects: ResearchProject[];
+  /** Set by the page, so the band never shares a ground with the one above. */
+  tone?: "cream" | "white";
 }) {
   // Featured first, otherwise CMS order. `sort` is stable, so ties keep it.
   // Coerced through Boolean because a backend that predates the is_featured
@@ -45,7 +48,7 @@ export default function FeaturedResearch({
   if (shown.length === 0) return null;
 
   return (
-    <section className="section white home-feed" id="featured-research">
+    <section className={`section ${tone} home-feed`} id="featured-research">
       <div className="shell">
         <header className="home-feed-head split">
           <div className="home-feed-lead">

@@ -1,3 +1,5 @@
+import { features } from "@/config/features";
+
 export type NavigationLink = {
   label: string;
   href?: string;
@@ -79,7 +81,10 @@ export const navigationItems: readonly NavigationSection[] = [
   {
     label: "News & Events",
     links: [
-      { label: "Job Opportunities", href: "/#opportunities" },
+      // Switched off with the homepage board; see config/features.ts.
+      ...(features.opportunities
+        ? [{ label: "Job Opportunities", href: "/#opportunities" }]
+        : []),
       // #lab-openhouse, #seminar-series and #publication were removed with the
       // News & Events redesign; these point at sections that still exist.
       { label: "Upcoming Events", href: "/news-events#upcoming" },

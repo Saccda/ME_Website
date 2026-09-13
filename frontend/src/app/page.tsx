@@ -7,6 +7,7 @@ import OpportunityBoard from "@/components/OpportunityBoard";
 import QuadrupleHelix from "@/components/QuadrupleHelix";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
+import { features } from "@/config/features";
 import { getFeaturedResearch, getHomeData, getNewsEvents } from "@/lib/api";
 import {
   selectLatestNews,
@@ -304,33 +305,47 @@ export default async function Home() {
         ) : null}
 
         {/* Its own band rather than a strip inside the partnership section:
-            partnerships address institutions, opportunities address students. */}
-        <section className="section cream" id="opportunities">
-          <div className="shell">
-            <header className="opportunity-head">
-              <div>
-                <p className="eyebrow">Opportunities</p>
-                <h2>Jobs and internships with our partners</h2>
-                <p>
-                  Openings shared with the ME community by partner
-                  organizations and the program itself.
-                </p>
-              </div>
-            </header>
-          </div>
-          {/* Outside the shell: the rails run the full width of the band, so
-              a card slides in from the window edge rather than from a line
-              partway across it. Each row keeps its heading on the shell. */}
-          <OpportunityBoard
-            email={program.email}
-            facebookUrl={program.facebook_url}
-            opportunities={data.opportunities}
-            telegramUrl={program.telegram_url}
-          />
-        </section>
+            partnerships address institutions, opportunities address students.
+            Switched off in config/features.ts until partners post to it. */}
+        {features.opportunities ? (
+          <section className="section cream" id="opportunities">
+            <div className="shell">
+              <header className="opportunity-head">
+                <div>
+                  <p className="eyebrow">Opportunities</p>
+                  <h2>Jobs and internships with our partners</h2>
+                  <p>
+                    Openings shared with the ME community by partner
+                    organizations and the program itself.
+                  </p>
+                </div>
+              </header>
+            </div>
+            {/* Outside the shell: the rails run the full width of the band,
+                so a card slides in from the window edge rather than from a
+                line partway across it. Each row keeps its heading on the
+                shell. */}
+            <OpportunityBoard
+              email={program.email}
+              facebookUrl={program.facebook_url}
+              opportunities={data.opportunities}
+              telegramUrl={program.telegram_url}
+            />
+          </section>
+        ) : null}
 
+        {/* Bands alternate cream and white. Research follows the white
+            upcoming-events band directly while opportunities is switched
+            off, so it turns cream there and stays white everywhere else. */}
         {featured.length > 0 ? (
-          <FeaturedResearch projects={featured} />
+          <FeaturedResearch
+            projects={featured}
+            tone={
+              upcomingEvents.length > 0 && !features.opportunities
+                ? "cream"
+                : "white"
+            }
+          />
         ) : null}
       </main>
 

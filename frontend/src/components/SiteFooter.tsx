@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
+import { features } from "@/config/features";
 import type { FocusArea, ProgramSettings } from "@/lib/api";
 
 type SiteFooterProps = {
@@ -132,7 +133,9 @@ export default function SiteFooter({
           <h2>Research & Innovation</h2>
           <Link href="/research">Research areas</Link>
           <Link href="/#partners">Partnership</Link>
-          <Link href="/#opportunities">Job opportunities</Link>
+          {features.opportunities ? (
+            <Link href="/#opportunities">Job opportunities</Link>
+          ) : null}
           <Link href="/news-events">News & events</Link>
 
           {socialLinks.length > 0 ? (

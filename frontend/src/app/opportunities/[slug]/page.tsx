@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
+import { features } from "@/config/features";
 import { getHomeData, getOpportunity } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,12 @@ type OpportunityPageProps = {
 export async function generateMetadata({
   params,
 }: OpportunityPageProps): Promise<Metadata> {
+  // The page answers 404 while the board is switched off, so there is no
+  // posting to describe and no reason to ask the CMS for one.
+  if (!features.opportunities) {
+    return { title: "Opportunities | Mechanical Engineering RUPP" };
+  }
+
   const { slug } = await params;
   const lookup = await getOpportunity(slug);
   if (lookup.status !== "found") {
@@ -51,6 +58,10 @@ function RichSection({ heading, html }: { heading: string; html: string }) {
 }
 
 export default async function OpportunityPage({ params }: OpportunityPageProps) {
+  // Switched off with the homepage board: a posting reached by its address
+  // alone would send readers back to a section that is not there.
+  if (!features.opportunities) notFound();
+
   const { slug } = await params;
   const [lookup, home] = await Promise.all([getOpportunity(slug), getHomeData()]);
 
