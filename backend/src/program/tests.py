@@ -2,6 +2,7 @@ import json
 import tempfile
 from types import SimpleNamespace
 from datetime import timedelta
+from io import StringIO
 
 from django.core import mail
 from django.core.cache import cache
@@ -10,6 +11,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.core.files.base import ContentFile
+from wagtail import hooks
 from wagtail.documents import get_document_model
 from wagtail.images import get_image_model
 from wagtail.images.tests.utils import get_test_image_file
@@ -48,6 +50,8 @@ from .models import (
     ProgramSettings,
     ResearchProject,
 )
+from .photo_titles import gallery_photo_title, is_device_name, name_story_gallery
+from .wagtail_hooks import name_story_gallery_photos
 
 
 class PublicApiTests(TestCase):
@@ -1469,3 +1473,156 @@ class FacultySelectedWorkTests(TestCase):
         other.research_projects.add(theirs)
 
         self.assertEqual([p["title"] for p in self.fetch()["research_projects"]], ["Mine"])
+
+
+class GalleryPhotoNamingTests(TestCase):
+    """Photos still titled with a device's file name are named after their story.
+
+    Wagtail copies an uploaded file's name into the image title, so a gallery
+    built from a Telegram export reads photo_1_2026-08-21_17-13-07 in the image
+    library and to a screen reader. Nobody renames forty photos by hand.
+    """
+
+    def setUp(self):
+        cache.clear()
+
+    def make_gallery(self, story, titles):
+        Image = get_image_model()
+        for index, title in enumerate(titles):
+            NewsEventGalleryImage.objects.create(
+                story=story,
+                sort_order=index,
+                image=Image.objects.create(
+                    title=title, file=get_test_image_file(size=(900, 600))
+                ),
+            )
+
+    def titles(self, story):
+        return [
+            entry.image.title
+            for entry in NewsEventGalleryImage.objects.filter(story=story).order_by(
+                "sort_order"
+            )
+        ]
+
+    def test_device_file_names_are_told_apart_from_typed_names(self):
+        for title in (
+            "photo_1_2026-08-21_17-13-07",
+            "photo_2024-04-10_21-57-00",
+            "IMG_8617",
+            "IMG_8617.JPG",
+            "IMG_E0042",
+            "IMG_20260821_171307",
+            "IMG-20260821-WA0003",
+            "PXL_20260821_101500123",
+            "DSC_0042",
+            "20260821_171307",
+            "WhatsApp Image 2026-08-21 at 17.13.07",
+            "Screenshot 2026-08-21 171307",
+            "image",
+            "unnamed (1)",
+        ):
+            with self.subTest(title=title):
+                self.assertTrue(is_device_name(title))
+
+        # Names someone chose, however terse, say what their author meant.
+        for title in (
+            "Communities_10",
+            "RUPP_CJDM8",
+            "Day 1",
+            "Shot 1",
+            "Trainees setting the work offset",
+            "Staff training with CJDM – photo 3",
+        ):
+            with self.subTest(title=title):
+                self.assertFalse(is_device_name(title))
+
+    def test_a_gallery_is_named_after_its_story_in_gallery_order(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                story = NewsEvent.objects.create(
+                    content_type="news",
+                    title="Staff training with CJDM",
+                    slug="staff-training-with-cjdm",
+                    excerpt="Photographs exported from Telegram.",
+                )
+                self.make_gallery(
+                    story, ["photo_1_2026-08-21_17-13-07", "RUPP_CJDM8", "IMG_8617"]
+                )
+
+                self.assertEqual(len(name_story_gallery(story)), 2)
+
+                # Numbered by place in the gallery, so the typed name in the
+                # middle still counts as photo 2.
+                self.assertEqual(
+                    self.titles(story),
+                    [
+                        "Staff training with CJDM – photo 1",
+                        "RUPP_CJDM8",
+                        "Staff training with CJDM – photo 3",
+                    ],
+                )
+                # The API's name for an uncaptioned photo follows the title.
+                gallery = self.client.get(reverse("news-list")).json()["results"][0][
+                    "gallery"
+                ]
+                self.assertEqual(
+                    gallery[0]["alt_text"], "Staff training with CJDM – photo 1"
+                )
+                # A named photo no longer looks like a device's file name.
+                self.assertEqual(name_story_gallery(story), [])
+
+    def test_saving_a_story_in_wagtail_names_its_gallery(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                story = NewsEvent.objects.create(
+                    content_type="news",
+                    title="A day on the shop floor",
+                    slug="a-day-on-the-shop-floor",
+                    excerpt="Uploaded straight from a phone.",
+                )
+                self.make_gallery(story, ["IMG_0001", "IMG_0002"])
+
+                for hook_name in ("after_create_snippet", "after_edit_snippet"):
+                    self.assertIn(name_story_gallery_photos, hooks.get_hooks(hook_name))
+
+                # Any other snippet passes through untouched.
+                self.assertIsNone(name_story_gallery_photos(None, SimpleNamespace()))
+                self.assertEqual(self.titles(story), ["IMG_0001", "IMG_0002"])
+
+                self.assertIsNone(name_story_gallery_photos(None, story))
+                self.assertEqual(
+                    self.titles(story),
+                    [
+                        "A day on the shop floor – photo 1",
+                        "A day on the shop floor – photo 2",
+                    ],
+                )
+
+    def test_the_command_previews_then_names_existing_galleries(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                story = NewsEvent.objects.create(
+                    content_type="news",
+                    title="Learning Express",
+                    slug="learning-express",
+                    excerpt="Built before photos were named.",
+                )
+                self.make_gallery(story, ["photo_2024-04-10_21-57-00", "Communities_10"])
+
+                call_command("name_gallery_photos", "--dry-run", stdout=StringIO())
+                self.assertEqual(
+                    self.titles(story), ["photo_2024-04-10_21-57-00", "Communities_10"]
+                )
+
+                out = StringIO()
+                call_command("name_gallery_photos", stdout=out)
+                self.assertEqual(
+                    self.titles(story), ["Learning Express – photo 1", "Communities_10"]
+                )
+                self.assertIn("Renamed 1 photo(s).", out.getvalue())
+
+    def test_a_long_story_title_is_cut_to_fit_the_image_title(self):
+        title = gallery_photo_title("A" * 300, 12)
+        self.assertEqual(len(title), 255)
+        self.assertTrue(title.endswith(" – photo 12"))

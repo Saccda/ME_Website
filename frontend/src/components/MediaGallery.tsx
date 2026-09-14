@@ -22,6 +22,10 @@ import { videoEmbedUrl, videoThumbnail } from "@/lib/video";
 
 const PREVIEW = 3;
 
+/**
+ * The name a screen reader announces for an item. Never printed on the page:
+ * without a caption it is only the file's name, or one made from the story.
+ */
 function itemTitle(item: GalleryItem, index: number) {
   const noun = item.kind === "video" ? "Video" : "Photograph";
   return item.caption || item.alt_text || `${noun} ${index + 1}`;
@@ -256,13 +260,12 @@ export default function MediaGallery({
             {item.kind === "video" ? (
               <span aria-hidden="true" className="article-gallery__play" />
             ) : null}
-            {/* A row shows the whole set, so a plate reading "Photograph 2"
-                over every picture is noise. Only a real caption earns one. */}
-            {isRow && !item.caption ? null : (
-              <span className="article-gallery__label">
-                {itemTitle(item, position)}
-              </span>
-            )}
+            {/* Only a written caption earns a plate. Without one there is only
+                the title -- the file's name, or one made from the story -- and
+                repeating that over every picture is noise. */}
+            {item.caption ? (
+              <span className="article-gallery__label">{item.caption}</span>
+            ) : null}
             {position === preview.length - 1 && remaining > 0 ? (
               <span className="article-gallery__more">+{remaining} more</span>
             ) : null}
@@ -341,7 +344,9 @@ export default function MediaGallery({
             </div>
 
             <div className="article-gallery-dialog__foot">
-              <p>{itemTitle(current, index)}</p>
+              {/* A caption, or nothing: the counter above already says which
+                  picture this is. */}
+              <p>{current.caption}</p>
               <div
                 aria-label={`Choose ${noun === "item" ? "an item" : `a ${noun}`}`}
                 className="article-gallery-dialog__thumbs"
