@@ -4214,9 +4214,16 @@ img {
    of site photographs -- two galleries running together would otherwise read
    as one set. */
 .research-platform {
-  margin-top: clamp(34px, 3.6vw, 52px);
-  padding-top: clamp(26px, 3vw, 38px);
+  margin-top: clamp(28px, 3vw, 44px);
+  padding-top: clamp(24px, 2.6vw, 36px);
   border-top: 1px solid var(--line);
+}
+
+/* The rule above already sets this set apart, so the gallery's own 68px
+   margins -- meant for a gallery placed in running prose -- only pushed the
+   heading 107px below the rule. */
+.research-platform .article-gallery {
+  margin: 0;
 }
 
 /* The mosaic -- one tall frame beside two small ones -- is built for
@@ -11949,7 +11956,7 @@ a.partner-logo:focus-visible {
 .research-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: clamp(30px, 4vw, 56px);
+  gap: clamp(28px, 3vw, 44px);
   align-items: start;
 }
 
@@ -11968,15 +11975,22 @@ a.partner-logo:focus-visible {
   max-width: var(--story-measure);
 }
 
+/* The body's last block brings no margin of its own to the gap below it. A
+   closing gallery carried 68px, which stacked with the row gap and a top
+   margin on the facts into 170px of white between the pictures and the
+   facts. The row gap is now the whole of it. */
+.research-main .story-body > :last-child,
+.research-main .story-body > .story-rich-text:last-child > :last-child {
+  margin-bottom: 0;
+}
+
 /* The facts close the article instead of following it down the page. Status,
    period and focus area are all stated in the header already, so this is a
    summary rather than a reference that has to stay in view -- and nothing it
    holds is worth narrowing every picture below it. */
 .research-aside {
   min-width: 0;
-  margin-top: clamp(30px, 3.4vw, 46px);
 }
-
 
 .research-aside-links p {
   margin: 0 0 10px;
@@ -11987,14 +12001,15 @@ a.partner-logo:focus-visible {
   text-transform: uppercase;
 }
 
+/* Side by side rather than stacked: a project in two or four areas would
+   otherwise add a line per area between the facts and the section below. */
 .research-aside-links ul {
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
   list-style: none;
-}
-
-.research-aside-links li {
-  margin-bottom: 8px;
 }
 
 .research-aside-links a {
@@ -13970,18 +13985,22 @@ a.partner-logo:focus-visible {
    weight on the same slab is what made the old strip read as filler. Each gets
    its own plate; the status gets a live dot, the areas their own colour, and
    the keywords become tags a reader can take one at a time. */
-/* Tracks are capped rather than given `1fr`: auto-fit hands all the spare
-   width to whatever tracks survive, so a project with only a status and an
-   area got two 713px plates holding one small pill each. */
+/* A wrapping row whose keyword plate takes up the slack, so the row ends flush
+   with the pictures above it. Tracks capped at 300px stopped it 200px short of
+   the band's edge, which read as a mistake rather than a margin.
+   The short facts grow too, but only to 420px: a project with nothing but a
+   status and an area still gets two compact plates, not two 713px ones each
+   holding one small pill. */
 .project-facts {
-  margin: 0 0 clamp(24px, 3vw, 34px);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 300px));
-  justify-content: start;
+  margin: 0 0 clamp(18px, 2vw, 26px);
+  display: flex;
+  flex-wrap: wrap;
   gap: 14px;
 }
 
 .project-fact {
+  flex: 1 1 240px;
+  max-width: 420px;
   padding: 18px 20px 20px;
   display: grid;
   align-content: start;
@@ -13996,14 +14015,17 @@ a.partner-logo:focus-visible {
   border-color: rgba(10, 33, 100, 0.28);
 }
 
-/* Keywords run long; on a wide row they take the space two plates would. */
+/* Keywords run long, so their plate takes whatever width the row has left. */
 .project-fact-wide {
-  grid-column: span 2;
+  flex: 3 1 380px;
+  max-width: none;
 }
 
+/* On a phone each plate sits alone on its line, where the 420px cap would stop
+   it short of the edge. */
 @media (max-width: 700px) {
-  .project-fact-wide {
-    grid-column: span 1;
+  .project-fact {
+    max-width: none;
   }
 }
 

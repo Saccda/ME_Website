@@ -165,7 +165,11 @@ export default async function ResearchProjectPage({
 
                   {project.focus_areas.length > 0 ? (
                     <div className="project-fact">
-                      <dt>Focus area</dt>
+                      <dt>
+                        {project.focus_areas.length > 1
+                          ? "Focus areas"
+                          : "Focus area"}
+                      </dt>
                       <dd>
                         <span className="project-areas">
                           {project.focus_areas.map((area) => (
@@ -204,7 +208,11 @@ export default async function ResearchProjectPage({
 
                 {project.focus_areas.length > 0 ? (
                   <div className="research-aside-links">
-                    <p>Explore the focus area</p>
+                    <p>
+                      {project.focus_areas.length > 1
+                        ? "Explore the focus areas"
+                        : "Explore the focus area"}
+                    </p>
                     <ul>
                       {project.focus_areas.map((area) => (
                         <li key={area.code}>
