@@ -8,19 +8,24 @@ import { videoEmbedUrl, videoThumbnail } from "@/lib/video";
 /**
  * Article gallery.
  *
- * Built to `ME-Modern-Article-Gallery-Mockup.html`: a mosaic of three tiles --
- * one tall frame beside two stacked ones -- standing in for the whole set,
- * with the remainder counted on the last tile. A forty-photograph story then
- * costs the article the same vertical space as a three-photograph one.
+ * A preview of square tiles, four abreast, stands in for the whole set, with
+ * the remainder counted on the last tile -- so a forty-photograph story costs
+ * the article no more space than a four-photograph one.
  *
- * The mockup's dialog is a single image with previous/next. This one keeps the
- * thumbnail rail we already had, because picking the eleventh of twenty
- * photographs by pressing "next" ten times is not browsing. Video is likewise
- * ours, not the mockup's: a still with a play badge, and a player built only
- * for the item on the stage, so a long set never loads a player per item.
+ * The tiles are square because gallery photographs arrive in every shape. The
+ * cooling project's set is all 3:4 portraits off a phone and the Learning
+ * Express set all 3:2 landscape, and a square is the frame that costs either
+ * least. The mosaic this replaced led with a 2.1:1 frame, which kept about a
+ * third of a portrait's height and enlarged a 600px thumbnail to fill it.
+ *
+ * The dialog keeps a thumbnail rail, because picking the eleventh of twenty
+ * photographs by pressing "next" ten times is not browsing. Video is a still
+ * with a play badge, and a player is built only for the item on the stage, so
+ * a long set never loads a player per item.
  */
 
-const PREVIEW = 3;
+/** Tiles a preview shows before counting the rest on the last one. */
+const PREVIEW = 4;
 
 /**
  * The name a screen reader announces for an item. Never printed on the page:
@@ -53,7 +58,7 @@ function itemNoun(items: GalleryItem[]) {
 }
 
 /**
- * A picture to stand for the item, or null when there is none.
+ * A small picture for the dialog's rail, or null when there is none.
  *
  * A video's own address is not a picture: handed to an <img> it draws as a
  * broken image. So a video gets its poster, or its host's still, or nothing,
@@ -64,10 +69,22 @@ function thumbSrc(item: GalleryItem) {
   return item.thumb || videoThumbnail(item.url);
 }
 
-/** A preview tile's picture. */
+/**
+ * A preview tile's picture.
+ *
+ * A photograph is drawn from its full image, not the thumbnail. The thumbnail
+ * is a 3:2 crop made by the CMS, and cropping a portrait to 3:2 and then again
+ * to a square leaves little more than a band across its middle.
+ */
 function TileStill({ item }: { item: GalleryItem }) {
-  const src = thumbSrc(item);
-  if (src) return <img alt="" src={src} />;
+  if (item.kind === "image") {
+    return <img alt="" decoding="async" loading="lazy" src={item.url} />;
+  }
+
+  const still = thumbSrc(item);
+  if (still) {
+    return <img alt="" decoding="async" loading="lazy" src={still} />;
+  }
 
   // An uploaded clip nobody chose a poster for: the browser draws a frame of
   // the clip itself. #t=0.1 asks for one just past the start, which some
@@ -112,6 +129,7 @@ export default function MediaGallery({
   galleryTitle,
   action,
   layout = "mosaic",
+  preview = PREVIEW,
 }: {
   heading: string;
   caption: string;
@@ -119,12 +137,18 @@ export default function MediaGallery({
   /** The activity or event the set belongs to, shown as a chip. */
   galleryTitle?: string;
   /**
-   * "mosaic" stands three tiles in for the whole set, which keeps a forty-photo
-   * story short. "row" shows every picture abreast -- the shape a body gallery
-   * block already had before it could be opened, kept so that making the
-   * pictures clickable did not also rearrange them.
+   * "mosaic" stands a few square tiles in for the whole set, which keeps a
+   * forty-photo story short. "row" shows every picture abreast -- the shape a
+   * body gallery block already had before it could be opened, kept so that
+   * making the pictures clickable did not also rearrange them.
    */
   layout?: "mosaic" | "row";
+  /**
+   * How many tiles a mosaic shows before counting the rest: four square
+   * photographs by default. A set of wide screens reads better three at a
+   * time.
+   */
+  preview?: number;
   /**
    * An external destination the set is a preview of -- a live platform, say.
    * Sits where the chip sits, so a reader finds it before browsing rather
@@ -173,8 +197,8 @@ export default function MediaGallery({
   if (total === 0) return null;
 
   const isRow = layout === "row";
-  const preview = isRow ? items : items.slice(0, PREVIEW);
-  const remaining = total - preview.length;
+  const shown = isRow ? items : items.slice(0, preview);
+  const remaining = total - shown.length;
   const current = items[index];
   // A body gallery block carries a caption but no heading, and a section with
   // no heading cannot be labelled by one.
@@ -246,31 +270,40 @@ export default function MediaGallery({
 
       <div
         className={isRow ? "article-gallery__row" : "article-gallery__mosaic"}
-        data-count={preview.length}
+        data-count={shown.length}
       >
-        {preview.map((item, position) => (
-          <button
-            aria-label={`Open ${itemTitle(item, position)} in the gallery viewer`}
-            className="article-gallery__tile"
-            key={`${item.kind}-${position}`}
-            onClick={() => openAt(position)}
-            type="button"
-          >
-            <TileStill item={item} />
-            {item.kind === "video" ? (
-              <span aria-hidden="true" className="article-gallery__play" />
-            ) : null}
-            {/* Only a written caption earns a plate. Without one there is only
-                the title -- the file's name, or one made from the story -- and
-                repeating that over every picture is noise. */}
-            {item.caption ? (
-              <span className="article-gallery__label">{item.caption}</span>
-            ) : null}
-            {position === preview.length - 1 && remaining > 0 ? (
-              <span className="article-gallery__more">+{remaining} more</span>
-            ) : null}
-          </button>
-        ))}
+        {shown.map((item, position) => {
+          // The last tile of a preview also opens onto the rest of the set.
+          const opensRest = position === shown.length - 1 && remaining > 0;
+          return (
+            <button
+              aria-label={`Open ${itemTitle(item, position)} in the gallery viewer${
+                opensRest ? `, one of ${remaining} more` : ""
+              }`}
+              className="article-gallery__tile"
+              key={`${item.kind}-${position}`}
+              onClick={() => openAt(position)}
+              type="button"
+            >
+              <TileStill item={item} />
+              {item.kind === "video" ? (
+                <span aria-hidden="true" className="article-gallery__play" />
+              ) : null}
+              {/* Only a written caption earns a plate. Without one there is
+                  only the title -- the file's name, or one made from the
+                  story -- and repeating that over every picture is noise. */}
+              {item.caption ? (
+                <span className="article-gallery__label">{item.caption}</span>
+              ) : null}
+              {opensRest ? (
+                <span aria-hidden="true" className="article-gallery__more">
+                  <strong>+{remaining}</strong>
+                  <span>more</span>
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
 
       {/* A row stands for the whole set, so there is no remainder to count.
@@ -283,7 +316,7 @@ export default function MediaGallery({
         <footer className="article-gallery__foot">
           <p>
             {remaining > 0
-              ? `${preview.length} of ${total} shown. Open any ${noun} to browse the full set.`
+              ? `${shown.length} of ${total} shown. Open any ${noun} to browse the full set.`
               : `${describeSet(items)}.`}
           </p>
           <span className="article-gallery__count">

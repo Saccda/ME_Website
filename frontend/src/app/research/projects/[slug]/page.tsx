@@ -73,7 +73,9 @@ export default async function ResearchProjectPage({
     "/assets/hero-lab.webp";
   const platform = getProjectPlatform(project.slug);
   // Full width and never in the aside: a dashboard is unreadable at aside
-  // width, and this set is the evidence for everything claimed above it.
+  // width, and this set is the evidence for everything claimed above it. Three
+  // screens abreast, where a photo set gets four square tiles, because a
+  // dashboard needs the width.
   const platformSection = platform ? (
     <div className="research-platform">
       <MediaGallery
@@ -87,6 +89,7 @@ export default async function ResearchProjectPage({
         caption={platform.caption}
         heading={platform.heading}
         items={platform.items}
+        preview={3}
       />
     </div>
   ) : null;
