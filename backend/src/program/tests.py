@@ -17,6 +17,7 @@ from wagtail.images import get_image_model
 from wagtail.images.tests.utils import get_test_image_file
 from wagtail.models import Collection, Site
 
+from .blocks import NewsBodyBlock, ResearchBodyBlock, ResearchProjectBodyBlock
 from .serializers import (
     BODY_IMAGE,
     CARD_IMAGE,
@@ -620,6 +621,33 @@ class ResearchBodyTests(TestCase):
         self.assertFalse(block["first_col_is_header"])
         self.assertEqual(block["rows"], [["Load", "Power"], ["Kettle", "2.0 kW"]])
         self.assertEqual(block["caption"], "Measured at 25C.")
+
+    def test_platform_marker_is_serialized_where_it_sits(self):
+        """The screens belong to the frontend; the API reports only their place."""
+        ResearchProject.objects.create(
+            title="Automated Cooling & Spraying System",
+            slug="automated-cooling-spraying-system",
+            summary="Misting and cooling for farms.",
+            body=json.dumps(
+                [
+                    {"type": "heading", "value": "The software"},
+                    {"type": "platform", "value": None},
+                    {"type": "heading", "value": "In the field"},
+                ]
+            ),
+        )
+
+        blocks = self.client.get(reverse("research-list")).json()["results"][0]["body"]
+        self.assertEqual(
+            [block["type"] for block in blocks], ["heading", "platform", "heading"]
+        )
+        self.assertEqual(blocks[1], {"type": "platform"})
+
+    def test_only_project_write_ups_offer_the_platform_marker(self):
+        """Machine pages share the research blocks but have no software side."""
+        self.assertIn("platform", ResearchProjectBodyBlock().child_blocks)
+        self.assertNotIn("platform", ResearchBodyBlock().child_blocks)
+        self.assertNotIn("platform", NewsBodyBlock().child_blocks)
 
     def test_empty_research_body_serializes_as_an_empty_list(self):
         ResearchProject.objects.create(

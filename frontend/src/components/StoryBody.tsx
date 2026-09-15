@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import { Fragment } from "react";
 import type { StoryBlock } from "@/lib/api";
 import { videoEmbedUrl } from "@/lib/video";
 import MediaGallery from "./MediaGallery";
@@ -15,10 +16,16 @@ function initials(name: string) {
 export default function StoryBody({
   blocks,
   galleryTitle,
+  platform,
 }: {
   blocks: StoryBlock[];
   /** Passed to any gallery in the body as the activity name. */
   galleryTitle?: string;
+  /**
+   * What a Software platform screens block stands for. Only a research
+   * project has one to give; everywhere else the marker renders nothing.
+   */
+  platform?: React.ReactNode;
 }) {
   if (blocks.length === 0) return null;
 
@@ -317,6 +324,11 @@ export default function StoryBody({
                 <span className="story-document-file">{block.filename}</span>
               </a>
             );
+
+          // A marker, not content: the page hands over the section that goes
+          // here. A page with nothing to hand over renders nothing.
+          case "platform":
+            return platform ? <Fragment key={key}>{platform}</Fragment> : null;
 
           default:
             return null;

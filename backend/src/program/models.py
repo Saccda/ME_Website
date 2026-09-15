@@ -14,7 +14,12 @@ from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Orderable
 from wagtail.snippets.models import register_snippet
 
-from .blocks import NewsBodyBlock, ResearchBodyBlock, StepsBlock
+from .blocks import (
+    NewsBodyBlock,
+    ResearchBodyBlock,
+    ResearchProjectBodyBlock,
+    StepsBlock,
+)
 
 
 class OrderedModel(models.Model):
@@ -595,7 +600,7 @@ class ResearchProject(OrderedModel):
     )
     summary = models.TextField()
     body = StreamField(
-        ResearchBodyBlock(),
+        ResearchProjectBodyBlock(),
         blank=True,
         help_text=(
             "The project write-up. Add blocks, and drag them by the handle at "

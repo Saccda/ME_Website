@@ -459,3 +459,38 @@ class ResearchBodyBlock(StoryBodyBlock):
 
     class Meta:
         required = False
+
+
+class PlatformBlock(blocks.StaticBlock):
+    """Marks where a project's software screens appear in its write-up.
+
+    The screens are not stored in the CMS: a dashboard needs its own size and
+    aspect, which a body gallery's 3:2 crop would destroy, so they live with the
+    site's code in frontend/src/lib/projectPlatform.ts. That also kept them out
+    of Wagtail's sight, so an editor could not put anything after them. Dropped
+    into the body, the section renders at that point instead of after the
+    project facts.
+    """
+
+    class Meta:
+        icon = "desktop"
+        label = "Software platform screens"
+        admin_text = (
+            "The project's software screens appear here -- for the cooling and "
+            "spraying system, the FarmOS section. Drag this block to where that "
+            "section belongs. Leave it out and the section appears after the "
+            "project facts. A project without a software platform shows nothing."
+        )
+
+
+class ResearchProjectBodyBlock(ResearchBodyBlock):
+    """A project write-up, which can also position the project's software screens.
+
+    Kept off ResearchBodyBlock itself, which machine pages share: a machine has
+    no software platform, and offering the block there would only mislead.
+    """
+
+    platform = PlatformBlock()
+
+    class Meta:
+        required = False

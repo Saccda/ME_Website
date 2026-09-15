@@ -72,6 +72,29 @@ export default async function ResearchProjectPage({
     getResearchImage(project.title, project.image || "") ||
     "/assets/hero-lab.webp";
   const platform = getProjectPlatform(project.slug);
+  // Full width and never in the aside: a dashboard is unreadable at aside
+  // width, and this set is the evidence for everything claimed above it.
+  const platformSection = platform ? (
+    <div className="research-platform">
+      <MediaGallery
+        action={{
+          // The CMS fields win once the backend carrying them is deployed;
+          // until then the editorial set supplies both, so the link is live
+          // rather than waiting on a rebuild.
+          href: project.platform_url || platform.url,
+          label: project.platform_label || platform.label,
+        }}
+        caption={platform.caption}
+        heading={platform.heading}
+        items={platform.items}
+      />
+    </div>
+  ) : null;
+  // An editor places the section with a block of its own; without one it
+  // follows the facts, where it has always been.
+  const platformInBody = project.body.some(
+    (block) => block.type === "platform",
+  );
 
   return (
     <>
@@ -122,7 +145,11 @@ export default async function ResearchProjectPage({
                 <p className="research-detail-summary">{project.summary}</p>
 
                 {project.body.length > 0 ? (
-                  <StoryBody blocks={project.body} galleryTitle={project.title} />
+                  <StoryBody
+                    blocks={project.body}
+                    galleryTitle={project.title}
+                    platform={platformSection}
+                  />
                 ) : (
                   <p className="research-detail-empty">
                     A full description of this project has not been published yet.
@@ -227,25 +254,9 @@ export default async function ResearchProjectPage({
               </aside>
             </div>
 
-            {/* Full width, below the prose column: a dashboard is unreadable
-                at aside width, and this set is the evidence for everything
-                claimed above it. */}
-            {platform ? (
-              <div className="research-platform">
-                <MediaGallery
-                  action={{
-                    // The CMS fields win once the backend carrying them is
-                    // deployed; until then the editorial set supplies both, so
-                    // the link is live rather than waiting on a rebuild.
-                    href: project.platform_url || platform.url,
-                    label: project.platform_label || platform.label,
-                  }}
-                  caption={platform.caption}
-                  heading={platform.heading}
-                  items={platform.items}
-                />
-              </div>
-            ) : null}
+            {/* After the facts, unless the write-up placed it somewhere in its
+                body with a Software platform screens block. */}
+            {platformInBody ? null : platformSection}
 
             <p className="research-detail-back">
               <Link className="text-link" href="/research">

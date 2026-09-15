@@ -419,6 +419,11 @@ def story_blocks(stream_value, request=None, gallery_items=None):
                 }
             )
 
+        elif kind == "platform":
+            # Holds nothing: the screens live with the frontend, which renders
+            # them wherever this marker sits.
+            blocks.append({"type": "platform"})
+
     return blocks
 
 

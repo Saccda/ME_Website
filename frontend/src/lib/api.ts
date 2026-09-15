@@ -303,7 +303,10 @@ export type StoryBlock =
       type: "references";
       heading: string;
       entries: { citation: string; url: string }[];
-    };
+    }
+  // Where a project's software screens go. The screens themselves live in
+  // lib/projectPlatform.ts, so the marker carries nothing.
+  | { type: "platform" };
 
 export type FaqItem = {
   id: number;
