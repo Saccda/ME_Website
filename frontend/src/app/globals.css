@@ -4144,31 +4144,6 @@ img {
   text-wrap: balance;
 }
 
-.research-detail-areas {
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  list-style: none;
-}
-
-.research-detail-areas a {
-  padding: 6px 12px;
-  display: inline-block;
-  color: var(--brand-navy);
-  border: 1px solid rgba(6, 26, 42, 0.2);
-  border-radius: 5px;
-  font-size: 0.82rem;
-  font-weight: 650;
-  text-decoration: none;
-}
-
-.research-detail-areas a:hover,
-.research-detail-areas a:focus-visible {
-  border-color: var(--brand-gold);
-}
-
 .research-detail-media {
   margin: 0 0 clamp(26px, 3vw, 40px);
   overflow: hidden;
@@ -11768,46 +11743,6 @@ a.partner-logo:focus-visible {
 }
 
 /* Research project detail: status, facts, team and activity record. */
-.research-status {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin: 0 0 18px;
-  font-size: 0.8rem;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.research-status::before {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: currentColor;
-  content: "";
-}
-
-.research-status[data-status="ongoing"] {
-  color: var(--accent-4-ink);
-}
-
-.research-status[data-status="completed"] {
-  color: var(--accent-3-ink);
-}
-
-.research-status[data-status="proposed"] {
-  color: var(--muted);
-}
-
-.research-status span {
-  color: var(--muted);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: none;
-}
-
-
 /* Who did the work. A project page that omits this reads as though the
    research appeared on its own. */
 .story-team ul {
@@ -11954,13 +11889,6 @@ a.partner-logo:focus-visible {
   --story-measure: 100%;
 }
 
-.research-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: clamp(28px, 3vw, 44px);
-  align-items: start;
-}
-
 .research-main {
   min-width: 0;
 }
@@ -11977,23 +11905,20 @@ a.partner-logo:focus-visible {
 }
 
 /* The body's last block brings no margin of its own to the gap below it. A
-   closing gallery carried 68px, which stacked with the row gap and a top
-   margin on the facts into 170px of white between the pictures and the
-   facts. The row gap is now the whole of it. */
+   closing gallery carried 68px, which stacked with the margins around it into
+   170px of white between the pictures and whatever followed. */
 .research-main .story-body > :last-child,
 .research-main .story-body > .story-rich-text:last-child > :last-child {
   margin-bottom: 0;
 }
 
-/* The facts close the article instead of following it down the page. Status,
-   period and focus area are all stated in the header already, so this is a
-   summary rather than a reference that has to stay in view -- and nothing it
-   holds is worth narrowing every picture below it. */
-.research-aside {
-  min-width: 0;
+/* The way on to the areas a project belongs to, at the end of the read. The
+   chips in the facts lead to the same pages; these say what they stand for. */
+.research-explore {
+  margin-top: clamp(28px, 3vw, 44px);
 }
 
-.research-aside-links p {
+.research-explore p {
   margin: 0 0 10px;
   color: var(--muted);
   font-size: 0.68rem;
@@ -12003,8 +11928,8 @@ a.partner-logo:focus-visible {
 }
 
 /* Side by side rather than stacked: a project in two or four areas would
-   otherwise add a line per area between the facts and the section below. */
-.research-aside-links ul {
+   otherwise add a line per area to the foot of the page. */
+.research-explore ul {
   margin: 0;
   padding: 0;
   display: flex;
@@ -12013,24 +11938,10 @@ a.partner-logo:focus-visible {
   list-style: none;
 }
 
-.research-aside-links a {
+.research-explore a {
   font-size: 0.9rem;
   font-weight: 700;
   text-decoration: underline;
-}
-
-@media (max-width: 900px) {
-  .research-layout {
-    grid-template-columns: 1fr;
-  }
-
-  /* Above the prose on a phone: status and period are what a reader checks
-     first, and a sticky sidebar has nowhere to stick in one column. */
-  .research-aside {
-    position: static;
-    order: -1;
-  }
-
 }
 
 /* One sliding row per opportunity type. Grouping answers "are there
@@ -13993,7 +13904,7 @@ a.partner-logo:focus-visible {
    status and an area still gets two compact plates, not two 713px ones each
    holding one small pill. */
 .project-facts {
-  margin: 0 0 clamp(18px, 2vw, 26px);
+  margin: 0 0 clamp(28px, 3vw, 44px);
   display: flex;
   flex-wrap: wrap;
   gap: 14px;

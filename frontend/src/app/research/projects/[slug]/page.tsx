@@ -116,18 +116,115 @@ export default async function ResearchProjectPage({
             <header className="research-detail-head">
               <p className="eyebrow">Research project</p>
               <h1>{project.title}</h1>
-              {/* Status first: whether the work is finished decides how every
-                  result below it should be read. */}
-              <p className="research-status" data-status={project.status}>
-                {project.status === "completed"
-                  ? "Completed"
-                  : project.status === "proposed"
-                    ? "Proposed"
-                    : "Ongoing"}
-                {project.period ? <span>{project.period}</span> : null}
-              </p>
+            </header>
+
+            <figure className="research-detail-media">
+              <img src={image} alt={project.title} />
+            </figure>
+
+            {/* Under the picture and ahead of the prose: status, period, areas
+                and keywords are what a reader checks before deciding to read.
+                Closing the article with them left the header repeating the
+                status and the areas a screen earlier.
+                Separate cards rather than one flat band: four different kinds
+                of thing, which one strip set in a single weight. The status
+                carries a live dot, the areas their own colour, and the
+                keywords become tags you can read one at a time. */}
+            <dl className="project-facts">
+              <div className="project-fact">
+                <dt>Status</dt>
+                <dd>
+                  <span className="project-status" data-status={project.status}>
+                    <i aria-hidden="true" />
+                    {project.status === "completed"
+                      ? "Completed"
+                      : project.status === "proposed"
+                        ? "Proposed"
+                        : "Ongoing"}
+                  </span>
+                </dd>
+              </div>
+
+              {project.period ? (
+                <div className="project-fact">
+                  <dt>Period</dt>
+                  <dd className="project-period">{project.period}</dd>
+                </div>
+              ) : null}
+
               {project.focus_areas.length > 0 ? (
-                <ul className="research-detail-areas">
+                <div className="project-fact">
+                  <dt>
+                    {project.focus_areas.length > 1
+                      ? "Focus areas"
+                      : "Focus area"}
+                  </dt>
+                  <dd>
+                    <span className="project-areas">
+                      {project.focus_areas.map((area) => (
+                        <Link
+                          className="project-area"
+                          href={`/research/${area.code.toLowerCase()}`}
+                          key={area.code}
+                          style={{ ["--chip" as string]: area.accent_color }}
+                          title={area.title}
+                        >
+                          {area.code}
+                        </Link>
+                      ))}
+                    </span>
+                  </dd>
+                </div>
+              ) : null}
+
+              {project.keywords ? (
+                <div className="project-fact project-fact-wide">
+                  <dt>Keywords</dt>
+                  <dd>
+                    <span className="project-keywords">
+                      {project.keywords
+                        .split(",")
+                        .map((word) => word.trim())
+                        .filter(Boolean)
+                        .map((word) => (
+                          <span key={word}>{word}</span>
+                        ))}
+                    </span>
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
+
+            <div className="research-main">
+              <p className="research-detail-summary">{project.summary}</p>
+
+              {project.body.length > 0 ? (
+                <StoryBody
+                  blocks={project.body}
+                  galleryTitle={project.title}
+                  platform={platformSection}
+                />
+              ) : (
+                <p className="research-detail-empty">
+                  A full description of this project has not been published yet.
+                </p>
+              )}
+            </div>
+
+            {/* After the body, unless the write-up placed it somewhere inside
+                with a Software platform screens block. */}
+            {platformInBody ? null : platformSection}
+
+            {/* The way on, at the end of the read: the chips in the facts lead
+                to the same pages, and this says what they stand for. */}
+            {project.focus_areas.length > 0 ? (
+              <div className="research-explore">
+                <p>
+                  {project.focus_areas.length > 1
+                    ? "Explore the focus areas"
+                    : "Explore the focus area"}
+                </p>
+                <ul>
                   {project.focus_areas.map((area) => (
                     <li key={area.code}>
                       <Link href={`/research/${area.code.toLowerCase()}`}>
@@ -136,130 +233,8 @@ export default async function ResearchProjectPage({
                     </li>
                   ))}
                 </ul>
-              ) : null}
-            </header>
-
-            <figure className="research-detail-media">
-              <img src={image} alt={project.title} />
-            </figure>
-
-            <div className="research-layout">
-              <div className="research-main">
-                <p className="research-detail-summary">{project.summary}</p>
-
-                {project.body.length > 0 ? (
-                  <StoryBody
-                    blocks={project.body}
-                    galleryTitle={project.title}
-                    platform={platformSection}
-                  />
-                ) : (
-                  <p className="research-detail-empty">
-                    A full description of this project has not been published yet.
-                  </p>
-                )}
               </div>
-
-              {/* Sticky beside the prose: a reader checking the status or the
-                  focus area partway down should not have to scroll back. */}
-              {/* Facts as separate cards rather than one flat band: a status,
-                  a date, an area and a keyword list are four different kinds of
-                  thing, and the old strip set them all in the same weight. The
-                  status carries a live dot, the areas carry their own colour,
-                  and the keywords become tags you can read one at a time. */}
-              <aside className="research-aside">
-                <dl className="project-facts">
-                  <div className="project-fact">
-                    <dt>Status</dt>
-                    <dd>
-                      <span
-                        className="project-status"
-                        data-status={project.status}
-                      >
-                        <i aria-hidden="true" />
-                        {project.status === "completed"
-                          ? "Completed"
-                          : project.status === "proposed"
-                            ? "Proposed"
-                            : "Ongoing"}
-                      </span>
-                    </dd>
-                  </div>
-
-                  {project.period ? (
-                    <div className="project-fact">
-                      <dt>Period</dt>
-                      <dd className="project-period">{project.period}</dd>
-                    </div>
-                  ) : null}
-
-                  {project.focus_areas.length > 0 ? (
-                    <div className="project-fact">
-                      <dt>
-                        {project.focus_areas.length > 1
-                          ? "Focus areas"
-                          : "Focus area"}
-                      </dt>
-                      <dd>
-                        <span className="project-areas">
-                          {project.focus_areas.map((area) => (
-                            <Link
-                              className="project-area"
-                              href={`/research/${area.code.toLowerCase()}`}
-                              key={area.code}
-                              style={{ ["--chip" as string]: area.accent_color }}
-                              title={area.title}
-                            >
-                              {area.code}
-                            </Link>
-                          ))}
-                        </span>
-                      </dd>
-                    </div>
-                  ) : null}
-
-                  {project.keywords ? (
-                    <div className="project-fact project-fact-wide">
-                      <dt>Keywords</dt>
-                      <dd>
-                        <span className="project-keywords">
-                          {project.keywords
-                            .split(",")
-                            .map((word) => word.trim())
-                            .filter(Boolean)
-                            .map((word) => (
-                              <span key={word}>{word}</span>
-                            ))}
-                        </span>
-                      </dd>
-                    </div>
-                  ) : null}
-                </dl>
-
-                {project.focus_areas.length > 0 ? (
-                  <div className="research-aside-links">
-                    <p>
-                      {project.focus_areas.length > 1
-                        ? "Explore the focus areas"
-                        : "Explore the focus area"}
-                    </p>
-                    <ul>
-                      {project.focus_areas.map((area) => (
-                        <li key={area.code}>
-                          <Link href={`/research/${area.code.toLowerCase()}`}>
-                            {area.code} — {area.title}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-              </aside>
-            </div>
-
-            {/* After the facts, unless the write-up placed it somewhere in its
-                body with a Software platform screens block. */}
-            {platformInBody ? null : platformSection}
+            ) : null}
 
             <p className="research-detail-back">
               <Link className="text-link" href="/research">
