@@ -15,4 +15,13 @@ export const features = {
    * prepared in Wagtail meanwhile, and appear once this is true again.
    */
   opportunities: false,
+  /**
+   * The program brochure at /brochure.
+   *
+   * Unpublished while its design is reworked, but still readable wherever the
+   * site is running in development -- which is the point: the work continues on
+   * a laptop without being on the public site. Published again by replacing
+   * this with a plain `true`.
+   */
+  brochure: process.env.NODE_ENV !== "production",
 };
