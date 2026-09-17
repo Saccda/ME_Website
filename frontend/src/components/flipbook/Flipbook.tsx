@@ -23,7 +23,8 @@ import type { BrochurePage } from "@/data/brochurePages";
  * against a stack that has not settled, and sheets surface through one another.
  *
  * The engine knows nothing about the publication: it renders whatever pages it
- * is handed.
+ * is handed, and every count it shows -- sheets, spreads, the slider range, the
+ * page indicator, the printed order -- is derived from that array.
  */
 
 const TURN_MS = 920; // The CSS transition is 880ms; this outlasts it.
@@ -39,7 +40,7 @@ type Props = {
 export default function Flipbook({ pages, title, subtitle }: Props) {
   const total = pages.length;
   // Two faces to a sheet. Derived rather than fixed, so a publication can be
-  // ten pages or fourteen without the engine being edited; an odd count simply
+  // ten pages or sixteen without the engine being edited; an odd count simply
   // leaves the last sheet's back face blank.
   const sheets = Math.ceil(total / 2);
 
@@ -147,12 +148,15 @@ export default function Flipbook({ pages, title, subtitle }: Props) {
 
   const current = pages[cursor];
   const needle = query.trim().toLowerCase();
+  // Searched against everything the page declares it is about, not just its
+  // title: a reader looking for "automotive" or "CDIO" is looking for a subject,
+  // and the page that covers it may be called something else.
   const contents = pages
     .map((page, index) => ({ page, index }))
     .filter(
       ({ page }) =>
         !needle ||
-        `${page.title} ${page.subtitle} ${page.chapter}`
+        `${page.title} ${page.subtitle} ${page.chapter} ${page.keywords} ${page.description}`
           .toLowerCase()
           .includes(needle),
     );
@@ -231,7 +235,7 @@ export default function Flipbook({ pages, title, subtitle }: Props) {
                   className={`fb-sheet${flipped ? " is-flipped" : ""}${
                     turning === i ? " is-turning" : ""
                   }`}
-                  key={i}
+                  key={pages[i * 2].id}
                   style={{
                     // The turning sheet rides above the whole stack for the
                     // length of its rotation, or it clips through the pages it
@@ -365,7 +369,7 @@ export default function Flipbook({ pages, title, subtitle }: Props) {
             aria-label="Search the contents"
             className="fb-search"
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search pages"
+            placeholder="Search pages and topics"
             type="search"
             value={query}
           />
@@ -376,7 +380,7 @@ export default function Flipbook({ pages, title, subtitle }: Props) {
               contents.map(({ page, index }) => (
                 <button
                   className={index === cursor ? "is-active" : ""}
-                  key={page.title}
+                  key={page.id}
                   onClick={() => {
                     go(index < cursor ? -1 : 1, index);
                     setPanelOpen(false);
@@ -396,13 +400,13 @@ export default function Flipbook({ pages, title, subtitle }: Props) {
       </div>
 
       <p className="fb-help">
-        Use the arrows, the arrow keys, or swipe. Ten pages.
+        Use the arrows, the arrow keys, or swipe. {total} pages.
       </p>
 
       {/* One A4 page per sheet when printed; hidden on screen. */}
       <div className="fb-print">
         {pages.map((page, i) => (
-          <Page key={page.title} number={i + 1} page={page} total={total} />
+          <Page key={page.id} number={i + 1} page={page} total={total} />
         ))}
       </div>
     </div>
@@ -420,7 +424,15 @@ function Page({
 }) {
   const plain = page.tone === "cover" || page.tone === "back";
   return (
-    <article className={`fb-page fb-tone-${page.tone}`}>
+    <article
+      aria-label={`Page ${number} of ${total}: ${page.title}`}
+      aria-roledescription="brochure page"
+      className={`fb-page fb-tone-${page.tone}`}
+    >
+      {/* What the page's graphic shows, for a reader who cannot see it. The
+          diagrams carry the argument on these pages, so the description says
+          what the diagram says rather than naming it. */}
+      <p className="fb-sr">{page.description}</p>
       {plain ? null : (
         <header className="fb-page-head">
           <span>{page.chapter}</span>

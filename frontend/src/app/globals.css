@@ -13203,83 +13203,571 @@ a.partner-logo:focus-visible {
   line-height: 1.4;
 }
 
-/* Six short reasons, three abreast. Numbered rather than bulleted: the reader
-   is being shown that the list is finite. */
-.fb-reasons {
-  margin-top: 5%;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 3%;
+/* --------------------------------------------------------------------------
+   Diagrams and the four student-facing chapters.
+
+   These pages argue something a photograph cannot show: where AI sits in an
+   engineering workflow, that one machine needs all four areas of focus, that a
+   project cycle closes, and which part of a car each area touches. So they are
+   drawn. Everything inside an SVG viewBox -- labels included -- is in user
+   units, so a drawing scales with the page the way the cqi type around it does.
+   -------------------------------------------------------------------------- */
+.fb-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
 }
 
-.fb-reasons section {
-  padding: 4.5% 4.5% 5%;
+/* No `fill` here: each label carries its own, which is how a diagram stays
+   colour-coded to the four areas. A fill in the class would win over the
+   attribute and flatten all four to one colour. */
+.fb-svg-tag {
+  font-family: inherit;
+  font-size: 8.4px;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+.fb-svg-core {
+  font-family: inherit;
+  font-size: 19px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  fill: var(--fb-deep);
+}
+
+.fb-svg-note {
+  font-family: inherit;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  fill: var(--fb-muted);
+}
+
+/* The engineering workflow, top to bottom. One rule runs behind the numerals so
+   the stages read as a single connected process rather than six cards, and the
+   one stage AI assists with is the only one that changes colour. */
+.fb-pipeline {
+  position: relative;
+  margin: 4.4% 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1cqi;
+  list-style: none;
+}
+
+.fb-pipeline::before {
+  position: absolute;
+  left: 2.45cqi;
+  top: 3cqi;
+  bottom: 3cqi;
+  width: 2px;
+  content: "";
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.fb-pipeline li {
+  position: relative;
+  padding: 1.3cqi 1.6cqi 1.3cqi 0;
+  display: grid;
+  grid-template-columns: 5cqi 1fr auto;
+  gap: 2.2cqi;
+  align-items: center;
+}
+
+.fb-pipeline li.is-ai {
+  background: rgba(230, 173, 56, 0.1);
+}
+
+.fb-pipeline span {
+  width: 4.9cqi;
+  height: 4.9cqi;
+  display: grid;
+  place-content: center;
+  background: var(--fb-navy);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  color: #c9d6ef;
+  font-size: 1.45cqi;
+  font-weight: 900;
+}
+
+.fb-pipeline b {
+  font-size: 1.8cqi;
+  line-height: 1.15;
+}
+
+.fb-pipeline p {
+  margin: 0.5cqi 0 0;
+  color: #bfcbe4;
+  font-size: 1.3cqi;
+}
+
+.fb-pipeline em {
+  padding: 0.7cqi 1.3cqi;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #9fb0d2;
+  font-size: 1.15cqi;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.fb-pipeline li.is-ai span,
+.fb-pipeline li.is-ai em {
+  border-color: var(--fb-gold);
+  color: var(--fb-gold);
+}
+
+/* Six places the two disciplines meet, each with its own mark. */
+.fb-apps {
+  margin-top: 4.4%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2.6%;
+}
+
+.fb-apps section {
+  padding: 3.6% 3.8% 4.2%;
   display: grid;
   align-content: start;
-  gap: 1.2cqi;
+  gap: 1.1cqi;
   background: rgba(255, 255, 255, 0.06);
   border-top: 0.5cqi solid var(--fb-gold);
 }
 
-.fb-reasons span {
+.fb-apps .fb-icon {
+  font-size: 3.4cqi;
   color: var(--fb-gold);
-  font-size: 1.9cqi;
-  font-weight: 950;
-  letter-spacing: -0.03em;
-  opacity: 0.6;
 }
 
-.fb-reasons b {
-  font-size: 1.5cqi;
+.fb-apps b {
+  font-size: 1.44cqi;
   line-height: 1.2;
 }
 
-.fb-reasons p {
+.fb-apps p {
   margin: 0;
   color: #bfcbe4;
   font-size: 1.2cqi;
-  line-height: 1.42;
+  line-height: 1.4;
 }
 
-/* One reason per focus area, the area code carrying the row. */
-.fb-why {
-  margin-top: 5%;
+/* The relation between the two, set as an equation rather than a sentence. */
+.fb-equation {
+  margin-top: 4.4%;
   display: grid;
-  gap: 2.6%;
+  grid-template-columns: 1fr auto 1fr auto 1.2fr;
+  gap: 1.4cqi;
+  align-items: center;
+  text-align: center;
 }
 
-.fb-why section {
-  padding: 3.4% 0;
+.fb-equation span,
+.fb-equation strong {
+  padding: 2cqi 1.2cqi;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  font-size: 1.3cqi;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.fb-equation strong {
+  background: var(--fb-gold);
+  border-color: var(--fb-gold);
+  color: var(--fb-navy);
+}
+
+.fb-equation i {
+  color: var(--fb-gold);
+  font-size: 2.2cqi;
+  font-style: normal;
+  font-weight: 900;
+}
+
+/* A drawing that opens a paper page, on its own plate. */
+.fb-diagram {
+  margin: 4.2% 0 0;
+  padding: 3.2% 3.4% 2.4%;
+  background: #f6f4ee;
+  border: 1px solid var(--fb-line);
+  color: var(--fb-ink);
+}
+
+.fb-diagram figcaption {
+  padding-top: 1.6cqi;
+  color: var(--fb-muted);
+  font-size: 1.24cqi;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* The four areas as a row of plates under the drawing they appear in. */
+.fb-areas-row {
+  margin-top: 3.8%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2.4%;
+}
+
+.fb-areas-row section {
+  padding-top: 1.3cqi;
+  display: grid;
+  gap: 0.85cqi;
+  border-top: 0.6cqi solid var(--fb-accent, var(--fb-deep));
+}
+
+.fb-areas-row img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: block;
+  object-fit: cover;
+}
+
+.fb-areas-row b {
+  color: var(--fb-deep);
+  font-size: 1.7cqi;
+  letter-spacing: 0.04em;
+}
+
+.fb-areas-row p {
+  margin: 0;
+  color: var(--fb-muted);
+  font-size: 1.16cqi;
+  line-height: 1.3;
+}
+
+/* One working sequence per area: what the area does, in the order it does it. */
+.fb-paths {
+  margin-top: 4%;
+  display: grid;
+  gap: 2.4%;
+}
+
+.fb-paths section {
+  padding-left: 2.4cqi;
+  display: grid;
+  grid-template-columns: 7.5cqi 1fr;
+  gap: 0.8cqi 2.2cqi;
+  border-left: 0.7cqi solid var(--fb-accent, var(--fb-deep));
+}
+
+.fb-paths > section > b {
+  grid-row: 1 / 3;
+  align-self: center;
+  color: var(--fb-deep);
+  font-size: 2.1cqi;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+}
+
+.fb-paths p {
+  grid-column: 2;
+  margin: 0;
+  color: var(--fb-muted);
+  font-size: 1.2cqi;
+  line-height: 1.35;
+}
+
+.fb-chips {
+  grid-column: 2;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8cqi 1.6cqi;
+  list-style: none;
+}
+
+.fb-chips li {
+  position: relative;
+  padding: 0.85cqi 1.3cqi;
+  background: #eef1f7;
+  font-size: 1.16cqi;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* The step arrow is drawn rather than typed, so it cannot wrap onto a line of
+   its own when the chips reflow on a narrow page. */
+.fb-chips li + li::before {
+  position: absolute;
+  left: -1.35cqi;
+  top: 50%;
+  width: 1cqi;
+  height: 1px;
+  content: "";
+  background: var(--fb-accent, var(--fb-deep));
+}
+
+/* The four areas added together, as the sum they make. */
+.fb-sum {
+  margin-top: 4.2%;
+  padding: 2.4% 3%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1.3cqi;
+  background: #f2ede1;
+  text-align: center;
+}
+
+.fb-sum span {
+  font-size: 1.3cqi;
+  font-weight: 800;
+}
+
+.fb-sum i {
+  color: var(--fb-deep);
+  font-size: 1.5cqi;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.fb-sum b {
+  width: 100%;
+  margin-top: 0.7cqi;
+  color: var(--fb-deep);
+  font-size: 1.9cqi;
+  letter-spacing: -0.01em;
+}
+
+/* The CDIO loop, beside what each quarter of it means. */
+.fb-cycle {
+  margin-top: 4%;
+  display: grid;
+  grid-template-columns: 37% 1fr;
+  gap: 4%;
+  align-items: center;
+}
+
+.fb-cycle ol {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.5cqi;
+  list-style: none;
+}
+
+.fb-cycle li {
+  padding-left: 2.4cqi;
+  border-left: 0.5cqi solid var(--fb-gold);
+}
+
+.fb-cycle b {
+  font-size: 1.8cqi;
+}
+
+.fb-cycle p {
+  margin: 0.45cqi 0 0;
+  color: var(--fb-muted);
+  font-size: 1.22cqi;
+}
+
+/* What a project asks of a student, against what it builds in them. */
+.fb-skills {
+  margin-top: 4%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.2cqi 4%;
+}
+
+.fb-skills section {
+  padding-bottom: 0.9cqi;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2cqi;
+  align-items: baseline;
+  border-bottom: 1px solid var(--fb-line);
+}
+
+.fb-skills span {
+  color: var(--fb-muted);
+  font-size: 1.18cqi;
+}
+
+.fb-skills b {
+  color: var(--fb-deep);
+  font-size: 1.18cqi;
+}
+
+.fb-skills b::before {
+  content: "→ ";
+  color: var(--fb-gold);
+}
+
+/* The loop closing: operation is what starts the next conception. */
+.fb-loop {
+  margin: 3.2% 0 0;
+  display: flex;
+  align-items: center;
+  gap: 1.3cqi;
+  color: var(--fb-deep);
+  font-size: 1.3cqi;
+  font-weight: 800;
+}
+
+.fb-loop span {
+  font-size: 2.4cqi;
+  line-height: 1;
+}
+
+/* The vehicle and the line that builds it, on their own plate. */
+.fb-auto {
+  margin: 2.4% 0 0;
+  padding: 1.8% 2.4%;
+  display: grid;
+  gap: 0.8cqi;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #dbe4f5;
+}
+
+.fb-auto figcaption {
+  color: #a9b8d6;
+  font-size: 1.18cqi;
+  text-align: center;
+}
+
+.fb-legend {
+  margin-top: 2.6%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1cqi 3%;
+}
+
+.fb-legend span {
+  display: grid;
+  grid-template-columns: 6.2cqi 1fr;
+  gap: 1.2cqi;
+  align-items: baseline;
+  color: #bfcbe4;
+  font-size: 1.16cqi;
+  line-height: 1.32;
+}
+
+.fb-legend b {
+  color: var(--fb-accent, var(--fb-gold));
+  font-size: 1.5cqi;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+/* Foundation, strengths, destination: three tiers joined by a rule. */
+.fb-route {
+  margin: 3.8% 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1.2cqi;
+  list-style: none;
+}
+
+.fb-route li {
+  position: relative;
+  padding: 1.7cqi 2.2cqi;
   display: grid;
   grid-template-columns: 11cqi 1fr;
-  gap: 4%;
-  align-items: start;
-  border-top: 1px solid var(--fb-line);
+  gap: 1.8cqi;
+  align-items: center;
+  background: #eef1f7;
 }
 
-.fb-why > section:first-child {
-  border-top: 0;
-  padding-top: 0;
+.fb-route li + li::before {
+  position: absolute;
+  left: 50%;
+  top: -1.2cqi;
+  width: 1px;
+  height: 1.2cqi;
+  content: "";
+  background: var(--fb-deep);
 }
 
-.fb-why > section > b {
-  color: var(--fb-deep);
-  font-size: 2.5cqi;
+.fb-route span {
+  color: var(--fb-muted);
+  font-size: 1.06cqi;
   font-weight: 900;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-.fb-why strong {
+.fb-route b {
+  color: var(--fb-deep);
+  font-size: 1.5cqi;
+}
+
+.fb-roles {
+  margin: 2.8% 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9cqi;
+  list-style: none;
+}
+
+.fb-roles li {
+  padding: 0.85cqi 1.3cqi;
+  border: 1px solid var(--fb-line);
+  font-size: 1.14cqi;
+  font-weight: 700;
+}
+
+/* Two programmes side by side. Neither column is styled as the better one. */
+.fb-compare {
+  margin-top: 3.4%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3%;
+}
+
+.fb-compare section {
+  padding: 2.6% 3%;
+  background: #eef1f7;
+  border-top: 0.6cqi solid var(--fb-deep);
+}
+
+.fb-compare section:last-child {
+  background: #f6f2e6;
+  border-top-color: var(--fb-gold);
+}
+
+.fb-compare b {
   display: block;
-  font-size: 1.85cqi;
+  font-size: 1.42cqi;
   line-height: 1.2;
 }
 
-.fb-why p {
-  margin: 1.6% 0 0;
+.fb-compare ul {
+  margin: 1.3cqi 0 0;
+  padding-left: 1.7cqi;
+  display: grid;
+  gap: 0.75cqi;
   color: var(--fb-muted);
-  font-size: 1.34cqi;
-  line-height: 1.45;
+  font-size: 1.16cqi;
+  line-height: 1.32;
+}
+
+.fb-guide {
+  margin: 2.6% 0 0;
+  color: var(--fb-deep);
+  font-size: 1.26cqi;
+  font-weight: 800;
+}
+
+.fb-source {
+  margin: 2.2% 0 0;
+  padding-top: 1.5cqi;
+  border-top: 1px solid var(--fb-line);
+  color: var(--fb-muted);
+  font-size: 1.1cqi;
+  line-height: 1.4;
+}
+
+.fb-source a {
+  color: var(--fb-deep);
+  font-weight: 800;
 }
 
 /* Cover and back cover */
