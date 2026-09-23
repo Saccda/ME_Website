@@ -1,12 +1,13 @@
 import json
 import tempfile
 from types import SimpleNamespace
-from datetime import timedelta
+from datetime import date, timedelta
 from io import StringIO
 
 from django.core import mail
 from django.core.cache import cache
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -34,6 +35,9 @@ from .serializers import (
 )
 from .management.commands.fix_article_dates import CONFIRMED, UNDATED
 from .management.commands.seed_article_bank import ARTICLES, PUBLISHED_ON
+from .management.commands.seed_cnc_student_training import (
+    SLUG as CNC_STUDENT_SLUG,
+)
 from .models import (
     Course,
     CurriculumYear,
@@ -1501,6 +1505,78 @@ class FacultySelectedWorkTests(TestCase):
         other.research_projects.add(theirs)
 
         self.assertEqual([p["title"] for p in self.fetch()["research_projects"]], ["Mine"])
+
+
+class SeedCncStudentTrainingTests(TestCase):
+    """The student CNC training article, added from the program's own post."""
+
+    def seed(self, *args):
+        call_command("seed_cnc_student_training", *args, stdout=StringIO())
+
+    def test_an_undated_activity_is_created_as_a_draft(self):
+        """The post gives no date, and an invented one decides what the
+        homepage drops."""
+        self.seed()
+
+        article = NewsEvent.objects.get(slug=CNC_STUDENT_SLUG)
+        self.assertFalse(article.is_published)
+        self.assertEqual(article.category, "Student Learning")
+        self.assertTrue(article.excerpt)
+        self.assertEqual(
+            [block.block_type for block in article.body],
+            [
+                "paragraph",
+                "story_gallery",
+                "heading",
+                "paragraph",
+                "heading",
+                "paragraph",
+                "paragraph",
+            ],
+        )
+
+    def test_the_draft_carries_none_of_the_social_post_furniture(self):
+        self.seed()
+
+        article = NewsEvent.objects.get(slug=CNC_STUDENT_SLUG)
+        text = " ".join(str(block.value) for block in article.body)
+        for unwanted in ("#", "http", "Think Like an Engineer", "⚙"):
+            self.assertNotIn(unwanted, text)
+
+    def test_a_date_publishes_it(self):
+        self.seed("--date", "2026-03-14")
+
+        article = NewsEvent.objects.get(slug=CNC_STUDENT_SLUG)
+        self.assertTrue(article.is_published)
+        self.assertEqual(article.published_at.date(), date(2026, 3, 14))
+
+    def test_a_date_publishes_an_existing_draft(self):
+        self.seed()
+        self.seed("--date", "2026-03-14")
+
+        self.assertEqual(NewsEvent.objects.filter(slug=CNC_STUDENT_SLUG).count(), 1)
+        article = NewsEvent.objects.get(slug=CNC_STUDENT_SLUG)
+        self.assertTrue(article.is_published)
+        self.assertEqual(article.published_at.date(), date(2026, 3, 14))
+
+    def test_re_running_never_overwrites_an_edit_made_in_wagtail(self):
+        self.seed()
+        article = NewsEvent.objects.get(slug=CNC_STUDENT_SLUG)
+        article.title = "Retitled in Wagtail"
+        article.save(update_fields=["title"])
+
+        self.seed()
+
+        self.assertEqual(NewsEvent.objects.filter(slug=CNC_STUDENT_SLUG).count(), 1)
+        self.assertEqual(
+            NewsEvent.objects.get(slug=CNC_STUDENT_SLUG).title,
+            "Retitled in Wagtail",
+        )
+
+    def test_a_bad_date_is_refused_rather_than_guessed(self):
+        with self.assertRaises(CommandError):
+            self.seed("--date", "March 2026")
+        self.assertFalse(NewsEvent.objects.filter(slug=CNC_STUDENT_SLUG).exists())
 
 
 class GalleryPhotoNamingTests(TestCase):
