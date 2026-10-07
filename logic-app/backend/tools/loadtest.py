@@ -5,9 +5,14 @@ the workspace (four calls in parallel, as the browser does), start a practice
 set, answer every question, submit. Accounts are created on @loadtest.invalid
 so they can be identified and removed afterwards.
 
-    python tools/loadtest.py                                  # 250 students, local
-    python tools/loadtest.py 250 10 http://127.0.0.1:3000     # explicit
-    python tools/loadtest.py 50 10 https://logic.example.edu
+    # inside the api container, against the API directly
+    docker compose -p logic-studio exec api python tools/loadtest.py 250 10 http://127.0.0.1:8000
+
+    # from the host, against the web tier as a browser sees it
+    python tools/loadtest.py 250 10 http://127.0.0.1:3100
+
+    # against the public address, also exercising the origin guard
+    python tools/loadtest.py 250 10 https://prep.example.org https://prep.example.org
 
 Never run this against a database holding real student work: it registers
 hundreds of accounts and submits hundreds of attempts.
@@ -29,8 +34,16 @@ except ImportError:
 STUDENTS = int(sys.argv[1]) if len(sys.argv) > 1 else 250
 QUESTIONS = int(sys.argv[2]) if len(sys.argv) > 2 else 10
 BASE = (sys.argv[3] if len(sys.argv) > 3 else "http://127.0.0.1:3000").rstrip("/")
-# The write guard checks the browser origin, which is the site's own.
-HEADERS = {"X-App-Request": "1", "Origin": BASE, "Content-Type": "application/json"}
+# No Origin header by default. The write guard refuses an origin that is not in
+# APP_ORIGINS, and the address being tested is usually not the site's public
+# origin -- inside the api container it is http://127.0.0.1:8000, while
+# APP_ORIGINS holds the public hostname. Sending the wrong one made every
+# request fail with 403 and measured nothing. A same-origin browser request may
+# omit the header, so the guard allows it absent. Pass the site's origin as a
+# fourth argument to exercise the guard as well.
+HEADERS = {"X-App-Request": "1", "Content-Type": "application/json"}
+if len(sys.argv) > 4:
+    HEADERS["Origin"] = sys.argv[4].rstrip("/")
 
 timings, failures = {}, {}
 stamp = int(time.time())

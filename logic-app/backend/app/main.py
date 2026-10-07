@@ -95,7 +95,9 @@ app=FastAPI(title="Mechanical Engineering @ RUPP · Entrance Prep",version="1.0.
 async def guards(request, call_next):
     if request.method in ("POST","PATCH","PUT","DELETE"):
         origin=request.headers.get("origin")
-        allowed=os.getenv("APP_ORIGINS","http://localhost:3000,http://127.0.0.1:3000").split(",")
+        # Stripped: a comma-separated list is naturally written with spaces after
+        # the commas, and an untrimmed entry would never match an Origin header.
+        allowed=[o.strip() for o in os.getenv("APP_ORIGINS","http://localhost:3000,http://127.0.0.1:3000").split(",")]
         if request.headers.get("x-app-request")!="1" or (origin and origin not in allowed):
             return JSONResponse(status_code=403,content={"detail":"Request origin could not be verified."})
         if int(request.headers.get("content-length","0"))>3500000:

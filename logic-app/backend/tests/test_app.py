@@ -195,6 +195,21 @@ def test_bulk_approval_touches_only_machine_proved_questions(clients):
     assert all((q.validation or {}).get("method")=="editorial" for q in pending)
     assert all(validate(q.content)["passed"] for q in approved)
 
+def test_origin_guard_tolerates_spaces_and_still_refuses_strangers(clients,monkeypatch):
+    # A comma-separated list is naturally written with spaces after the commas.
+    monkeypatch.setenv('APP_ORIGINS','https://a.example, https://b.example')
+    creds={"email":"student@demo.local","password":"student-demo-2026"}
+    with TestClient(app,headers={'X-App-Request':'1','Origin':'https://b.example'}) as c:
+        assert c.post('/api/auth/login',json=creds).status_code==200
+    with TestClient(app,headers={'X-App-Request':'1','Origin':'https://stranger.example'}) as c:
+        assert c.post('/api/auth/login',json=creds).status_code==403
+    # No Origin at all is a same-origin request, which the guard allows.
+    with TestClient(app,headers={'X-App-Request':'1'}) as c:
+        assert c.post('/api/auth/login',json=creds).status_code==200
+    # The app-request header is still required.
+    with TestClient(app,headers={'Origin':'https://b.example'}) as c:
+        assert c.post('/api/auth/login',json=creds).status_code==403
+
 def test_csrf_invalid_option_and_registration_role(clients):
     teacher,student=clients
     assert student.post('/api/attempts',json={"mode":"practice"},headers={"Origin":"https://evil.example"}).status_code==403
