@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 export const metadata: Metadata = {
-  title: "Logic Studio | Mechanical Engineering @ RUPP",
+  title: "Entrance Prep | Mechanical Engineering @ RUPP",
   description:
-    "Build reasoning skills through guided, original multiple-choice practice.",
+    "Practise the reasoning and mathematics the entrance exam asks for, with a worked explanation behind every answer.",
   manifest: "/manifest.webmanifest",
   icons: { icon: "/brand/me-logo.png", apple: "/brand/me-logo.png" },
 };

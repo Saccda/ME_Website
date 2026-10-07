@@ -89,7 +89,7 @@ async def lifespan(app):
     initialize()
     yield
 
-app=FastAPI(title="Mechanical Engineering @ RUPP · Logic Studio",version="1.0.0",lifespan=lifespan)
+app=FastAPI(title="Mechanical Engineering @ RUPP · Entrance Prep",version="1.0.0",lifespan=lifespan)
 
 @app.middleware("http")
 async def guards(request, call_next):
@@ -545,7 +545,7 @@ class ExportBody(StrictModel):
     ids:list[str]=Field(min_length=1,max_length=100)
     format:Literal["docx","pdf"]
     kind:Literal["paper","key","solutions"]="paper"
-    title:str=Field(default="Logic practice · Mechanical Engineering @ RUPP",max_length=120)
+    title:str=Field(default="Entrance preparation · Mechanical Engineering @ RUPP",max_length=120)
 
 @app.post("/api/export")
 def export(body:ExportBody,u=Depends(teacher),db=Depends(db_session)):
@@ -557,4 +557,4 @@ def export(body:ExportBody,u=Depends(teacher),db=Depends(db_session)):
         questions.append(q)
     raw,mime=render_export(questions,body.format,body.kind,body.title)
     audit(db,u,uid(),"export",body.model_dump()); db.commit()
-    return Response(content=raw,media_type=mime,headers={"Content-Disposition":f'attachment; filename="rupp-logic-{body.kind}.{body.format}"'})
+    return Response(content=raw,media_type=mime,headers={"Content-Disposition":f'attachment; filename="rupp-entrance-prep-{body.kind}.{body.format}"'})

@@ -49,7 +49,7 @@ def render_export(questions,format,kind,title):
         normal.paragraph_format.space_after=Pt(8)
         if (ASSETS/"me-logo.png").exists(): doc.add_picture(str(ASSETS/"me-logo.png"),width=Inches(.6))
         doc.add_heading(title,0)
-        doc.add_paragraph("Logic practice • Multiple choice • Select one answer per question")
+        doc.add_paragraph("Multiple choice • Select one answer per question")
         doc.sections[0].footer.paragraphs[0].text="Mechanical Engineering @ RUPP · Theory → Practice → Reflection → Improvement"
         for i,q in enumerate(questions,1):
             c=q.content
@@ -82,7 +82,7 @@ def render_export(questions,format,kind,title):
     story=[]
     if (ASSETS/"me-logo.png").exists():
         logo=Image(str(ASSETS/"me-logo.png"),width=42,height=42,kind="proportional"); logo.hAlign="LEFT"; story.append(logo)
-    story.extend([Paragraph(escape(title),head),Paragraph("Logic practice · Select one answer per question",body),Spacer(1,12)])
+    story.extend([Paragraph(escape(title),head),Paragraph("Multiple choice · Select one answer per question",body),Spacer(1,12)])
     for i,q in enumerate(questions,1):
         c=q.content
         story.append(Paragraph(escape(inline_to_unicode(f"{i}. {c['stem']}")),body))
@@ -105,7 +105,7 @@ def render_export(questions,format,kind,title):
         story.append(Spacer(1,16))
     def footer(canvas,doc):
         canvas.setFont(font,8); canvas.setFillColor(colors.HexColor("#0B2D4D"))
-        canvas.drawString(48,30,"Mechanical Engineering @ RUPP · Logic practice")
+        canvas.drawString(48,30,"Mechanical Engineering @ RUPP · Entrance preparation")
         canvas.drawRightString(547,30,str(doc.page))
     SimpleDocTemplate(output,rightMargin=48,leftMargin=48,topMargin=42,bottomMargin=48).build(story,onFirstPage=footer,onLaterPages=footer)
     return output.getvalue(),"application/pdf"

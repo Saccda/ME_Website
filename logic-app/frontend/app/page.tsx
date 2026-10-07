@@ -237,7 +237,7 @@ function AuthGate({
         <div className="login-brand">
           <img src="/brand/me-logo.png" alt="Mechanical Engineering @ RUPP" />
           <div>
-            ME @ RUPP<span>LOGIC STUDIO</span>
+            ME @ RUPP<span>ENTRANCE PREP</span>
           </div>
         </div>
         <h1>Prepare with reasoning you can check.</h1>
@@ -412,7 +412,7 @@ export default function App() {
     origin: "all",
   });
   const [bpEdit, setBpEdit] = useState<string | null>(null);
-  const [bpName, setBpName] = useState("Logic readiness"),
+  const [bpName, setBpName] = useState("Practice exam"),
     [bpMinutes, setBpMinutes] = useState(25),
     [bpRows, setBpRows] = useState<Row[]>([
       { domain: "patterns", difficulty: "Practice", count: 2, options: 4 },
@@ -558,7 +558,7 @@ export default function App() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `rupp-logic-${exportKind}.${format}`;
+      a.download = `rupp-entrance-prep-${exportKind}.${format}`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       setNotice("Export downloaded.");
@@ -581,7 +581,7 @@ export default function App() {
     return (
       <div className="loading">
         <img src="/brand/me-logo.png" width="70" alt="ME @ RUPP" />
-        <p>Opening Logic Studio…</p>
+        <p>Opening Entrance Prep…</p>
       </div>
     );
   if (!user && authMode !== "open")
@@ -636,7 +636,7 @@ export default function App() {
         >
           <img src="/brand/me-logo.png" alt="Mechanical Engineering logo" />
           <div>
-            ME @ RUPP<span>LOGIC STUDIO</span>
+            ME @ RUPP<span>ENTRANCE PREP</span>
           </div>
         </a>
         <div className="workspace-label">
@@ -742,7 +742,7 @@ export default function App() {
           </div>
           <div className="topbar-right">
             <span className="live-dot" />
-            <span>Logic · First edition</span>
+            <span>Entrance prep · First edition</span>
             <img
               src="/brand/rupp-logo.png"
               alt="Royal University of Phnom Penh"
