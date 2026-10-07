@@ -151,6 +151,29 @@ export default async function AdmissionsPage() {
                 Open past exams <span aria-hidden="true">↗</span>
               </a>
             </div>
+
+            {/* Shown only while an address is set in Wagtail, so the platform
+                can be moved or taken down without a code change. */}
+            {settings.entrance_prep_url ? (
+              <div className="admissions-past-exams">
+                <div>
+                  <strong>Practise the examination subjects online.</strong>
+                  <span>
+                    Multiple-choice practice in Mathematics and Logic, with a
+                    worked explanation behind every answer. Create an account to
+                    keep your results.
+                  </span>
+                </div>
+                <a
+                  className="button button-gold"
+                  href={settings.entrance_prep_url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Start practising <span aria-hidden="true">↗</span>
+                </a>
+              </div>
+            ) : null}
           </div>
         </section>
 

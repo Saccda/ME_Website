@@ -993,6 +993,7 @@ class ProgramSettingsSerializer(serializers.ModelSerializer):
             "youtube_url",
             "linkedin_url",
             "application_url",
+            "entrance_prep_url",
         )
 
 

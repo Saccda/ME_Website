@@ -58,6 +58,8 @@ export type ProgramSettings = {
   youtube_url: string;
   linkedin_url: string;
   application_url: string;
+  /** Empty hides the entrance preparation link everywhere on the site. */
+  entrance_prep_url: string;
 };
 
 export type WhyChooseItem = {
@@ -644,6 +646,8 @@ const fallbackData: HomeData = {
     youtube_url: "",
     linkedin_url: "",
     application_url: "",
+    // Empty on purpose: the link appears only once the address is set in Wagtail.
+    entrance_prep_url: "",
   },
   why_choose: whyTitles.map(([title, description, kind], index) => ({
     id: index + 1,

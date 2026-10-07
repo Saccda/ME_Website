@@ -240,6 +240,16 @@ class ProgramSettings(BaseSiteSetting):
     youtube_url = models.URLField(blank=True)
     linkedin_url = models.URLField(blank=True)
     application_url = models.URLField(blank=True)
+    entrance_prep_url = models.URLField(
+        blank=True,
+        verbose_name="Entrance preparation platform URL",
+        help_text=(
+            "Full address of the entrance preparation practice platform, for "
+            "example https://prep.example.org. Leave this empty and no link to "
+            "it appears anywhere on the site, so the platform can be taken down "
+            "or moved without a code change."
+        ),
+    )
 
     panels = [
         MultiFieldPanel(
@@ -347,6 +357,7 @@ class ProgramSettings(BaseSiteSetting):
                 FieldPanel("youtube_url"),
                 FieldPanel("linkedin_url"),
                 FieldPanel("application_url"),
+                FieldPanel("entrance_prep_url"),
             ],
             heading="Program information",
         ),
