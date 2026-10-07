@@ -1,0 +1,13 @@
+frontend/node_modules/
+frontend/.next/
+backend/.venv/
+**/__pycache__/
+**/.pytest_cache/
+**/*.db
+**/*.db-*
+.env
+private/*
+!private/README.md
+frontend/test-results/
+frontend/tsconfig.tsbuildinfo
+_*.mjs

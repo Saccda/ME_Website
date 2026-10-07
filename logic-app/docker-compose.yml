@@ -1,0 +1,61 @@
+services:
+  database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: logic
+      POSTGRES_USER: logic
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - logic-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U logic -d logic]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://logic:${POSTGRES_PASSWORD}@database:5432/logic
+      # "open" means no sign-in at all, and Teacher studio -- including every
+      # answer key -- is reachable by any visitor. Anything other than "open"
+      # requires an account and gates the studio by role.
+      AUTH_MODE: ${AUTH_MODE:-site}
+      # Required once AUTH_MODE is not "open" and DEMO_MODE is false: the first
+      # teacher is created from these at startup. Without them the API refuses
+      # to start, because there would be no way to review or approve anything.
+      TEACHER_EMAIL: ${TEACHER_EMAIL:?Set TEACHER_EMAIL}
+      TEACHER_PASSWORD: ${TEACHER_PASSWORD:?Set TEACHER_PASSWORD, at least 12 characters}
+      DEMO_MODE: 'false'
+      DB_AUTO_CREATE: 'false'
+      # Keep true in front of students. A Secure cookie is not stored over plain
+      # HTTP, so a local test on http://127.0.0.1 must set this false or sign-in
+      # fails silently -- the request succeeds and the session simply vanishes.
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      APP_ORIGINS: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN}
+      # Endpoints are synchronous and hold one connection each, so the request
+      # thread pool is matched to this. Keep (size + overflow) x api replicas
+      # below PostgreSQL's max_connections, which defaults to 100.
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-20}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: unless-stopped
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        API_URL: http://api:8000
+    ports:
+      # Configurable so this stack cannot collide with anything already bound
+      # on the host, such as another project's web container.
+      - 127.0.0.1:${WEB_PORT:-3000}:3000
+    depends_on:
+      - api
+    restart: unless-stopped
+volumes:
+  logic-data:
