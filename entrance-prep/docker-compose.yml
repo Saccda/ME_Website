@@ -1,3 +1,9 @@
+# Pinned, and deliberately not renamed to match this directory. The project name
+# is what Compose attaches the database volume to, so changing it would start the
+# stack against a new, empty database while the students' data sat in the old
+# volume looking lost. Left as it was first deployed. It also means `docker
+# compose` here needs no `-p` flag.
+name: logic-studio
 services:
   database:
     image: postgres:17-alpine
