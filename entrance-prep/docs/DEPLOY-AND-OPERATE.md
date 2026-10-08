@@ -142,7 +142,27 @@ unambiguous, the distractors plausible, or the difficulty label fair. Every
 approval is recorded in the audit trail as `approved_machine_proved` with that
 caveat.
 
-## 5. Load-test it
+## 5. Giving a colleague teacher access
+
+Registration always creates a **student**, and the first teacher comes from
+`TEACHER_EMAIL`. So a second colleague who needs Teacher studio has to register
+normally first and then be promoted:
+
+```bash
+docker compose exec api python tools/make_teacher.py                            # list teachers
+docker compose exec api python tools/make_teacher.py colleague@rupp.edu.kh
+docker compose exec api python tools/make_teacher.py colleague@rupp.edu.kh --apply
+```
+
+Reversible with `--demote --apply`. Both directions are written to the audit
+trail. The role is read from the account on every request, so they only reload
+the page — no need to sign out.
+
+Do this deliberately: a teacher can read every answer key, every student's
+results and the whole question bank. Without it, a team sharing one studio login
+also shares one audit identity, so you cannot tell who approved what.
+
+## 6. Load-test it
 
 ```bash
 docker compose exec api python tools/loadtest.py --students 250 --questions 10 --max-concurrent 100
@@ -188,7 +208,7 @@ docker compose exec api python tools/remove_test_accounts.py --apply
 It refuses `@demo.local`, `@guest.invalid` and `@workspace.invalid` outright, so
 it cannot take real students with it.
 
-## 6. Before students arrive
+## 7. Before students arrive
 
 - Serve over HTTPS with `COOKIE_SECURE=true`, or sessions will not persist.
 - `PUBLIC_ORIGIN` must be the real public origin, or every write is refused.

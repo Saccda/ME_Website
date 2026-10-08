@@ -126,6 +126,11 @@ checks, mock-exam blueprints with exact allocations and capacity checks, the
 student roster with CSV export, and aggregate analytics. Student responses never
 include answer keys or teacher metadata.
 
+Registration always creates a student, and the first teacher comes from
+`TEACHER_EMAIL`. To give a colleague their own studio account they register
+normally and are then promoted with `tools/make_teacher.py`, which is reversible
+and audited in both directions.
+
 ## What it does, and what it does not claim
 
 - **Practice**: immediate explanation, answer locked once checked.
