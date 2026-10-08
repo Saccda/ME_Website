@@ -5,6 +5,9 @@ services:
       POSTGRES_DB: logic
       POSTGRES_USER: logic
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    # The default limit is 100, which api workers x their pools would exhaust.
+    # Keep it above API_WORKERS x (DB_POOL_SIZE + DB_MAX_OVERFLOW).
+    command: postgres -c max_connections=${POSTGRES_MAX_CONNECTIONS:-300}
     volumes:
       - logic-data:/var/lib/postgresql/data
     healthcheck:
@@ -38,8 +41,13 @@ services:
       # Endpoints are synchronous and hold one connection each, so the request
       # thread pool is matched to this. Keep (size + overflow) x api replicas
       # below PostgreSQL's max_connections, which defaults to 100.
-      DB_POOL_SIZE: ${DB_POOL_SIZE:-20}
-      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
+      # Measured: capacity tracks the pool, because a request holds its
+      # connection for its whole life. A pool of 30 collapsed at 25 students
+      # loading the workspace; 120 carried 60. Four workers x 70 gives 280
+      # concurrent slots, under the 300 connections PostgreSQL is started with.
+      WEB_CONCURRENCY: ${API_WORKERS:-4}
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-50}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-20}
     depends_on:
       database:
         condition: service_healthy

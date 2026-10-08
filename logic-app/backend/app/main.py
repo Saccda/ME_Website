@@ -5,7 +5,7 @@ from typing import Literal
 from fastapi import FastAPI, Depends, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, ConfigDict, field_validator
-from sqlalchemy import select, func, update, delete
+from sqlalchemy import select, func, update, delete, text
 from sqlalchemy.exc import IntegrityError
 from .catalog import DOMAINS, LOGIC_DOMAINS, LEVELS, LEVEL_GUIDE, SOURCE, SOURCES, SUBJECTS, SUBJECT_OF, DOMAIN_BY_ID, GENERATED_SUBJECTS
 from .models import Base, engine, SessionLocal, User, AuthSession, LoginFailure, Question, Audit, Blueprint, Attempt, now, POOL_TOTAL
@@ -24,59 +24,81 @@ def make_question(domain, difficulty, option_count=4, seed=None, presentation="t
     source={**SOURCES[subject],"sets":DOMAIN_BY_ID[domain]["sets"],"template":"original-v1","generation_seed":seed}
     return Question(id=uid(),subject=subject,domain=domain,skill=content.pop("skill"),difficulty=difficulty,status="draft",content=content,source=source,validation=validate(content),version=1)
 
+def seed_lock(db):
+    """Serialise startup seeding across API workers.
+
+    Every worker runs this on start. Without a lock two of them can both see an
+    empty question table and seed it, giving a doubled bank. PostgreSQL has an
+    advisory lock for exactly this; SQLite is only used single-worker, where its
+    one-writer rule already serialises it.
+    """
+    if engine.dialect.name == "postgresql":
+        db.execute(text("SELECT pg_advisory_lock(72701)"))
+
+def seed_unlock(db):
+    if engine.dialect.name == "postgresql":
+        db.execute(text("SELECT pg_advisory_unlock(72701)"))
+
 def initialize():
     if os.getenv('DB_AUTO_CREATE','true').lower()=='true': Base.metadata.create_all(engine)
     with SessionLocal() as db:
-        demo=os.getenv("DEMO_MODE", "false").lower()=="true"
-        # Stripped, because these come from an env file where a stray space
-        # after "=" is easy to leave behind. Sign-in strips the address it looks
-        # up, so an account created with one could never be signed in to.
-        email=(os.getenv("TEACHER_EMAIL", "teacher@demo.local" if demo else "") or "").strip()
-        password=(os.getenv("TEACHER_PASSWORD", "teacher-demo-2026" if demo else "") or "").strip()
-        if auth_mode()=='open' and not db.scalar(select(User).where(User.role=='teacher')) and not (email and password):
-            db.add(User(id=uid(),email='system@workspace.invalid',name='Teacher workspace',password=hash_password(uuid.uuid4().hex),role='teacher'));db.commit()
-        if auth_mode()!='open' and not demo and not db.scalar(select(User).where(User.role=='teacher')) and (not email or not password):
-            raise RuntimeError('Set TEACHER_EMAIL and TEACHER_PASSWORD for the initial teacher account, or explicitly enable DEMO_MODE for local evaluation.')
-        if email and password and not db.scalar(select(User).where(User.email==email.lower())):
-            if len(password)<12: raise RuntimeError("Teacher password must have at least 12 characters")
-            db.add(User(id=uid(),email=email.lower(),name="Teacher",password=hash_password(password),role="teacher"))
-        if auth_mode()!='open':
-            # A no-login workspace cookie lasts 30 days and may carry the teacher
-            # role, so it would survive the switch to sign-in and keep answer-key
-            # access. Close those sessions; the guest rows and their attempts stay.
-            guests=[row for row in db.scalars(select(User.id).where(User.email.like('%@guest.invalid')))]
-            if guests:
-                db.execute(delete(AuthSession).where(AuthSession.user_id.in_(guests)))
-                db.commit()
-        if demo and not db.scalar(select(User).where(User.email=="student@demo.local")):
-            db.add(User(id=uid(),email="student@demo.local",name="Student",password=hash_password("student-demo-2026"),role="student"))
-        db.commit()
-        # Seeded one subject at a time, so a subject added after a database was
-        # first filled is seeded on the next start without touching what is there.
-        teacher_user=db.scalar(select(User).where(User.role=="teacher"))
-        seeded={(q.content["stem"],len(q.content["options"])) for q in db.scalars(select(Question))}
-        added=False
-        for si,subject in enumerate(GENERATED_SUBJECTS):
-            if db.scalar(select(func.count()).select_from(Question).where(Question.subject==subject)): continue
-            for di,d in enumerate([x for x in DOMAINS if x["subject"]==subject]):
-                for li,l in enumerate(LEVELS):
-                    for n in range(3):
-                        for retry in range(40):
-                            q=make_question(d["id"],l,4 if n!=2 else 5,si*500000+10000+di*1000+li*100+n+retry*17000,"diagram" if d["id"]=="deduction" else "text")
-                            signature=(q.content['stem'],len(q.content['options']))
-                            if signature not in seeded: break
-                        else: continue
-                        seeded.add(signature)
-                        # Sample bank is opt-in for demo. Real installations require local teacher review.
-                        if demo and q.validation["passed"]:
-                            q.status="approved"
-                        db.add(q)
-                        added=True
-                        if teacher_user: audit(db,teacher_user,q.id,"demo_seed_approved" if demo else "seed_draft",{"version":1,"note":"Original starter content. Demo approval only; real deployment seeds remain drafts."})
-        if added:
-            if demo and teacher_user and not db.scalar(select(func.count()).select_from(Blueprint)):
-                db.add(Blueprint(id=uid(),name="Logic readiness · 14 questions",minutes=25,rows=[{"domain":d["id"],"difficulty":"Practice","count":2,"options":4} for d in LOGIC_DOMAINS],published=True,creator_id=teacher_user.id))
+        seed_lock(db)
+        try:
+            bootstrap(db)
+        finally:
+            seed_unlock(db)
+
+def bootstrap(db):
+    demo=os.getenv("DEMO_MODE", "false").lower()=="true"
+    # Stripped, because these come from an env file where a stray space
+    # after "=" is easy to leave behind. Sign-in strips the address it looks
+    # up, so an account created with one could never be signed in to.
+    email=(os.getenv("TEACHER_EMAIL", "teacher@demo.local" if demo else "") or "").strip()
+    password=(os.getenv("TEACHER_PASSWORD", "teacher-demo-2026" if demo else "") or "").strip()
+    if auth_mode()=='open' and not db.scalar(select(User).where(User.role=='teacher')) and not (email and password):
+        db.add(User(id=uid(),email='system@workspace.invalid',name='Teacher workspace',password=hash_password(uuid.uuid4().hex),role='teacher'));db.commit()
+    if auth_mode()!='open' and not demo and not db.scalar(select(User).where(User.role=='teacher')) and (not email or not password):
+        raise RuntimeError('Set TEACHER_EMAIL and TEACHER_PASSWORD for the initial teacher account, or explicitly enable DEMO_MODE for local evaluation.')
+    if email and password and not db.scalar(select(User).where(User.email==email.lower())):
+        if len(password)<12: raise RuntimeError("Teacher password must have at least 12 characters")
+        db.add(User(id=uid(),email=email.lower(),name="Teacher",password=hash_password(password),role="teacher"))
+    if auth_mode()!='open':
+        # A no-login workspace cookie lasts 30 days and may carry the teacher
+        # role, so it would survive the switch to sign-in and keep answer-key
+        # access. Close those sessions; the guest rows and their attempts stay.
+        guests=[row for row in db.scalars(select(User.id).where(User.email.like('%@guest.invalid')))]
+        if guests:
+            db.execute(delete(AuthSession).where(AuthSession.user_id.in_(guests)))
             db.commit()
+    if demo and not db.scalar(select(User).where(User.email=="student@demo.local")):
+        db.add(User(id=uid(),email="student@demo.local",name="Student",password=hash_password("student-demo-2026"),role="student"))
+    db.commit()
+    # Seeded one subject at a time, so a subject added after a database was
+    # first filled is seeded on the next start without touching what is there.
+    teacher_user=db.scalar(select(User).where(User.role=="teacher"))
+    seeded={(q.content["stem"],len(q.content["options"])) for q in db.scalars(select(Question))}
+    added=False
+    for si,subject in enumerate(GENERATED_SUBJECTS):
+        if db.scalar(select(func.count()).select_from(Question).where(Question.subject==subject)): continue
+        for di,d in enumerate([x for x in DOMAINS if x["subject"]==subject]):
+            for li,l in enumerate(LEVELS):
+                for n in range(3):
+                    for retry in range(40):
+                        q=make_question(d["id"],l,4 if n!=2 else 5,si*500000+10000+di*1000+li*100+n+retry*17000,"diagram" if d["id"]=="deduction" else "text")
+                        signature=(q.content['stem'],len(q.content['options']))
+                        if signature not in seeded: break
+                    else: continue
+                    seeded.add(signature)
+                    # Sample bank is opt-in for demo. Real installations require local teacher review.
+                    if demo and q.validation["passed"]:
+                        q.status="approved"
+                    db.add(q)
+                    added=True
+                    if teacher_user: audit(db,teacher_user,q.id,"demo_seed_approved" if demo else "seed_draft",{"version":1,"note":"Original starter content. Demo approval only; real deployment seeds remain drafts."})
+    if added:
+        if demo and teacher_user and not db.scalar(select(func.count()).select_from(Blueprint)):
+            db.add(Blueprint(id=uid(),name="Logic readiness · 14 questions",minutes=25,rows=[{"domain":d["id"],"difficulty":"Practice","count":2,"options":4} for d in LOGIC_DOMAINS],published=True,creator_id=teacher_user.id))
+        db.commit()
 
 @asynccontextmanager
 async def lifespan(app):
