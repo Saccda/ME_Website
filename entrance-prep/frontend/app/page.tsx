@@ -518,6 +518,66 @@ export default function App() {
   }
   const domainName = (id: string) =>
     catalog?.domains.find((d) => d.id === id)?.name || id;
+  // How many approved questions a selection would draw on. Called with no
+  // argument for the current selection, or with overrides to ask about one the
+  // student has not made yet -- `options: null` drops that filter entirely.
+  const matching = (
+    over: {
+      subject?: string;
+      domain?: string;
+      difficulty?: string;
+      skill?: string;
+      options?: number | null;
+      origin?: string;
+    } = {},
+  ) => {
+    const f = {
+      subject: practice.subject,
+      domain: practice.domain,
+      difficulty: practice.difficulty,
+      skill: practice.skill,
+      options: practice.options as number | null,
+      origin: practice.origin,
+      ...over,
+    };
+    return availability
+      .filter(
+        (x) =>
+          (!f.subject || x.subject === f.subject) &&
+          (!f.domain || x.domain === f.domain) &&
+          (!f.difficulty || x.difficulty === f.difficulty) &&
+          (!f.skill || x.skill === f.skill) &&
+          (f.options == null || x.options === f.options) &&
+          (f.origin === "all" || x.origin === f.origin),
+      )
+      .reduce((a, b) => a + b.count, 0);
+  };
+  // Sub-topics with nothing to draw on stay visible but unselectable. Three
+  // Logic sub-topics are in that state awaiting review, and letting a student
+  // pick one only to be told "0 questions match" reads as a broken page
+  // rather than a bank that is not ready.
+  const subTopics = (subjectId: string) =>
+    (catalog?.domains ?? [])
+      .filter((d) => d.subject === subjectId)
+      .map((d) => {
+        const ready = matching({
+          subject: "",
+          domain: d.id,
+          difficulty: "",
+          skill: "",
+          options: null,
+        });
+        return (
+          <option value={d.id} key={d.id} disabled={!ready}>
+            {d.name}
+            {ready
+              ? ""
+              : practice.origin === "all"
+                ? " — none approved yet"
+                : " — none in this source"}
+          </option>
+        );
+      });
   async function review(
     q: Question,
     action: string,
@@ -1442,7 +1502,7 @@ export default function App() {
                   <PageHeading
                     label="LEARN BY DOING"
                     title="Practice the reasoning."
-                    description="Focus on one skill or combine domains. Take time to understand your answer."
+                    description="Choose a topic and press start. Everything else already has a sensible default."
                   />
                   <div className="two-column">
                     <section className="panel">
@@ -1481,23 +1541,23 @@ export default function App() {
                           </p>
                         </div>
                       </div>
-                      <div className="form-grid">
+                      <div className="form-grid practice-choices">
                         <label>
-                          Subject
+                          Topic
                           <select
                             value={practice.subject}
                             onChange={(e) =>
                               setPractice({
                                 ...practice,
                                 subject: e.target.value,
-                                // The topic list belongs to the subject, so a
-                                // leftover choice from another one must clear.
+                                // Sub-topics belong to one topic, so a leftover
+                                // choice from another one must clear.
                                 domain: "",
                                 skill: "",
                               })
                             }
                           >
-                            <option value="">All subjects</option>
+                            <option value="">Everything · mixed</option>
                             {catalog?.subjects?.map((s) => (
                               <option value={s.id} key={s.id}>
                                 {s.name}
@@ -1506,30 +1566,7 @@ export default function App() {
                           </select>
                         </label>
                         <label>
-                          Question source
-                          <select
-                            value={practice.origin}
-                            onChange={(e) =>
-                              setPractice({
-                                ...practice,
-                                origin: e.target.value,
-                                domain: "",
-                                difficulty: "",
-                                skill: "",
-                                options: 4,
-                                count: e.target.value === "textbook" ? 3 : 5,
-                              })
-                            }
-                          >
-                            <option value="all">All approved questions</option>
-                            <option value="textbook">Textbook selection</option>
-                            <option value="original">
-                              Original authored questions
-                            </option>
-                          </select>
-                        </label>
-                        <label>
-                          Topic
+                          Sub-topic
                           <select
                             value={practice.domain}
                             onChange={(e) =>
@@ -1540,131 +1577,29 @@ export default function App() {
                               })
                             }
                           >
-                            <option value="">Mixed · all topics</option>
-                            {catalog?.domains
-                              .filter(
-                                (d) =>
-                                  !practice.subject ||
-                                  d.subject === practice.subject,
-                              )
-                              .map((d) => (
-                                <option value={d.id} key={d.id}>
-                                  {d.name}
-                                </option>
-                              ))}
+                            <option value="">All sub-topics</option>
+                            {practice.subject
+                              ? subTopics(practice.subject)
+                              : catalog?.subjects?.map((s) => (
+                                  <optgroup label={s.name} key={s.id}>
+                                    {subTopics(s.id)}
+                                  </optgroup>
+                                ))}
                           </select>
                         </label>
-                        <label>
-                          Difficulty
-                          <select
-                            value={practice.difficulty}
-                            onChange={(e) =>
-                              setPractice({
-                                ...practice,
-                                difficulty: e.target.value,
-                              })
-                            }
-                          >
-                            <option value="">All levels</option>
-                            {catalog?.levels.map((l) => (
-                              <option key={l}>{l}</option>
-                            ))}
-                          </select>
-                        </label>
-                        <label>
-                          Skill
-                          <select
-                            value={practice.skill}
-                            onChange={(e) =>
-                              setPractice({
-                                ...practice,
-                                skill: e.target.value,
-                              })
-                            }
-                          >
-                            <option value="">All matching skills</option>
-                            {catalog?.domains
-                              .filter(
-                                (d) =>
-                                  !practice.domain || d.id === practice.domain,
-                              )
-                              .flatMap((d) => d.skills)
-                              .map((s) => (
-                                <option key={s} value={s}>
-                                  {human(s)}
-                                </option>
-                              ))}
-                          </select>
-                        </label>
-                        <label>
-                          Options
-                          <select
-                            value={practice.options}
-                            onChange={(e) =>
-                              setPractice({
-                                ...practice,
-                                options: +e.target.value,
-                              })
-                            }
-                          >
-                            <option value={4}>4 options</option>
-                            <option value={5}>5 options</option>
-                          </select>
-                        </label>
-                        <label>
-                          Question count
-                          <input
-                            type="number"
-                            min="1"
-                            max="50"
-                            value={practice.count}
-                            onChange={(e) =>
-                              setPractice({
-                                ...practice,
-                                count: +e.target.value,
-                              })
-                            }
-                          />
-                        </label>
-                        {practice.mode === "exam" && (
-                          <label>
-                            Time limit (minutes)
-                            <input
-                              type="number"
-                              min="1"
-                              max="180"
-                              value={practice.minutes}
-                              onChange={(e) =>
-                                setPractice({
-                                  ...practice,
-                                  minutes: +e.target.value,
-                                })
-                              }
-                            />
-                          </label>
-                        )}
                       </div>
-                      <p className="help">
-                        {availability
-                          .filter(
-                            (x) =>
-                              (!practice.subject ||
-                                x.subject === practice.subject) &&
-                              (!practice.domain ||
-                                x.domain === practice.domain) &&
-                              (!practice.difficulty ||
-                                x.difficulty === practice.difficulty) &&
-                              (!practice.skill || x.skill === practice.skill) &&
-                              x.options === practice.options &&
-                              (practice.origin === "all" ||
-                                x.origin === practice.origin),
-                          )
-                          .reduce((a, b) => a + b.count, 0)}{" "}
-                        approved questions match your selection.
+                      <p className="help start-note">
+                        {availability.length > 0 && matching() === 0
+                          ? "Nothing approved matches this combination yet. Widen it below."
+                          : `${practice.count} questions · ${
+                              practice.difficulty || "all levels"
+                            } · drawn from ${matching()} approved`}
                       </p>
                       <button
-                        className="button full"
-                        disabled={busy}
+                        className="button full start-practice"
+                        disabled={
+                          busy || (availability.length > 0 && matching() === 0)
+                        }
                         onClick={() =>
                           run(async () => {
                             setAttempt(
@@ -1680,10 +1615,134 @@ export default function App() {
                           })
                         }
                       >
-                        Start {practice.mode === "practice" ? "guided" : "exam"}{" "}
-                        practice
+                        Start{" "}
+                        {practice.mode === "practice"
+                          ? "practicing"
+                          : "exam practice"}
                         <ArrowRight size={17} />
                       </button>
+                      <details className="more-options">
+                        <summary>Change level, length and more</summary>
+                        <div className="form-grid">
+                          <label>
+                            Difficulty
+                            <select
+                              value={practice.difficulty}
+                              onChange={(e) =>
+                                setPractice({
+                                  ...practice,
+                                  difficulty: e.target.value,
+                                })
+                              }
+                            >
+                              <option value="">All levels</option>
+                              {catalog?.levels.map((l) => (
+                                <option key={l}>{l}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label>
+                            How many questions
+                            <input
+                              type="number"
+                              min="1"
+                              max="50"
+                              value={practice.count}
+                              onChange={(e) =>
+                                setPractice({
+                                  ...practice,
+                                  count: +e.target.value,
+                                })
+                              }
+                            />
+                          </label>
+                          <label>
+                            Skill
+                            <select
+                              value={practice.skill}
+                              onChange={(e) =>
+                                setPractice({
+                                  ...practice,
+                                  skill: e.target.value,
+                                })
+                              }
+                            >
+                              <option value="">All matching skills</option>
+                              {catalog?.domains
+                                .filter(
+                                  (d) =>
+                                    !practice.domain ||
+                                    d.id === practice.domain,
+                                )
+                                .flatMap((d) => d.skills)
+                                .map((s) => (
+                                  <option key={s} value={s}>
+                                    {human(s)}
+                                  </option>
+                                ))}
+                            </select>
+                          </label>
+                          <label>
+                            Options per question
+                            <select
+                              value={practice.options}
+                              onChange={(e) =>
+                                setPractice({
+                                  ...practice,
+                                  options: +e.target.value,
+                                })
+                              }
+                            >
+                              <option value={4}>4 options</option>
+                              <option value={5}>5 options</option>
+                            </select>
+                          </label>
+                          <label>
+                            Question source
+                            <select
+                              value={practice.origin}
+                              onChange={(e) =>
+                                setPractice({
+                                  ...practice,
+                                  origin: e.target.value,
+                                  domain: "",
+                                  difficulty: "",
+                                  skill: "",
+                                  options: 4,
+                                  count: e.target.value === "textbook" ? 3 : 5,
+                                })
+                              }
+                            >
+                              <option value="all">
+                                All approved questions
+                              </option>
+                              <option value="textbook">
+                                Textbook selection
+                              </option>
+                              <option value="original">
+                                Original authored questions
+                              </option>
+                            </select>
+                          </label>
+                          {practice.mode === "exam" && (
+                            <label>
+                              Time limit (minutes)
+                              <input
+                                type="number"
+                                min="1"
+                                max="180"
+                                value={practice.minutes}
+                                onChange={(e) =>
+                                  setPractice({
+                                    ...practice,
+                                    minutes: +e.target.value,
+                                  })
+                                }
+                              />
+                            </label>
+                          )}
+                        </div>
+                      </details>
                     </section>
                     <section className="panel">
                       <h2>Make practice count.</h2>

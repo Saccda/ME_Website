@@ -684,6 +684,70 @@ label {
 .form-grid label {
   margin: 0;
 }
+/* The two decisions a student actually has to make. Everything else lives in
+   the disclosure below, so this pair carries the weight. */
+.practice-choices select {
+  font-size: 13px;
+  padding: 12px 11px;
+}
+.start-note {
+  margin: 18px 0 10px;
+}
+.start-practice {
+  font-size: 13px;
+  padding: 14px 18px;
+}
+.more-options {
+  margin-top: 22px;
+  border-top: 1px solid var(--line);
+}
+.more-options > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 2px 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  list-style: none;
+}
+.more-options > summary::-webkit-details-marker {
+  display: none;
+}
+.more-options > summary::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+}
+.more-options[open] > summary::before {
+  transform: rotate(45deg);
+}
+.more-options > summary:hover {
+  color: var(--blue);
+}
+.more-options > summary:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.more-options .form-grid {
+  margin: 14px 0 4px;
+}
+/* A sub-topic with nothing approved stays visible but unselectable, so the
+   bank's state is legible instead of looking like a broken filter. */
+.practice-choices option:disabled {
+  color: #9aa8b5;
+}
+@media (prefers-reduced-motion: reduce) {
+  .more-options > summary::before {
+    transition: none;
+  }
+}
 input,
 textarea,
 select {
@@ -2070,6 +2134,14 @@ input[type="checkbox"] {
   }
   .form-grid select {
     font-size: 11px;
+  }
+  /* Sub-topic names are long ("Classification & Relationships"), so the two
+     headline choices stack rather than truncate on a phone. */
+  .practice-choices {
+    grid-template-columns: 1fr;
+  }
+  .practice-choices select {
+    font-size: 12px;
   }
   .export-bar {
     flex-direction: column;
