@@ -85,22 +85,57 @@ no way to review or approve anything.
 ## 2. Publishing the address
 
 Add a Cloudflare Tunnel hostname pointing at the web port, the same pattern
-already used for the ME API (`me-api.farmos-mechanicalengineering.com`). In the
-locally-managed tunnel config:
+already used for the ME API (`me-api.farmos-mechanicalengineering.com`).
 
-```yaml
-ingress:
-  - hostname: prep.your-domain.example
-    service: http://127.0.0.1:3100
-  # ... existing rules ...
-  - service: http_status:404      # the catch-all stays last
+**The lab desktop's tunnel is managed from the Cloudflare dashboard, not from a
+file.** Check before editing anything:
+
+```bash
+sc.exe qc Cloudflared
 ```
 
-Order matters: the catch-all must remain the final rule. Add the DNS route for
-the hostname, restart `cloudflared`, then put that same URL into Wagtail under
-**Settings → Program settings → Entrance preparation platform URL**. The ME
-website's Admissions page shows the button only when that field is set, so
-leaving it empty hides the link.
+If `BINARY_PATH_NAME` contains `--token`, which it does on the lab desktop, then
+`cloudflared` fetches its ingress rules from Cloudflare's API and **ignores local
+ingress rules entirely**. There is a stale `config.yml` in
+`C:\Windows\System32\config\systemprofile\.cloudflared\` which is inert; editing
+it does nothing, and it has misled us once already.
+
+So add the hostname in the dashboard: **Zero Trust → Networks → Tunnels →** the
+tunnel **→ Edit → Published application routes → Add a public hostname**.
+
+| Field | Value |
+|---|---|
+| Subdomain | `prep` |
+| Domain | your domain |
+| Path | empty |
+| Type | `HTTP` |
+| URL | `127.0.0.1:3100` |
+
+It applies within seconds, **no restart**, and the DNS record is created for you,
+so `cloudflared tunnel route dns` is not needed either. Rule ordering is the
+dashboard's problem rather than yours.
+
+Type is `HTTP` even though students arrive over HTTPS: Cloudflare terminates TLS
+at the edge and the hop to the container on the same machine is plain HTTP. That
+does not affect `COOKIE_SECURE=true`, because the browser only ever sees
+`https://`.
+
+Only if `BINARY_PATH_NAME` shows `--config <path>` instead is the tunnel
+locally managed. Then the rule goes in that file, with the `http_status:404`
+catch-all kept last, followed by a DNS route and a service restart
+(`net stop Cloudflared && net start Cloudflared`, elevated).
+
+Either way, the service token is a credential: it carries the tunnel secret, and
+anyone holding it can run a connector for the tunnel. Never paste it into a
+chat, an issue or a commit. If it leaks, refresh it in the dashboard and
+reinstall the service.
+
+### Publishing the button
+
+Put the URL into Wagtail under **Settings → Program settings → Entrance
+preparation platform URL**. The ME website's Admissions page shows the button
+only when that field is set, so leaving it empty keeps the platform reachable by
+link alone — which is what you want while a small group tests it.
 
 ## 3. Bring it up
 
