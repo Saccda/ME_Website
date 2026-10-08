@@ -1,27 +1,41 @@
-"""Simulate a cohort of students arriving at once.
+"""Simulate a cohort of students using the platform.
 
 Each simulated student does the real sequence, writes included: register, load
-the workspace (four calls in parallel, as the browser does), start a practice
-set, answer every question, submit. Accounts are created on @loadtest.invalid
-so they can be identified and removed afterwards.
+the workspace (four calls at once, as the browser does), start a practice set,
+answer every question, submit. Accounts are created on @loadtest.invalid so
+they can be identified and removed afterwards.
 
-    # inside the api container, against the API directly
-    docker compose -p logic-studio exec api python tools/loadtest.py 250 10 http://127.0.0.1:8000
-
-    # from the host, against the web tier as a browser sees it
-    python tools/loadtest.py 250 10 http://127.0.0.1:3100
-
-    # against the public address, also exercising the origin guard
-    python tools/loadtest.py 250 10 https://prep.example.org https://prep.example.org
+    python tools/loadtest.py --help
+    python tools/loadtest.py --students 250 --ramp 60
+    python tools/loadtest.py --students 250 --base http://127.0.0.1:3100
 
 Never run this against a database holding real student work: it registers
 hundreds of accounts and submits hundreds of attempts.
 
-What to look for: the "failed" count should be zero. Non-zero means the stack
-could not carry the cohort. A pool timeout in the API log means the database
-pool is smaller than the request thread pool (see DB_POOL_SIZE).
+READING THE RESULT. The last line is what matters, and `failed` should be 0.
+
+The defaults model a real cohort, because the first versions of this script did
+not and the results were alarming nonsense. Two mistakes are worth knowing
+about, since both are easy to repeat:
+
+1. No think time. Firing a student's eleven requests back to back asks for
+   roughly a hundred times the concurrency a real class generates, because a
+   real student spends seconds reading each question. With --think, 250 students
+   measured 18 req/s and no failures on a single worker; without it, the same
+   250 appeared to collapse the server.
+
+2. One client per student, all open at once. 250 clients holding up to 1000
+   sockets made this script, not the server, the bottleneck -- including
+   timeouts on /api/catalog, which touches no database at all. --max-concurrent
+   bounds that. Container `ulimit -n` is often 1024.
+
+So a failing run means one of three things, in this order of likelihood: the
+script is over-driving itself, --max-concurrent is above the server's pool
+capacity, or the server really is out of capacity. Check them in that order.
 """
+import argparse
 import asyncio
+import random
 import statistics
 import sys
 import time
@@ -31,19 +45,32 @@ try:
 except ImportError:
     raise SystemExit("pip install httpx, or run inside the backend virtualenv.")
 
-STUDENTS = int(sys.argv[1]) if len(sys.argv) > 1 else 250
-QUESTIONS = int(sys.argv[2]) if len(sys.argv) > 2 else 10
-BASE = (sys.argv[3] if len(sys.argv) > 3 else "http://127.0.0.1:3000").rstrip("/")
-# No Origin header by default. The write guard refuses an origin that is not in
-# APP_ORIGINS, and the address being tested is usually not the site's public
-# origin -- inside the api container it is http://127.0.0.1:8000, while
-# APP_ORIGINS holds the public hostname. Sending the wrong one made every
-# request fail with 403 and measured nothing. A same-origin browser request may
-# omit the header, so the guard allows it absent. Pass the site's origin as a
-# fourth argument to exercise the guard as well.
+parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+parser.add_argument("--students", type=int, default=250)
+parser.add_argument("--questions", type=int, default=10)
+parser.add_argument("--base", default="http://127.0.0.1:8000",
+                    help="Address to test. The API directly, or the web port as a browser sees it.")
+parser.add_argument("--origin", default=None,
+                    help="Send this as the Origin header, to exercise the write guard too. "
+                         "Must be a value in APP_ORIGINS. Omitted by default, which the guard "
+                         "allows, because the address under test is usually not the site's origin.")
+parser.add_argument("--ramp", type=float, default=30,
+                    help="Spread student arrivals over this many seconds. 0 is an instantaneous burst.")
+parser.add_argument("--max-concurrent", type=int, default=25,
+                    help="How many students may be in flight at once. Keep it below "
+                         "workers x (DB_POOL_SIZE + DB_MAX_OVERFLOW): a request holds its "
+                         "connection for its whole life, so above that requests queue, hit "
+                         "the pool timeout and become 500s. Raise it to find the ceiling.")
+parser.add_argument("--think", type=float, default=6,
+                    help="Average seconds a student spends reading before each answer. "
+                         "0 answers as fast as the machine can, which no student does and "
+                         "which demands far more concurrency than a real cohort.")
+args = parser.parse_args()
+
+BASE = args.base.rstrip("/")
 HEADERS = {"X-App-Request": "1", "Content-Type": "application/json"}
-if len(sys.argv) > 4:
-    HEADERS["Origin"] = sys.argv[4].rstrip("/")
+if args.origin:
+    HEADERS["Origin"] = args.origin.rstrip("/")
 
 timings, failures = {}, {}
 stamp = int(time.time())
@@ -63,37 +90,49 @@ async def call(client, label, method, path, json=None):
         return None
 
 
-async def student(n):
-    async with httpx.AsyncClient() as client:
-        r = await call(client, "register", "POST", "/api/auth/register", {
-            "name": f"Load Student {n}",
-            "email": f"load-{stamp}-{n}@loadtest.invalid",
-            "password": "practice-logic-2026",
-        })
-        if r is None or r.status_code >= 400:
-            return
-        await asyncio.gather(
-            call(client, "catalog", "GET", "/api/catalog"),
-            call(client, "availability", "GET", "/api/availability"),
-            call(client, "attempts", "GET", "/api/attempts"),
-            call(client, "analytics", "GET", "/api/analytics"),
-        )
-        r = await call(client, "start attempt", "POST", "/api/attempts", {
-            "mode": "practice", "count": QUESTIONS, "options": 4,
-        })
-        if r is None or r.status_code >= 400:
-            return
-        attempt = r.json()
-        for q in attempt["questions"]:
-            await call(client, "answer", "POST", f"/api/attempts/{attempt['id']}/answer",
-                       {"question_id": q["id"], "option_id": q["content"]["options"][0]["id"]})
-        await call(client, "submit", "POST", f"/api/attempts/{attempt['id']}/submit")
+async def student(n, gate):
+    if args.ramp:
+        await asyncio.sleep(random.uniform(0, args.ramp))
+    async with gate:
+        async with httpx.AsyncClient() as client:
+            r = await call(client, "register", "POST", "/api/auth/register", {
+                "name": f"Load Student {n}",
+                "email": f"load-{stamp}-{n}@loadtest.invalid",
+                "password": "practice-logic-2026",
+            })
+            if r is None or r.status_code >= 400:
+                return
+            await asyncio.gather(
+                call(client, "catalog", "GET", "/api/catalog"),
+                call(client, "availability", "GET", "/api/availability"),
+                call(client, "attempts", "GET", "/api/attempts"),
+                call(client, "analytics", "GET", "/api/analytics"),
+            )
+            r = await call(client, "start attempt", "POST", "/api/attempts", {
+                "mode": "practice", "count": args.questions, "options": 4,
+            })
+            if r is None or r.status_code >= 400:
+                return
+            attempt = r.json()
+            for q in attempt["questions"]:
+                if args.think:
+                    # A student reads the question before answering. Without this
+                    # the test asks for concurrency no real cohort generates.
+                    await asyncio.sleep(random.uniform(args.think * 0.5, args.think * 1.5))
+                await call(client, "answer", "POST", f"/api/attempts/{attempt['id']}/answer",
+                           {"question_id": q["id"], "option_id": q["content"]["options"][0]["id"]})
+            await call(client, "submit", "POST", f"/api/attempts/{attempt['id']}/submit")
 
 
 async def main():
-    print(f"simulating {STUDENTS} students x {QUESTIONS} questions against {BASE}\n")
+    shape = "all at once" if not args.ramp else f"arriving over {args.ramp:g}s"
+    print(f"{args.students} students x {args.questions} questions against {BASE}, {shape}, "
+          f"at most {args.max_concurrent} in flight\n")
+    if args.think:
+        print(f"  each student pauses about {args.think:g}s before every answer, as a reader does")
+    gate = asyncio.Semaphore(args.max_concurrent)
     began = time.perf_counter()
-    await asyncio.gather(*(student(i) for i in range(STUDENTS)))
+    await asyncio.gather(*(student(i, gate) for i in range(args.students)))
     elapsed = time.perf_counter() - began
 
     total = sum(len(v) for v in timings.values())
@@ -114,6 +153,7 @@ async def main():
         for text, count in sorted(seen.items(), key=lambda x: -x[1])[:4]:
             print(f"    x{count}  {text}")
     print("\nRemove the test accounts afterwards: they are the @loadtest.invalid addresses.")
+    return 1 if bad else 0
 
 
-asyncio.run(main())
+sys.exit(asyncio.run(main()))
