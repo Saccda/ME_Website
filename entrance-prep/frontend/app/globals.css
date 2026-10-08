@@ -556,33 +556,6 @@ main {
   font-size: 11px;
   margin: 0;
 }
-.domain-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-.domain-card {
-  background: white;
-  border: 1px solid var(--line);
-  padding: 20px 19px;
-  border-radius: 8px;
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  transition:
-    box-shadow 0.18s,
-    border-color 0.18s;
-}
-.domain-card:hover {
-  border-color: #afc3d5;
-  box-shadow: 0 7px 20px #0b2d4d0b;
-}
-.domain-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 15px;
-}
 .domain-icon {
   width: 41px;
   height: 41px;
@@ -592,39 +565,144 @@ main {
   place-items: center;
   color: #315e85;
 }
-.domain-number {
-  font-size: 10px;
-  color: #9caabc;
-  font-weight: 600;
+/* One card per topic, each listing its own sub-topics. Replaces a flat grid
+   of every sub-topic, which put fourteen equal tiles in front of a student
+   who had not yet chosen a subject. auto-fit so a third topic needs no
+   change here. */
+.topic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 16px;
+  align-items: start;
 }
-.domain-card h3 {
-  font-size: 13px;
-  line-height: 1.5;
-  min-height: 39px;
-  margin-bottom: 7px;
+.topic-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 21px 20px 10px;
 }
-.domain-card p {
-  font-size: 10px;
-  line-height: 1.8;
-  margin-bottom: 18px;
-}
-.domain-card-bottom {
+.topic-card-head {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top: 1px solid #edf1f5;
-  padding-top: 12px;
-  margin-top: auto;
-  color: #52718d;
+  gap: 14px;
+  align-items: flex-start;
 }
-.domain-card-bottom span {
-  font-size: 9px;
+.topic-card-head h3 {
+  font-size: 15px;
+  margin: 2px 0 5px;
+}
+.topic-card-head p {
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 0;
+  color: var(--muted);
+  /* Two lines' worth, so a one-line description does not leave this card's
+     start button sitting higher than its neighbour's. */
+  min-height: 37px;
+}
+.topic-start {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  margin: 17px 0 4px;
+  padding: 11px 13px;
+  border: 1px solid #d6e0e9;
+  border-radius: 6px;
+  background: #f7fafc;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  transition:
+    border-color 0.18s,
+    background 0.18s;
+}
+.topic-start:hover:not(:disabled) {
+  border-color: #afc3d5;
+  background: var(--light);
+}
+.topic-start:disabled {
+  color: var(--muted);
+  background: #fafbfc;
+}
+.topic-start-count {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.topic-start svg {
+  flex-shrink: 0;
+}
+.sub-topic-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sub-topic-list button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 2px;
+  border: 0;
+  border-top: 1px solid #edf1f5;
+  background: transparent;
+  text-align: left;
+  color: var(--text);
+  font-size: 11.5px;
+}
+.sub-topic-list button:hover:not(:disabled) .sub-topic-name {
+  color: var(--blue);
+  text-decoration: underline;
+}
+.sub-topic-list button:disabled .sub-topic-name {
+  color: #9aa8b5;
+}
+.sub-topic-name {
+  line-height: 1.5;
+}
+.sub-topic-count {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 9.5px;
+  color: var(--muted);
+}
+.field-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #3d5369;
+  margin: 19px 0 8px;
+}
+.length-choice {
+  max-width: 200px;
+  margin-bottom: 0;
 }
 .learning-card {
   background: #eaf2f8;
   border: 1px solid #d9e5ef;
   border-radius: 8px;
   padding: 22px;
+}
+.learning-band {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-top: 16px;
+}
+.learning-band svg {
+  margin: 0;
+  flex-shrink: 0;
+}
+.learning-band h3 {
+  margin: 0 0 5px;
+}
+.learning-band p {
+  margin: 0;
+}
+.learning-band span {
+  display: block;
+  margin-top: 7px;
 }
 .learning-card svg {
   color: #47698a;
@@ -1843,12 +1921,6 @@ input[type="checkbox"] {
     right: 65px;
     width: 460px;
   }
-  .domain-card h3 {
-    font-size: 15px;
-  }
-  .domain-card p {
-    font-size: 12px;
-  }
   .sidebar {
     width: 270px;
   }
@@ -1881,9 +1953,6 @@ input[type="checkbox"] {
   }
   .hero-art .art-caption {
     display: none;
-  }
-  .domain-grid {
-    grid-template-columns: repeat(3, 1fr);
   }
   .hero h2 {
     font-size: 28px;
@@ -1921,9 +1990,6 @@ input[type="checkbox"] {
   }
 }
 @media (max-width: 980px) {
-  .domain-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
   .stat-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -2080,20 +2146,11 @@ input[type="checkbox"] {
   .hero-art .n3 {
     left: 70px;
   }
-  .domain-grid {
+  .topic-grid {
     gap: 12px;
   }
-  .domain-card {
-    padding: 18px 14px;
-  }
-  .domain-card h3 {
-    font-size: 12px;
-  }
-  .domain-card p {
-    font-size: 10px;
-  }
-  .domain-card-bottom span {
-    font-size: 8px;
+  .topic-card {
+    padding: 18px 15px 8px;
   }
   .learning-card {
     padding: 20px 15px;

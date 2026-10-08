@@ -932,7 +932,7 @@ export default function App() {
                             icon: ShieldCheck,
                           },
                           {
-                            label: "Topics",
+                            label: "Sub-topics",
                             value: catalog?.domains.length ?? 0,
                             note: "One connected learning path",
                             icon: BookOpen,
@@ -966,7 +966,7 @@ export default function App() {
                             icon: TrendingUp,
                           },
                           {
-                            label: "Topics",
+                            label: "Sub-topics",
                             value: catalog?.domains.length ?? 0,
                             note: "Explore your next skill",
                             icon: Target,
@@ -985,15 +985,10 @@ export default function App() {
                   </div>
                   <div className="section-heading">
                     <div>
-                      <h2>
-                        Explore every topic
-                        {catalog?.subjects?.length
-                          ? ` in ${catalog.subjects.map((s) => s.name).join(" and ")}`
-                          : ""}
-                      </h2>
+                      <h2>Choose a topic</h2>
                       <p>
-                        Understand the skill. Practice it. Reflect on the
-                        result.
+                        Practice a whole topic, or go straight to one
+                        sub-topic.
                       </p>
                     </div>
                     <button
@@ -1003,44 +998,88 @@ export default function App() {
                       Explore practice <ArrowRight size={16} />
                     </button>
                   </div>
-                  <div className="domain-grid">
-                    {catalog?.domains.map((d, i) => {
-                      // Wraps, so adding a subject's domains cannot land on an
-                      // undefined icon and take the whole page down.
-                      const Icon = domainIcons[i % domainIcons.length];
+                  <div className="topic-grid">
+                    {catalog?.subjects?.map((s, si) => {
+                      // Wraps, so a third subject cannot land on an undefined
+                      // icon and take the whole page down.
+                      const Icon = domainIcons[si % domainIcons.length];
+                      const subs =
+                        catalog?.domains.filter((d) => d.subject === s.id) ??
+                        [];
                       const total = availability
-                        .filter((x) => x.domain === d.id)
+                        .filter((x) => x.subject === s.id)
                         .reduce((a, b) => a + b.count, 0);
                       return (
-                        <button
-                          key={d.id}
-                          className="domain-card"
-                          onClick={() => {
-                            setPractice({
-                              ...practice,
-                              domain: d.id,
-                              skill: "",
-                            });
-                            go("practice");
-                          }}
-                        >
-                          <div className="domain-card-top">
+                        <section className="topic-card" key={s.id}>
+                          <div className="topic-card-head">
                             <span className="domain-icon">
                               <Icon size={23} />
                             </span>
-                            <span className="domain-number">0{i + 1}</span>
+                            <div>
+                              <h3>{s.name}</h3>
+                              <p>{s.description}</p>
+                            </div>
                           </div>
-                          <h3>{d.name}</h3>
-                          <p>{d.description}</p>
-                          <div className="domain-card-bottom">
-                            <span>{total} approved questions</span>
-                            <ArrowRight size={18} />
-                          </div>
-                        </button>
+                          <button
+                            className="topic-start"
+                            disabled={!total}
+                            onClick={() => {
+                              setPractice({
+                                ...practice,
+                                subject: s.id,
+                                domain: "",
+                                skill: "",
+                              });
+                              go("practice");
+                            }}
+                          >
+                            <span>
+                              {total
+                                ? `Practice all of ${s.short}`
+                                : `${s.short} is not ready yet`}
+                            </span>
+                            <span className="topic-start-count">
+                              {total} questions
+                            </span>
+                            <ArrowRight size={15} />
+                          </button>
+                          <ul className="sub-topic-list">
+                            {subs.map((d) => {
+                              const n = availability
+                                .filter((x) => x.domain === d.id)
+                                .reduce((a, b) => a + b.count, 0);
+                              return (
+                                <li key={d.id}>
+                                  <button
+                                    disabled={!n}
+                                    onClick={() => {
+                                      setPractice({
+                                        ...practice,
+                                        subject: s.id,
+                                        domain: d.id,
+                                        skill: "",
+                                      });
+                                      go("practice");
+                                    }}
+                                  >
+                                    <span className="sub-topic-name">
+                                      {d.name}
+                                    </span>
+                                    <span className="sub-topic-count">
+                                      {n ? n : "none yet"}
+                                    </span>
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </section>
                       );
                     })}
-                    <div className="learning-card">
-                      <ShieldCheck size={27} />
+                  </div>
+                  <div className="learning-card learning-band">
+                    <ShieldCheck size={27} />
+                    <div>
                       <h3>Reasoning you can trust</h3>
                       <p>
                         Students receive approved questions. Teachers review the
@@ -1588,12 +1627,43 @@ export default function App() {
                           </select>
                         </label>
                       </div>
+                      {/* The one advanced setting that is the student's own
+                          decision rather than a teacher's, so it stays in
+                          front. Any other length is in the disclosure. */}
+                      <p className="field-label">How many questions</p>
+                      <div
+                        className="segmented length-choice"
+                        role="group"
+                        aria-label="How many questions"
+                      >
+                        {[5, 10, 20].map((n) => (
+                          <button
+                            key={n}
+                            className={practice.count === n ? "active" : ""}
+                            aria-pressed={practice.count === n}
+                            onClick={() => setPractice({ ...practice, count: n })}
+                          >
+                            {n}
+                          </button>
+                        ))}
+                      </div>
                       <p className="help start-note">
-                        {availability.length > 0 && matching() === 0
-                          ? "Nothing approved matches this combination yet. Widen it below."
-                          : `${practice.count} questions · ${
+                        {availability.length === 0
+                          ? `${practice.count} questions · ${
                               practice.difficulty || "all levels"
-                            } · drawn from ${matching()} approved`}
+                            }`
+                          : matching() === 0
+                            ? "Nothing approved matches this combination yet. Widen it below."
+                            : practice.count > matching()
+                              ? // Asking for more than exists is served as all
+                                // of it rather than refused, so say what will
+                                // actually arrive.
+                                `All ${matching()} approved questions · ${
+                                  practice.difficulty || "all levels"
+                                }`
+                              : `${practice.count} questions · ${
+                                  practice.difficulty || "all levels"
+                                } · drawn from ${matching()} approved`}
                       </p>
                       <button
                         className="button full start-practice"
@@ -1609,6 +1679,14 @@ export default function App() {
                                 domain: practice.domain || null,
                                 difficulty: practice.difficulty || null,
                                 skill: practice.skill || null,
+                                // A narrow sub-topic can hold fewer than the
+                                // chosen length. Serve what there is instead
+                                // of refusing with "reduce the count", which
+                                // is a dead end one tap from the default.
+                                count: Math.min(
+                                  practice.count,
+                                  matching() || practice.count,
+                                ),
                               }),
                             );
                             setIndex(0);
@@ -1642,7 +1720,7 @@ export default function App() {
                             </select>
                           </label>
                           <label>
-                            How many questions
+                            Another length (1–50)
                             <input
                               type="number"
                               min="1"
