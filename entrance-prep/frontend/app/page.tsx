@@ -552,6 +552,11 @@ export default function App() {
       )
       .reduce((a, b) => a + b.count, 0);
   };
+  // One section of the real paper: 25 Mathematics, 25 Logic, 30 Physics, 80 in
+  // 90 minutes altogether. Offering that exact number makes rehearsing a
+  // section a single tap. The whole 80-question paper belongs in Mock exams,
+  // where a blueprint can hold all three sections at once.
+  const sectionLength = practice.subject === "physics" ? 30 : 25;
   // Sub-topics with nothing to draw on stay visible but unselectable. Three
   // Logic sub-topics are in that state awaiting review, and letting a student
   // pick one only to be told "0 questions match" reads as a broken page
@@ -1636,7 +1641,7 @@ export default function App() {
                         role="group"
                         aria-label="How many questions"
                       >
-                        {[5, 10, 20].map((n) => (
+                        {[5, 10, sectionLength].map((n) => (
                           <button
                             key={n}
                             className={practice.count === n ? "active" : ""}
@@ -1661,7 +1666,11 @@ export default function App() {
                                 `All ${matching()} approved questions · ${
                                   practice.difficulty || "all levels"
                                 }`
-                              : `${practice.count} questions · ${
+                              : `${practice.count} questions${
+                                  practice.count === sectionLength
+                                    ? ", one exam section"
+                                    : ""
+                                } · ${
                                   practice.difficulty || "all levels"
                                 } · drawn from ${matching()} approved`}
                       </p>

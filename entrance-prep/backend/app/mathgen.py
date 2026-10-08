@@ -43,6 +43,11 @@ def build(value, unit, variants, digits=2):
         key = fmt(other, digits)
         if key in seen or other != other or abs(other) > 1e9:
             continue
+        # A distractor that rounds away to zero is eliminated on sight -- no
+        # resistance, no energy, no charge -- so it wastes an option instead of
+        # testing anything. Only an answer that is itself zero may be zero.
+        if key == "0" and fmt(value, digits) != "0":
+            continue
         seen.add(key)
         wrong.append((f"{key}{unit}", why, tag))
     return correct, wrong

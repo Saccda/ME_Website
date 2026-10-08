@@ -12,7 +12,7 @@ from app.main import app
 from app.models import Base, engine, SessionLocal, Question, Attempt, now
 from app.generator import generate
 from app.validation import validate
-from app.catalog import DOMAINS, LEVELS
+from app.catalog import DOMAINS, LEVELS, PHYSICS_DOMAINS
 
 @pytest.fixture
 def clients():
@@ -259,6 +259,58 @@ def test_mathematics_answers_are_recomputed_not_asserted(clients):
     assert all(q['validation']['proof'].startswith('Recomputed') for q in maths)
     logic=teacher.get('/api/questions',params={'subject':'logic'}).json()
     assert logic and all(q['subject']=='logic' for q in logic)
+
+def test_physics_answers_are_recomputed_not_asserted(clients):
+    teacher,_=clients
+    physics=teacher.get('/api/questions',params={'subject':'physics'}).json()
+    assert physics and all(q['subject']=='physics' for q in physics)
+    # The examination's physics section is electrical and almost entirely
+    # computable, so no physics question should rest on the author's word --
+    # including the conceptual ones, which are checked against a reviewed table.
+    assert all(q['validation']['method']=='deterministic' and q['validation']['passed'] for q in physics)
+    assert {d['id'] for d in PHYSICS_DOMAINS}=={q['domain'] for q in physics}
+
+def test_fact_validator_checks_the_reviewed_table():
+    content=generate('quantities','Foundation',4,11,'text',None)
+    assert validate(content)['passed']
+    assert validate(content)['proof'].startswith('Matched against the reviewed')
+    # Keying a different option contradicts the table.
+    other=next(o for o in content['options'] if o['id']!=content['correct'])
+    assert not validate({**content,'correct':other['id']})['passed']
+    # An option from outside the category pool would be eliminable on grammar
+    # rather than physics, so it is refused even with the key left alone.
+    strayed=[{**o,'text':'an ammeter'} if o['id']==other['id'] else o for o in content['options']]
+    assert not validate({**content,'options':strayed})['passed']
+    # A key the table does not define cannot be proved either.
+    assert not validate({**content,'validator':{**content['validator'],'key':'nonsense'}})['passed']
+
+def test_no_distractor_rounds_away_to_zero():
+    # A "0 Ω" option is eliminated on sight and wastes one of only four or five
+    # chances to diagnose a misconception.
+    from app.validation import leading_number
+    for domain in [d['id'] for d in PHYSICS_DOMAINS]+['number','algebra','calculus']:
+        for level in LEVELS:
+            for seed in range(25):
+                c=generate(domain,level,5,seed,'text',None)
+                keyed=next(o['text'] for o in c['options'] if o['id']==c['correct'])
+                if leading_number(keyed)==0: continue
+                zeros=[o['text'] for o in c['options'] if o['id']!=c['correct'] and leading_number(o['text'])==0]
+                assert not zeros,f'{domain}/{level}/{seed}: {zeros}'
+
+def test_indefinite_article_matches_how_a_number_is_spoken():
+    # "An 12 Ω" and "a 8 Ω" both shipped before this was checked; the same
+    # defect class as the earlier "a ammeter".
+    import re
+    wrong_an=re.compile(r'\b[Aa]n (\d+)\b')
+    wrong_a=re.compile(r'\b[Aa] (?:8|11|18|8\d)\b')
+    for domain in [d['id'] for d in PHYSICS_DOMAINS]:
+        for level in LEVELS:
+            for seed in range(25):
+                stem=generate(domain,level,4,seed,'text',None)['stem']
+                assert not wrong_a.search(stem),stem
+                for m in wrong_an.finditer(stem):
+                    n=int(m.group(1))
+                    assert n in (8,11,18) or 80<=n<=89,stem
 
 def test_compute_validator_rejects_a_tampered_maths_key(clients):
     from app.generator import generate

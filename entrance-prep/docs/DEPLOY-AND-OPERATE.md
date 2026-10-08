@@ -155,7 +155,7 @@ Confirm the workers actually started — `logs api` should show four
 
 ## 4. Approve something to practise — do not skip this
 
-A fresh installation seeds **168 questions, none approved**. That is the correct
+A fresh installation seeds **252 questions, none approved**. That is the correct
 default, since nothing should reach a student unreviewed, but on launch day a
 student would otherwise get
 
@@ -166,10 +166,12 @@ docker compose exec api python tools/approve_verified.py          # reports only
 docker compose exec api python tools/approve_verified.py --apply
 ```
 
-Measured result: **132 approved** (84 Mathematics, 48 Logic), **36 left as
-drafts**. The 36 are the `editorial` ones — verbal and argument reasoning, where
-no machine can prove an answer — and they are exactly the questions a teacher
-must read. They stay invisible to students until approved in Question bank.
+Measured result: **216 approved** (84 Mathematics, 84 Physics, 48 Logic), **36
+left as drafts**. The 36 are the `editorial` ones — verbal and argument
+reasoning, where no machine can prove an answer — and they are exactly the
+questions a teacher must read. They stay invisible to students until approved in
+Question bank, and until then those three Logic sub-topics show as "none
+approved yet" and cannot be selected.
 
 The tool certifies that the server recomputed each answer from the question's
 declared rule and it matched the key. It does **not** certify that the wording is

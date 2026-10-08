@@ -3,6 +3,7 @@ import random
 from itertools import permutations
 from .catalog import DOMAINS, LEVELS
 from .mathgen import template as math_template
+from .physicsgen import template as physics_template
 
 def article(word):
     """"a" or "an" for the instrument names used below, which all begin with a
@@ -51,6 +52,8 @@ def generate(domain, level, count=4, seed=None, presentation="text", skill=None)
     math = None
     if d.get("subject") == "math":
         stem, answer, explain, wrong, spec, math = math_template(domain, depth, rng)
+    elif d.get("subject") == "physics":
+        stem, answer, explain, wrong, spec, math = physics_template(domain, depth, rng)
     elif domain == "patterns":
         start, step = rng.randint(13, 37), rng.randint(4, 9)
         seq = [start]

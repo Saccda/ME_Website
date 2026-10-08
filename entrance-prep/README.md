@@ -16,19 +16,30 @@ website but no code, database, or deployment — see the root
 
 ## Subjects
 
-| Subject | Domains | Seeded questions | Machine-provable |
+| Subject | Sub-topics | Seeded questions | Machine-provable |
 |---|---|---|---|
 | Logic & Reasoning | 7 | 84 | 48 |
 | Mathematics | 7 | 84 | 84 |
+| Physics | 7 | 84 | 84 |
 
 Four levels throughout — Foundation, Practice, Exam Level, Challenge — against a
 local rubric. These are preparation levels, not claims about official RUPP
-standards. Physics is not built: the subject dimension is in place, but no
-generator templates exist for it yet.
+standards.
 
 Every question is multiple choice with exactly 4 or 5 options, which is the
 format of the real examination. Each option carries an internal misconception tag
 and a rationale, so wrong answers are informative rather than filler.
+
+**The examination itself** is 80 questions in 1 hour 30 minutes: 25
+Mathematics, 25 Logic, 30 Physics. Practice offers that section length as a
+single tap — 25, or 30 when the topic is Physics. A paper covering all three
+sections at once belongs in Mock exams, as a blueprint.
+
+**Physics here is electrical**, because the examination's physics section is:
+Ohm's law, charge and current, resistor networks, power and energy, work and
+potential, capacitance, and the units and instruments that go with them. Not
+general mechanics. No Physics question refers to a figure, since a generated
+question cannot supply a circuit diagram.
 
 ## Run locally
 
@@ -98,7 +109,7 @@ that produced alarming numbers before the instrument was corrected.
 
 ## Teacher workflow
 
-Nothing reaches a student unreviewed. A real installation seeds all 168 questions
+Nothing reaches a student unreviewed. A real installation seeds all 252 questions
 as **drafts**, and a draft is invisible to students.
 
 draft → review → approve or reject. Editing or regenerating returns a question to
@@ -113,9 +124,10 @@ docker compose exec api python tools/approve_verified.py          # reports only
 docker compose exec api python tools/approve_verified.py --apply
 ```
 
-That approves **132** — all 84 Mathematics and 48 Logic — and leaves **36** as
-drafts. Those 36 are the verbal and argument-reasoning questions, where no
-machine can prove an answer, and they are exactly the ones a teacher must read.
+That approves **216** — all 84 Mathematics, all 84 Physics and 48 Logic — and
+leaves **36** as drafts. Those 36 are the verbal and argument-reasoning
+questions, where no machine can prove an answer, and they are exactly the ones a
+teacher must read.
 What the tool certifies is that the server recomputed each answer from the
 question's declared rule and it matched the key. It does not certify that the
 wording is unambiguous or the difficulty label fair, so a teacher should still
@@ -178,7 +190,13 @@ are labelled as adaptations once edited.
 
 Deterministic validation covers arithmetic recurrences, letter steps, symbol
 cycles, paired patterns, coded-language mapping, enumerated constraint ordering,
-and — for Mathematics — recomputation of the stated expression against the key.
+and — for Mathematics and Physics — recomputation of the stated expression
+against the key. Physics's conceptual questions (which unit, which instrument,
+which kind of current) declare a key into a reviewed table in
+`backend/app/physicsgen.py`, so they are checked against one table reviewed once
+rather than each asserting its own answer; every option must come from that
+table's category, so none can be eliminated on grammar alone.
+
 These checks verify structured rules and answers. They cannot certify that
 natural-language wording matches the rule, so verbal and argument questions
 require editorial review.
@@ -196,7 +214,7 @@ npx playwright install chromium
 npx playwright test
 ```
 
-39 backend tests. Coverage includes workspace separation, key stripping, review
+50 backend tests. Coverage includes workspace separation, key stripping, review
 transitions, stale edits, failed validators, immediate and delayed feedback,
 immutable snapshots, expiry, attempt ownership, exact blueprint allocation,
 server scoring, CSRF and the origin guard, exports, subject filtering, the
@@ -216,7 +234,9 @@ Honest list, in the order they are likely to bite:
   students cannot be compared question by question.
 - **36 Logic questions remain unapproved** pending editorial review, and 10 of
   the approved ones share a stem with another.
-- **No Physics templates.**
+- **No full mock-exam blueprint** matching the real paper's 80 questions across
+  its three sections. Practice covers one section; a whole paper needs a
+  blueprint built in Mock exams.
 - No delete-account path, no remote asset storage, no proctoring.
 
 Institutional use needs database backups, reverse-proxy rate limits and teacher

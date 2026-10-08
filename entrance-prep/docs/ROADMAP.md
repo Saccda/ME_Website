@@ -11,6 +11,8 @@ This supersedes the proposal written on 2026-10-02.
 | **Results on submission** | Score, percentage, and a correct / incorrect / not-answered breakdown; the question navigator colours green, red or grey with screen-reader labels. This was the reported bug: submitting an exam used to tell you nothing. |
 | **Subject dimension** | `Question.subject`, migration `0002`, `?subject=` filtering on questions, availability, attempts and analytics, a subject dropdown for students, and per-subject seeding so a new subject fills on the next start without touching what is there. |
 | **Mathematics** | 7 domains, 28 templates across four levels, following the topic structure of Bird & Ross Part One. 84 of 84 machine-provable, because the server recomputes every answer. |
+| **Physics** | 7 domains, 28 templates, scoped to the examination's own physics section, which is electrical rather than mechanical. 84 of 84 machine-provable: the computational ones by recomputation, the conceptual ones against a reviewed table of units, instruments and source behaviour. |
+| **Exam shape** | The real paper is 80 questions in 90 minutes — 25 Mathematics, 25 Logic, 30 Physics. Practice offers that section length as one tap. |
 | **LaTeX → Word and PDF maths** | `backend/app/mathtext.py` converts LaTeX to Office Math (OMML), so exported `.docx` equations are editable Word equations, and to Unicode for PDF. Dependency-free. This was the original reason for the project. |
 | **Deployment** | PostgreSQL 17, four API workers, advisory-locked startup seeding, `max_connections=300`, pinned Compose project name, Cloudflare Tunnel, and a button on the ME website's Admissions page that appears only when the URL is set in Wagtail. |
 | **Capacity, measured** | 250 students, 4,250 requests, 0 failures. See [`CAPACITY.md`](CAPACITY.md). |
@@ -74,11 +76,13 @@ It would move nine questions from "trust the author" to "proved", and every
 future question in those families with them. The remaining 27 rest on meaning
 rather than form and will always need a teacher's eye.
 
-### 5. Physics
+### 5. A mock exam matching the real paper
 
-The subject dimension is already in place, so this is templates and validators
-only. Bird & Ross Parts Two onward is the natural source — and like Mathematics,
-nearly every answer is computable, so the provable share should be high.
+Practice now covers one section. The whole paper — 80 questions in 90 minutes,
+25 Mathematics, 25 Logic, 30 Physics — wants a published blueprint in Mock
+exams, so a student can sit the real shape once and see a section-by-section
+result. Blueprint rows are per sub-topic today, so this means either 21 rows
+spread to those totals, or adding a subject-level row to the blueprint model.
 
 ### 6. De-duplicate practice sets by stem
 

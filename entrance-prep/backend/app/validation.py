@@ -1,5 +1,6 @@
 import ast, base64, math, re
 from .generator import ordering_solutions
+from .physicsgen import FACTS
 
 # A bounded arithmetic evaluator. Mathematics and physics answers are computable,
 # so the server recomputes them instead of trusting the author's key. Only the
@@ -174,6 +175,21 @@ def validate(content):
                         errors.append("A distractor equals the correct value.")
                         break
                 proof=f"Recomputed {spec['expr']} from the stated values; result {value:g}."
+            elif spec["kind"]=="fact":
+                # A conceptual question -- which unit, which instrument -- has no
+                # arithmetic to recompute, so it declares a key into a reviewed
+                # table instead. The table is reviewed once and checked here on
+                # every question, rather than each question asserting its own
+                # answer. Every option must come from that table's category pool,
+                # so none can be eliminated without knowing the physics.
+                table=FACTS.get(spec["table"])
+                if table is None: raise ValueError()
+                expected=table["answers"][spec["key"]]
+                pool=set(table["pool"])
+                if expected not in pool: raise ValueError()
+                stray=[x["text"] for x in opts if x["text"] not in pool]
+                if stray: errors.append("An option is outside the declared answer category.")
+                proof=f"Matched against the reviewed {spec['table']} table; expected {expected!r}."
             else: errors.append("Unknown validator.")
             correct=next((x["text"] for x in opts if x["id"]==content.get("correct")),None)
             if expected is not None and str(correct)!=expected: errors.append("Answer key conflicts with deterministic result.")
