@@ -62,6 +62,9 @@ export type Question = {
 };
 export type AttemptQuestion = {
   id: string;
+  // The snapshot has always carried this; it was simply never declared. A
+  // mock exam spanning sections needs it to report a score per subject.
+  subject: string;
   domain: string;
   difficulty: string;
   skill: string;
@@ -87,11 +90,15 @@ export type Attempt = {
   server_time: string;
 };
 export type Row = {
-  domain: string;
-  difficulty: string;
+  // A row narrows what it may draw on. Naming only a subject is how the real
+  // paper is described -- 25 Logic, 30 Physics -- without pinning sub-topic or
+  // level. Naming a domain and difficulty, as rows always could, still works.
+  subject?: string | null;
+  domain?: string | null;
+  difficulty?: string | null;
   count: number;
   options: number;
-  skill?: string;
+  skill?: string | null;
 };
 export type Blueprint = {
   id: string;

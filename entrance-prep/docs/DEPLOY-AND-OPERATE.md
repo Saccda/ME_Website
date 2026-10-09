@@ -179,7 +179,29 @@ unambiguous, the distractors plausible, or the difficulty label fair. Every
 approval is recorded in the audit trail as `approved_machine_proved` with that
 caveat.
 
-## 5. Giving a colleague teacher access
+## 5. The mock exam that matches the real paper
+
+80 questions in 90 minutes — 25 Mathematics, 25 Logic, 30 Physics, four options
+each, sat in that order. One command builds it:
+
+```bash
+docker compose exec api python tools/create_exam_blueprint.py          # reports only
+docker compose exec api python tools/create_exam_blueprint.py --apply
+```
+
+It refuses to publish a paper the bank cannot fill and names the short section.
+Re-running updates the paper it made before rather than adding a second one, so
+it is safe to run again after approving more questions. `--draft` saves it
+unpublished if you want to look before students can.
+
+Students find it under **Mock exams**. On submission they get a score per
+section — Mathematics 18 / 25, Logic 20 / 25, Physics 22 / 30 — the way the real
+paper is marked, as well as the total.
+
+Teacher studio can build other papers the same way: a blueprint row may name a
+whole subject, or a single sub-topic and level as rows always could.
+
+## 6. Giving a colleague teacher access
 
 Registration always creates a **student**, and the first teacher comes from
 `TEACHER_EMAIL`. So a second colleague who needs Teacher studio has to register
@@ -199,7 +221,7 @@ Do this deliberately: a teacher can read every answer key, every student's
 results and the whole question bank. Without it, a team sharing one studio login
 also shares one audit identity, so you cannot tell who approved what.
 
-## 6. Load-test it
+## 7. Load-test it
 
 ```bash
 docker compose exec api python tools/loadtest.py --students 250 --questions 10 --max-concurrent 100
@@ -245,7 +267,7 @@ docker compose exec api python tools/remove_test_accounts.py --apply
 It refuses `@demo.local`, `@guest.invalid` and `@workspace.invalid` outright, so
 it cannot take real students with it.
 
-## 7. Before students arrive
+## 8. Before students arrive
 
 - Serve over HTTPS with `COOKIE_SECURE=true`, or sessions will not persist.
 - `PUBLIC_ORIGIN` must be the real public origin, or every write is refused.

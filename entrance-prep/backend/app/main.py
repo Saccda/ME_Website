@@ -338,11 +338,27 @@ def history(qid:str,u=Depends(teacher),db=Depends(db_session)):
     return [{"action":a.action,"detail":a.detail,"at":utc(a.created).isoformat()} for a in db.scalars(select(Audit).where(Audit.entity_id==qid).order_by(Audit.created.desc()))]
 
 class BlueprintRow(StrictModel):
-    domain:str
-    difficulty:Literal["Foundation","Practice","Exam Level","Challenge"]
+    """One section of a paper.
+
+    Every field except count narrows which approved questions the row may draw
+    on, and any of them may be left out. A row naming only a subject is how the
+    real examination is described -- 25 Logic, 25 Mathematics, 30 Physics --
+    without dictating which sub-topics or levels those questions come from. A
+    row naming a domain and difficulty, as rows did before, still works.
+    """
+    subject:str|None=None
+    domain:str|None=None
+    difficulty:Literal["Foundation","Practice","Exam Level","Challenge"]|None=None
     count:int=Field(ge=1,le=50)
     options:Literal[4,5]=4
     skill:str|None=None
+
+    @field_validator("subject","domain","difficulty","skill")
+    @classmethod
+    def blank_is_unset(cls,v):
+        # A form posts "" for an untouched select; treat that as no filter
+        # rather than as a subject named "".
+        return v or None
 
 class BlueprintBody(StrictModel):
     name:str=Field(min_length=1,max_length=120)
@@ -351,25 +367,47 @@ class BlueprintBody(StrictModel):
     published:bool=False
 
 def pool(db,row):
-    query=select(Question).where(Question.status=="approved",Question.domain==row["domain"],Question.difficulty==row["difficulty"])
-    if row.get("skill"): query=query.where(Question.skill==row["skill"])
+    query=select(Question).where(Question.status=="approved")
+    for field,key in ((Question.subject,"subject"),(Question.domain,"domain"),
+                      (Question.difficulty,"difficulty"),(Question.skill,"skill")):
+        if row.get(key): query=query.where(field==row[key])
     return [q for q in db.scalars(query).all() if len(q.content["options"])==row["options"]]
+
+def row_label(r):
+    named=" / ".join(str(r[k]) for k in ("subject","domain","difficulty","skill") if r.get(k))
+    return named or "any subject"
 
 def resolve_blueprint(db,rows):
     chosen=[]; used=set()
     for r in rows:
         candidates=[q for q in pool(db,r) if q.id not in used]
-        if len(candidates)<r["count"]: raise HTTPException(422,f"Not enough approved {r['options']}-option questions in {r['domain']} / {r['difficulty']}: need {r['count']}, available {len(candidates)}.")
+        if len(candidates)<r["count"]: raise HTTPException(422,f"Not enough approved {r['options']}-option questions in {row_label(r)}: need {r['count']}, available {len(candidates)}.")
         selected=random.SystemRandom().sample(candidates,r["count"])
+        # Shuffled inside the row, but the rows keep the order the teacher
+        # wrote them in, so a paper built as Mathematics / Logic / Physics is
+        # sat in sections like the real one rather than interleaved.
+        random.SystemRandom().shuffle(selected)
         chosen.extend(selected); used.update(q.id for q in selected)
     if len(chosen)>100: raise HTTPException(422,"Mock exams are limited to 100 questions.")
-    random.SystemRandom().shuffle(chosen)
     return chosen
+
+def check_rows(rows):
+    subjects={s["id"] for s in SUBJECTS}; domains={d["id"] for d in DOMAINS}
+    for r in rows:
+        if not r.get("subject") and not r.get("domain"):
+            raise HTTPException(422,"Every row needs a subject or a sub-topic to draw from.")
+        if r.get("subject") and r["subject"] not in subjects: raise HTTPException(422,"Unknown subject")
+        if r.get("domain"):
+            if r["domain"] not in domains: raise HTTPException(422,"Unknown domain")
+            if r.get("subject") and SUBJECT_OF[r["domain"]]!=r["subject"]:
+                raise HTTPException(422,f"{r['domain']} is not part of {r['subject']}.")
+        # A skill name is only unique inside its own sub-topic.
+        if r.get("skill") and not r.get("domain"): raise HTTPException(422,"Choosing a skill needs a sub-topic too.")
 
 @app.post("/api/blueprints")
 def create_blueprint(body:BlueprintBody,u=Depends(teacher),db=Depends(db_session)):
     rows=[r.model_dump() for r in body.rows]
-    if any(r["domain"] not in [d["id"] for d in DOMAINS] for r in rows): raise HTTPException(422,"Unknown domain")
+    check_rows(rows)
     if body.published: resolve_blueprint(db,rows)
     b=Blueprint(id=uid(),name=body.name,minutes=body.minutes,rows=rows,published=body.published,creator_id=u.id)
     db.add(b); audit(db,u,b.id,"blueprint_created",body.model_dump()); db.commit()
@@ -385,7 +423,7 @@ def edit_blueprint(bid:str,body:BlueprintBody,u=Depends(teacher),db=Depends(db_s
     b=db.get(Blueprint,bid)
     if not b: raise HTTPException(404,'Blueprint not found')
     rows=[r.model_dump() for r in body.rows]
-    if any(r['domain'] not in [d['id'] for d in DOMAINS] for r in rows): raise HTTPException(422,'Unknown domain')
+    check_rows(rows)
     if body.published: resolve_blueprint(db,rows)
     audit(db,u,bid,'blueprint_updated',{'previous':{'name':b.name,'minutes':b.minutes,'rows':b.rows,'published':b.published},'updated':body.model_dump()})
     b.name=body.name;b.minutes=body.minutes;b.rows=rows;b.published=body.published;db.commit()

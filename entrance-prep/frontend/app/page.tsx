@@ -552,6 +552,11 @@ export default function App() {
       )
       .reduce((a, b) => a + b.count, 0);
   };
+  const subjectName = (id?: string | null) =>
+    catalog?.subjects?.find((s) => s.id === id)?.short || id || "";
+  // What one blueprint row draws on, in words.
+  const rowLabel = (r: Row) =>
+    r.domain ? domainName(r.domain) : `All of ${subjectName(r.subject)}`;
   // One section of the real paper: 25 Mathematics, 25 Logic, 30 Physics, 80 in
   // 90 minutes altogether. Offering that exact number makes rehearsing a
   // section a single tap. The whole 80-question paper belongs in Mock exams,
@@ -852,6 +857,7 @@ export default function App() {
                 refresh(user);
               }}
               domainName={domainName}
+              subjectName={subjectName}
             />
           ) : (
             <>
@@ -1896,24 +1902,48 @@ export default function App() {
                         {bpRows.map((r, i) => (
                           <div className="blueprint-row" key={i}>
                             <select
-                              aria-label={`Row ${i + 1} domain`}
-                              value={r.domain}
-                              onChange={(e) =>
+                              aria-label={`Row ${i + 1} draws from`}
+                              value={
+                                r.subject
+                                  ? `subject:${r.subject}`
+                                  : `domain:${r.domain}`
+                              }
+                              onChange={(e) => {
+                                // The value carries which kind of row this is,
+                                // because a subject row and a sub-topic row
+                                // fill different fields.
+                                const [kind, id] = e.target.value.split(":");
                                 setBpRows(
                                   bpRows.map((x, j) =>
-                                    i === j
-                                      ? { ...x, domain: e.target.value }
-                                      : x,
+                                    i !== j
+                                      ? x
+                                      : kind === "subject"
+                                        ? {
+                                            ...x,
+                                            subject: id,
+                                            domain: null,
+                                            skill: null,
+                                            difficulty: null,
+                                          }
+                                        : {
+                                            ...x,
+                                            subject: null,
+                                            domain: id,
+                                            skill: null,
+                                          },
                                   ),
-                                )
-                              }
+                                );
+                              }}
                             >
                               {catalog?.subjects?.map((s) => (
                                 <optgroup label={s.name} key={s.id}>
+                                  <option value={`subject:${s.id}`}>
+                                    All of {s.short} · any sub-topic
+                                  </option>
                                   {catalog.domains
                                     .filter((d) => d.subject === s.id)
                                     .map((d) => (
-                                      <option key={d.id} value={d.id}>
+                                      <option key={d.id} value={`domain:${d.id}`}>
                                         {d.name}
                                       </option>
                                     ))}
@@ -1922,17 +1952,23 @@ export default function App() {
                             </select>
                             <select
                               aria-label={`Row ${i + 1} difficulty`}
-                              value={r.difficulty}
+                              value={r.difficulty || ""}
                               onChange={(e) =>
                                 setBpRows(
                                   bpRows.map((x, j) =>
                                     i === j
-                                      ? { ...x, difficulty: e.target.value }
+                                      ? {
+                                          ...x,
+                                          difficulty: e.target.value || null,
+                                        }
                                       : x,
                                   ),
                                 )
                               }
                             >
+                              {/* The real paper does not pin a level, so a
+                                  section may span all four. */}
+                              <option value="">Any level</option>
                               {catalog?.levels.map((l) => (
                                 <option key={l}>{l}</option>
                               ))}
@@ -2083,9 +2119,10 @@ export default function App() {
                             {b.rows.map((r, i) => (
                               <div key={i}>
                                 <span>
-                                  {domainName(r.domain)}
+                                  {rowLabel(r)}
                                   <small>
-                                    {r.difficulty} · {r.options} options
+                                    {r.difficulty || "Any level"} · {r.options}{" "}
+                                    options
                                   </small>
                                 </span>
                                 <strong>{r.count}</strong>
@@ -2936,6 +2973,7 @@ function AttemptPlayer({
   refresh,
   exit,
   domainName,
+  subjectName,
 }: {
   attempt: Attempt;
   index: number;
@@ -2946,6 +2984,7 @@ function AttemptPlayer({
   refresh: () => Promise<void>;
   exit: () => void;
   domainName: (s: string) => string;
+  subjectName: (s?: string | null) => string;
 }) {
   const [choice, setChoice] = useState(""),
     [remaining, setRemaining] = useState(0),
@@ -2998,6 +3037,19 @@ function AttemptPlayer({
   const percent = a.questions.length
     ? Math.round(((a.score ?? correctCount) / a.questions.length) * 100)
     : 0;
+  // The real paper is marked by section, so a paper that spans more than one
+  // subject is reported that way too. A single-subject session gets nothing
+  // extra, because the total above already says it.
+  const sections = a.questions.reduce<
+    Record<string, { correct: number; total: number }>
+  >((acc, x) => {
+    const key = x.subject || "other";
+    acc[key] = acc[key] || { correct: 0, total: 0 };
+    acc[key].total += 1;
+    if (x.feedback?.is_correct) acc[key].correct += 1;
+    return acc;
+  }, {});
+  const sectionRows = Object.keys(sections).length > 1 ? sections : null;
   return (
     <>
       <div className="page-heading">
@@ -3152,6 +3204,18 @@ function AttemptPlayer({
                   </li>
                 )}
               </ul>
+              {sectionRows && (
+                <ul className="result-sections">
+                  {Object.entries(sectionRows).map(([id, s]) => (
+                    <li key={id}>
+                      <span>{subjectName(id)}</span>
+                      <span className="result-section-score">
+                        {s.correct} / {s.total}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </>
           ) : (
             <>

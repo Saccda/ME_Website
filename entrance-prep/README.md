@@ -32,8 +32,9 @@ and a rationale, so wrong answers are informative rather than filler.
 
 **The examination itself** is 80 questions in 1 hour 30 minutes: 25
 Mathematics, 25 Logic, 30 Physics. Practice offers that section length as a
-single tap — 25, or 30 when the topic is Physics. A paper covering all three
-sections at once belongs in Mock exams, as a blueprint.
+single tap — 25, or 30 when the topic is Physics — and
+`tools/create_exam_blueprint.py` builds the whole paper as a mock exam, sat in
+sections and marked section by section.
 
 **Physics here is electrical**, because the examination's physics section is:
 Ohm's law, charge and current, resistor networks, power and energy, work and
@@ -234,9 +235,9 @@ Honest list, in the order they are likely to bite:
   students cannot be compared question by question.
 - **36 Logic questions remain unapproved** pending editorial review, and 10 of
   the approved ones share a stem with another.
-- **No full mock-exam blueprint** matching the real paper's 80 questions across
-  its three sections. Practice covers one section; a whole paper needs a
-  blueprint built in Mock exams.
+- **No frozen assignment**: the mock exam below gives every student the real
+  shape, but a freshly drawn set, so two students still cannot be compared
+  question by question.
 - No delete-account path, no remote asset storage, no proctoring.
 
 Institutional use needs database backups, reverse-proxy rate limits and teacher

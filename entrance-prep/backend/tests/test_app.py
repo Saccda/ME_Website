@@ -260,6 +260,49 @@ def test_mathematics_answers_are_recomputed_not_asserted(clients):
     logic=teacher.get('/api/questions',params={'subject':'logic'}).json()
     assert logic and all(q['subject']=='logic' for q in logic)
 
+def test_blueprint_row_can_name_a_whole_subject(clients):
+    teacher,student=clients
+    # The real paper is described by section, not by sub-topic and level:
+    # 25 Mathematics, 25 Logic, 30 Physics in 90 minutes.
+    body={'name':'Full entrance examination','minutes':90,'published':True,'rows':[
+        {'subject':'math','count':25,'options':4},
+        {'subject':'logic','count':25,'options':4},
+        {'subject':'physics','count':30,'options':4}]}
+    r=teacher.post('/api/blueprints',json=body)
+    assert r.status_code==200,r.text
+    bid=r.json()['id']
+    a=student.post('/api/attempts',json={'mode':'mock','blueprint_id':bid}).json()
+    assert len(a['questions'])==80
+    assert len({q['id'] for q in a['questions']})==80
+    by_subject={}
+    for q in a['questions']: by_subject[q['subject']]=by_subject.get(q['subject'],0)+1
+    assert by_subject=={'math':25,'logic':25,'physics':30}
+    # Sections are sat in the order the teacher wrote them, not interleaved.
+    assert [q['subject'] for q in a['questions']]==['math']*25+['logic']*25+['physics']*30
+    assert all(len(q['content']['options'])==4 for q in a['questions'])
+
+def test_blueprint_rows_need_something_to_draw_from(clients):
+    teacher,_=clients
+    base={'name':'x','minutes':10,'published':False}
+    assert teacher.post('/api/blueprints',json={**base,'rows':[{'count':2}]}).status_code==422
+    assert teacher.post('/api/blueprints',json={**base,'rows':[{'subject':'nope','count':2}]}).status_code==422
+    # A sub-topic that does not belong to the named subject is a mistake worth
+    # catching, not a row that silently draws nothing.
+    assert teacher.post('/api/blueprints',json={**base,'rows':[{'subject':'logic','domain':'calculus','count':2}]}).status_code==422
+    # A skill is only unique inside its sub-topic.
+    assert teacher.post('/api/blueprints',json={**base,'rows':[{'subject':'logic','skill':'ordering','count':2}]}).status_code==422
+    # And the old domain+difficulty row still works.
+    assert teacher.post('/api/blueprints',json={**base,'rows':[{'domain':'patterns','difficulty':'Practice','count':2}]}).status_code==200
+
+def test_publishing_a_paper_the_bank_cannot_fill_is_refused(clients):
+    teacher,_=clients
+    body={'name':'Too big','minutes':90,'published':True,
+          'rows':[{'subject':'physics','count':50,'options':5}]}
+    r=teacher.post('/api/blueprints',json=body)
+    assert r.status_code==422
+    # The message must say which section is short, or a teacher cannot act on it.
+    assert 'physics' in r.json()['detail']
+
 def test_physics_answers_are_recomputed_not_asserted(clients):
     teacher,_=clients
     physics=teacher.get('/api/questions',params={'subject':'physics'}).json()
