@@ -159,9 +159,9 @@ export default async function AdmissionsPage() {
                 <div>
                   <strong>Practise the examination subjects online.</strong>
                   <span>
-                    Multiple-choice practice in Mathematics and Logic, with a
-                    worked explanation behind every answer. Create an account to
-                    keep your results.
+                    Multiple-choice practice in Mathematics, Physics and Logic,
+                    with a worked explanation behind every answer. Create an
+                    account to keep your results.
                   </span>
                 </div>
                 <a
