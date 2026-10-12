@@ -235,16 +235,9 @@ function AuthGate({
   return (
     <div className="login-shell">
       <div className="login-story">
-        {/* The full institutional lockup is artwork on an opaque white
-            background, so it sits on a white plate -- the same treatment the
-            square mark already used -- rather than on the navy directly. */}
-        <div className="login-brand">
-          <img
-            src="/brand/me-rupp-lockup.webp"
-            alt="Mechanical Engineering · Faculty of Engineering · Royal University of Phnom Penh"
-          />
-          <span>ENTRANCE PREP</span>
-        </div>
+        {/* The lockup lives on the white side, where its own background
+            disappears. This side keeps the product name only. */}
+        <p className="login-eyebrow">ENTRANCE PREP</p>
         <h1>Prepare with answers you can check.</h1>
         <p>
           Mathematics, Physics and Logic, in the multiple-choice format of the
@@ -270,6 +263,11 @@ function AuthGate({
       </div>
       <div className="login-form">
         <div>
+          <img
+            className="login-lockup"
+            src="/brand/me-rupp-lockup.webp"
+            alt="Mechanical Engineering · Faculty of Engineering · Royal University of Phnom Penh"
+          />
           <h2>{signup ? "Create your account" : "Sign in"}</h2>
           <p className="help">
             {signup

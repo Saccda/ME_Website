@@ -1864,25 +1864,21 @@ input[type="checkbox"] {
     0 0 0 150px #81aeca06;
   pointer-events: none;
 }
-.login-brand {
-  margin-bottom: 86px;
-}
-.login-brand img {
-  display: block;
-  width: 100%;
-  max-width: 430px;
-  height: auto;
-  background: white;
-  border-radius: 9px;
-  padding: 14px 18px;
-}
-.login-brand span {
-  display: block;
+.login-eyebrow {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 2.5px;
   color: #b8cadb;
-  margin-top: 16px;
+  margin-bottom: 86px;
+}
+/* No plate and no padding: the artwork's own white background is the panel's
+   background, so it simply sits on it. */
+.login-lockup {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  margin-bottom: 32px;
 }
 .login-story h1 {
   font-size: 54px;
@@ -2106,8 +2102,8 @@ input[type="checkbox"] {
   .login-story h1 {
     font-size: 39px;
   }
-  .login-brand img {
-    max-width: 330px;
+  .login-eyebrow {
+    margin-bottom: 60px;
   }
   .login-form {
     padding: 28px;
@@ -2382,8 +2378,8 @@ input[type="checkbox"] {
     padding: 28px;
     min-height: 340px;
   }
-  .login-brand {
-    margin-bottom: 34px;
+  .login-eyebrow {
+    margin-bottom: 20px;
   }
   .login-story h1 {
     font-size: 38px;
