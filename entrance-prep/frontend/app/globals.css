@@ -1912,10 +1912,22 @@ input[type="checkbox"] {
   color: var(--gold);
 }
 .login-bottom {
+  /* Stretched because .login-story aligns its children to the start, so
+     without this the row would shrink to its text and the edition would not
+     reach the right edge. */
+  align-self: stretch;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
   margin-top: auto;
   padding-top: 80px;
   color: #92adc3;
   font-size: 10px;
+}
+.login-bottom span:last-child {
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
 }
 .login-form {
   display: flex;

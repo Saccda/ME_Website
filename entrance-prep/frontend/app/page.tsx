@@ -53,6 +53,10 @@ import type {
   User,
 } from "@/lib/types";
 
+// Which edition of the question bank and the platform students are looking at.
+// Shown on the sign-in panel and in the app's top bar, so changing it for the
+// next release is this one line.
+const EDITION = "First edition";
 const domainIcons = [
   TrendingUp,
   Shapes,
@@ -257,8 +261,11 @@ function AuthGate({
           </span>
         </div>
         <div className="login-bottom">
-          Mechanical Engineering · Faculty of Engineering · Royal University of
-          Phnom Penh
+          <span>
+            Mechanical Engineering · Faculty of Engineering · Royal University
+            of Phnom Penh
+          </span>
+          <span>{EDITION}</span>
         </div>
       </div>
       <div className="login-form">
@@ -828,7 +835,7 @@ export default function App() {
           </div>
           <div className="topbar-right">
             <span className="live-dot" />
-            <span>Entrance prep · First edition</span>
+            <span>Entrance prep · {EDITION}</span>
             <img
               src="/brand/rupp-logo.png"
               alt="Royal University of Phnom Penh"
