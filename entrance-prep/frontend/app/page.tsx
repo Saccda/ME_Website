@@ -262,12 +262,14 @@ function AuthGate({
         </div>
       </div>
       <div className="login-form">
+        {/* A header band for the whole panel, not part of the form block, so
+            it spans the full white column rather than the field width. */}
+        <img
+          className="login-lockup"
+          src="/brand/me-rupp-lockup.webp"
+          alt="Mechanical Engineering · Faculty of Engineering · Royal University of Phnom Penh"
+        />
         <div>
-          <img
-            className="login-lockup"
-            src="/brand/me-rupp-lockup.webp"
-            alt="Mechanical Engineering · Faculty of Engineering · Royal University of Phnom Penh"
-          />
           <h2>{signup ? "Create your account" : "Sign in"}</h2>
           <p className="help">
             {signup

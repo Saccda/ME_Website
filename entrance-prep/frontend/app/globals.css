@@ -1872,13 +1872,16 @@ input[type="checkbox"] {
   margin-bottom: 86px;
 }
 /* No plate and no padding: the artwork's own white background is the panel's
-   background, so it simply sits on it. No max-width either -- it takes the
-   column's width, so its edges line up with the inputs below it. */
+   background, so it simply sits on it. No max-width either -- it spans the
+   panel's full content width, which is the point of it being here. */
 .login-lockup {
   display: block;
   width: 100%;
   height: auto;
-  margin-bottom: 34px;
+  flex-shrink: 0;
+  /* A floor, not the whole gap: the form's auto margins below take whatever
+     height is left over, so this only matters when the panel is full. */
+  margin-bottom: 36px;
 }
 .login-story h1 {
   font-size: 54px;
@@ -1916,16 +1919,15 @@ input[type="checkbox"] {
 }
 .login-form {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   padding: 45px;
   background: #fff;
 }
+/* auto margins centre the form in whatever height the lockup leaves. */
 .login-form > div {
-  /* Wide enough that the lockup above the form reads at a sensible size; the
-     form fields are comfortable at this width too. */
   max-width: 430px;
   width: 100%;
+  margin: auto;
 }
 .login-form h2 {
   font-size: 29px;
