@@ -243,7 +243,7 @@ function AuthGate({
             disappears. This side keeps the product name only. */}
         <p className="login-eyebrow">ENTRANCE PREP</p>
         <h1>Prepare with answers you can check.</h1>
-        <p>
+        <p className="login-intro">
           Mathematics, Physics and Logic, in the multiple-choice format of the
           real examination, with a worked explanation behind every answer.
         </p>
