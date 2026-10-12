@@ -235,16 +235,20 @@ function AuthGate({
   return (
     <div className="login-shell">
       <div className="login-story">
+        {/* The full institutional lockup is artwork on an opaque white
+            background, so it sits on a white plate -- the same treatment the
+            square mark already used -- rather than on the navy directly. */}
         <div className="login-brand">
-          <img src="/brand/me-logo.png" alt="Mechanical Engineering @ RUPP" />
-          <div>
-            ME @ RUPP<span>ENTRANCE PREP</span>
-          </div>
+          <img
+            src="/brand/me-rupp-lockup.webp"
+            alt="Mechanical Engineering · Faculty of Engineering · Royal University of Phnom Penh"
+          />
+          <span>ENTRANCE PREP</span>
         </div>
-        <h1>Prepare with reasoning you can check.</h1>
+        <h1>Prepare with answers you can check.</h1>
         <p>
-          Practise the reasoning the entrance exam asks for, with a worked
-          explanation behind every answer.
+          Mathematics, Physics and Logic, in the multiple-choice format of the
+          real examination, with a worked explanation behind every answer.
         </p>
         <div className="login-principles">
           <span>
@@ -256,7 +260,7 @@ function AuthGate({
             you are ready.
           </span>
           <span>
-            <TrendingUp size={19} /> See which reasoning patterns to revisit.
+            <TrendingUp size={19} /> See exactly which topics to revisit.
           </span>
         </div>
         <div className="login-bottom">
@@ -346,10 +350,14 @@ function AuthGate({
               </p>
             </div>
           )}
-          <div className="login-logos">
-            <img src="/brand/rupp-logo.png" alt="Royal University of Phnom Penh" />
-            <img src="/brand/fe-logo.png" alt="Faculty of Engineering" />
-          </div>
+          {/* Both crests already appear in the lockup opposite, and the
+              institution is named in words below it. At the moment someone is
+              typing their email, the useful thing to say is what happens to
+              it. */}
+          <p className="help login-note">
+            Your name and email are used only to keep your practice results on
+            this site.
+          </p>
         </div>
       </div>
     </div>
