@@ -540,6 +540,59 @@ def analytics(u=Depends(current_user),db=Depends(db_session)):
                 errors[tag]=errors.get(tag,0)+1
     return {"scope":"All students" if u.role=="teacher" else "Your completed attempts","attempts":len(attempts),"questions":answered,"correct":correct,"groups":list(groups.values()),"errors":[{"label":k,"count":v} for k,v in sorted(errors.items(),key=lambda x:-x[1])],"note":"Observed distractor choices are indicators of possible misconceptions, not diagnoses."}
 
+# Below this many sittings the numbers are noise, so nothing is flagged.
+MIN_SERVED=5
+
+@app.get("/api/question-report")
+def question_report(u=Depends(teacher),db=Depends(db_session)):
+    """How each question has actually performed with students.
+
+    Aggregated by question id across every submitted attempt, so it does not
+    need students to have sat the same paper -- which they do not, since each
+    session draws its own questions.
+
+    What it is for: a question most of the cohort fails is either badly worded,
+    keyed wrongly, or teaches something not yet covered. That signal is already
+    in the answers and nothing surfaced it before.
+    """
+    stats={}
+    query=select(Attempt).where(Attempt.submitted.is_not(None)).join(User,User.id==Attempt.user_id).where(User.role=="student")
+    for a in db.scalars(query):
+        for q in a.snapshots:
+            # Attempts taken before subjects existed carry none, but the domain
+            # always determines it, so derive rather than leave it blank.
+            s=stats.setdefault(q["id"],{"id":q["id"],
+                                        "subject":q.get("subject") or SUBJECT_OF.get(q["domain"]),
+                                        "domain":q["domain"],
+                                        "difficulty":q["difficulty"],"stem":q["content"]["stem"],
+                                        "served":0,"correct":0,"unanswered":0,"wrong":{}})
+            s["served"]+=1
+            chosen=a.answers.get(q["id"])
+            if chosen is None: s["unanswered"]+=1
+            elif chosen==q["content"]["correct"]: s["correct"]+=1
+            else:
+                option=next((o for o in q["content"]["options"] if o["id"]==chosen),{})
+                text=option.get("text","(removed option)")
+                entry=s["wrong"].setdefault(text,{"text":text,"error":option.get("error"),"count":0})
+                entry["count"]+=1
+    status={q.id:q.status for q in db.scalars(select(Question))}
+    rows=[]
+    for s in stats.values():
+        answered=s["served"]-s["unanswered"]
+        top=max(s["wrong"].values(),key=lambda x:x["count"]) if s["wrong"] else None
+        rows.append({**{k:s[k] for k in ("id","subject","domain","difficulty","stem","served","correct","unanswered")},
+                     "answered":answered,
+                     "accuracy":round(s["correct"]/answered*100) if answered else None,
+                     "top_wrong":top,
+                     "status":status.get(s["id"],"deleted"),
+                     # More students picked one particular wrong answer than the
+                     # right one. That is the strongest evidence a question is
+                     # at fault rather than the students.
+                     "suspect":bool(top and s["served"]>=MIN_SERVED and top["count"]>s["correct"])})
+    rows.sort(key=lambda r:(r["accuracy"] if r["accuracy"] is not None else 101,-r["served"]))
+    return {"questions":rows,"min_served":MIN_SERVED,
+            "note":"A question is flagged only once enough students have seen it. Low accuracy can mean a hard topic rather than a bad question; read the stem before changing it."}
+
 def student_rows(db):
     """Per-student totals, counting completed attempts only."""
     done={}

@@ -668,6 +668,62 @@ main {
   font-size: 9.5px;
   color: var(--muted);
 }
+/* Per-question performance for teachers. Worst first, so the questions worth
+   reading are at the top without anyone having to sort. */
+.question-stats {
+  margin-top: 18px;
+}
+.question-stat {
+  border-top: 1px solid #edf1f5;
+  padding: 15px 0;
+}
+.question-stat-head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.question-stat-accuracy {
+  flex-shrink: 0;
+  min-width: 46px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--blue);
+  font-variant-numeric: tabular-nums;
+}
+.question-stat.is-suspect .question-stat-accuracy {
+  color: var(--red);
+}
+.question-stat-head strong {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--text);
+}
+.question-stat-head small {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.question-stat-wrong {
+  margin: 8px 0 0 60px;
+  font-size: 11px;
+  color: #52718d;
+  line-height: 1.7;
+}
+.question-stat-wrong strong {
+  font-weight: 600;
+  color: var(--text);
+}
+@media (max-width: 760px) {
+  .question-stat-wrong {
+    margin-left: 0;
+  }
+}
 /* Section scores after a paper that spans more than one subject, which is how
    the real examination is marked. */
 .result-sections {

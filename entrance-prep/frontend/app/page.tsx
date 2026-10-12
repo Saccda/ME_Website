@@ -46,6 +46,7 @@ import type {
   Content,
   Domain,
   Question,
+  QuestionReport,
   Row,
   StudentDetail,
   StudentRow,
@@ -430,6 +431,9 @@ export default function App() {
     }[]
   >([]);
   const [exportKind, setExportKind] = useState("paper");
+  const [questionReport, setQuestionReport] = useState<QuestionReport | null>(
+    null,
+  );
   const refresh = useCallback(async (u: User) => {
     const results = await Promise.all([
       api<Blueprint[]>("/blueprints"),
@@ -439,12 +443,16 @@ export default function App() {
       u.role === "teacher"
         ? api<Question[]>("/questions")
         : Promise.resolve([]),
+      u.role === "teacher"
+        ? api<QuestionReport>("/question-report")
+        : Promise.resolve(null),
     ]);
     setBlueprints(results[0]);
     setAnalytics(results[1]);
     setAttempts(results[2]);
     setAvailability(results[3]);
     setBank(results[4]);
+    setQuestionReport(results[5]);
   }, []);
   useEffect(() => {
     (async () => {
@@ -2415,6 +2423,82 @@ export default function App() {
                           </p>
                         )}
                       </section>
+                      {/* Teachers only: which individual questions are failing.
+                          Aggregated by question id, so it works even though no
+                          two students sit the same paper. */}
+                      {user.role === "teacher" &&
+                        !!questionReport?.questions.length && (
+                          <section className="panel mt">
+                            <h2>Questions students get wrong</h2>
+                            <p>{questionReport.note}</p>
+                            <div className="question-stats">
+                              {questionReport.questions
+                                .slice(0, 20)
+                                .map((q) => (
+                                  <div
+                                    className={
+                                      "question-stat" +
+                                      (q.suspect ? " is-suspect" : "")
+                                    }
+                                    key={q.id}
+                                  >
+                                    <div className="question-stat-head">
+                                      <span className="question-stat-accuracy">
+                                        {q.accuracy === null
+                                          ? "—"
+                                          : `${q.accuracy}%`}
+                                      </span>
+                                      <div>
+                                        {/* Maths and Physics stems carry
+                                            LaTeX, which is unreadable raw. */}
+                                        <strong>
+                                          <RichText text={q.stem} />
+                                        </strong>
+                                        <small>
+                                          {subjectName(q.subject)} ·{" "}
+                                          {domainName(q.domain)} ·{" "}
+                                          {q.difficulty} · seen {q.served}{" "}
+                                          {q.served === 1 ? "time" : "times"}
+                                          {q.unanswered
+                                            ? ` · ${q.unanswered} left blank`
+                                            : ""}
+                                        </small>
+                                      </div>
+                                      {q.suspect && (
+                                        <Badge color="gold">Check this</Badge>
+                                      )}
+                                    </div>
+                                    {q.top_wrong && (
+                                      <p className="question-stat-wrong">
+                                        Most chosen wrong answer:{" "}
+                                        <strong>
+                                          <RichText text={q.top_wrong.text} />
+                                        </strong>{" "}
+                                        ·{" "}
+                                        {q.top_wrong.count}{" "}
+                                        {q.top_wrong.count === 1
+                                          ? "student"
+                                          : "students"}
+                                        {q.top_wrong.error
+                                          ? ` · ${human(q.top_wrong.error)}`
+                                          : ""}
+                                      </p>
+                                    )}
+                                  </div>
+                                ))}
+                            </div>
+                            {questionReport.questions.length > 20 && (
+                              <p className="help">
+                                Showing the 20 hardest of{" "}
+                                {questionReport.questions.length} questions
+                                students have seen. A question is flagged only
+                                once {questionReport.min_served} students have
+                                sat it and more of them chose one wrong answer
+                                than the right one.
+                              </p>
+                            )}
+                          </section>
+                        )}
                     </>
                   )}
                 </>

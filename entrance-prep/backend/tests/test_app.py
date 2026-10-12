@@ -260,6 +260,49 @@ def test_mathematics_answers_are_recomputed_not_asserted(clients):
     logic=teacher.get('/api/questions',params={'subject':'logic'}).json()
     assert logic and all(q['subject']=='logic' for q in logic)
 
+def test_question_report_finds_the_question_everyone_failed(clients):
+    teacher,student=clients
+    # Sit two sessions and answer every question wrongly where possible, so the
+    # report has something unambiguous to find.
+    seen={}
+    for _ in range(3):
+        a=student.post('/api/attempts',json={'mode':'exam','count':4,'options':4,'minutes':10}).json()
+        for q in a['questions']:
+            # Always the first option, so each question's accuracy is 0 or 100
+            # and the arithmetic below is unambiguous.
+            student.post(f"/api/attempts/{a['id']}/answer",json={'question_id':q['id'],'option_id':q['content']['options'][0]['id']})
+            seen[q['id']]=seen.get(q['id'],0)+1
+        student.post(f"/api/attempts/{a['id']}/submit")
+    r=teacher.get('/api/question-report')
+    assert r.status_code==200
+    report=r.json()
+    rows={q['id']:q for q in report['questions']}
+    assert rows, 'every submitted answer should appear somewhere in the report'
+    for qid,times in seen.items():
+        assert rows[qid]['served']==times
+        assert rows[qid]['answered']==times
+        assert rows[qid]['accuracy'] in (0,100)
+        assert rows[qid]['subject'] and rows[qid]['stem']
+    # Worst first, so the questions worth reading come to the top.
+    accuracies=[q['accuracy'] for q in report['questions'] if q['accuracy'] is not None]
+    assert accuracies==sorted(accuracies)
+    # It is a teacher's view of every student, not a student's own.
+    assert student.get('/api/question-report').status_code==403
+
+def test_question_report_counts_unanswered_separately(clients):
+    teacher,student=clients
+    a=student.post('/api/attempts',json={'mode':'exam','count':3,'options':4,'minutes':10}).json()
+    only=a['questions'][0]
+    student.post(f"/api/attempts/{a['id']}/answer",json={'question_id':only['id'],'option_id':only['content']['options'][0]['id']})
+    student.post(f"/api/attempts/{a['id']}/submit")
+    rows={q['id']:q for q in teacher.get('/api/question-report').json()['questions']}
+    skipped=[rows[q['id']] for q in a['questions'][1:]]
+    # An unanswered question must not count as a wrong answer against the
+    # question, or an exam nobody finished would condemn its last questions.
+    assert all(s['unanswered']>=1 for s in skipped)
+    assert all(s['answered']<s['served'] for s in skipped)
+    assert all(s['top_wrong'] is None or s['top_wrong']['count']>=1 for s in skipped)
+
 def test_blueprint_row_can_name_a_whole_subject(clients):
     teacher,student=clients
     # The real paper is described by section, not by sub-topic and level:

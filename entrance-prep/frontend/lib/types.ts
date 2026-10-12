@@ -89,6 +89,26 @@ export type Attempt = {
   score: number | null;
   server_time: string;
 };
+export type QuestionStat = {
+  id: string;
+  subject: string | null;
+  domain: string;
+  difficulty: string;
+  stem: string;
+  served: number;
+  answered: number;
+  correct: number;
+  unanswered: number;
+  accuracy: number | null;
+  top_wrong: { text: string; error: string | null; count: number } | null;
+  status: string;
+  suspect: boolean;
+};
+export type QuestionReport = {
+  questions: QuestionStat[];
+  min_served: number;
+  note: string;
+};
 export type Row = {
   // A row narrows what it may draw on. Naming only a subject is how the real
   // paper is described -- 25 Logic, 30 Physics -- without pinning sub-topic or
