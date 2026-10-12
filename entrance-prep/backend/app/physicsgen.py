@@ -34,9 +34,315 @@ def _a(n):
     return "an" if whole in (8, 11, 18) or 80 <= whole <= 89 else "a"
 
 
+# Taking g as 9.8 and stating it in every stem, because the examination states
+# it and a student should never have to guess which value was intended.
+G = 9.8
+
+
 def template(domain, depth, rng):
     """Return stem, answer, explanation, distractors, validator spec and LaTeX."""
-    if domain == "current":
+    if domain == "kinematics":
+        if depth == 0:
+            d, t = rng.choice([120, 240, 360, 480]), rng.choice([8, 10, 12, 20])
+            value = d / t
+            stem = f"A trolley travels {d} m in {t} s at a steady speed. What is its speed?"
+            spec = {"kind": "compute", "vars": {"d": d, "t": t}, "expr": "d/t", "digits": 2}
+            explain = f"Speed is distance divided by time: ${d} \\div {t} = {fmt(value)}$ m/s."
+            latex = rf"v = \frac{{s}}{{t}} = \frac{{{d}}}{{{t}}} = {fmt(value)}"
+            correct, wrong = build(value, " m/s", [
+                (t / d, "Divides time by distance.", "inverted-operation"),
+                (d * t, "Multiplies instead of dividing.", "wrong-operation"),
+                (d - t, "Subtracts the time from the distance.", "wrong-operation"),
+                (d / t / 60, "Converts to a per-minute figure the question did not ask for.", "unit-error")])
+        elif depth == 1:
+            u, v, t = rng.choice([0, 2, 5]), rng.choice([12, 20, 30]), rng.choice([4, 5, 8])
+            value = (v - u) / t
+            stem = (f"A vehicle speeds up uniformly from {u} m/s to {v} m/s in {t} s. "
+                    f"What is its acceleration?")
+            spec = {"kind": "compute", "vars": {"u": u, "v": v, "t": t},
+                    "expr": "(v-u)/t", "digits": 2}
+            explain = (f"Acceleration is the change in velocity per second: "
+                       f"$({v} - {u}) \\div {t} = {fmt(value)}$ m/s².")
+            latex = rf"a = \frac{{v - u}}{{t}} = \frac{{{v} - {u}}}{{{t}}} = {fmt(value)}"
+            correct, wrong = build(value, " m/s²", [
+                ((v + u) / t, "Adds the two speeds instead of taking the change.", "wrong-operation"),
+                (v / t, "Ignores the starting speed.", "missing-step"),
+                ((v - u) * t, "Multiplies by the time instead of dividing.", "inverted-operation"),
+                (t / (v - u) if v != u else v, "Divides time by the change in speed.", "inverted-operation")])
+        elif depth == 2:
+            u, a, t = rng.choice([0, 3, 5]), rng.choice([2, 3, 4]), rng.choice([4, 5, 6])
+            value = u * t + 0.5 * a * t ** 2
+            stem = (f"A body starts at {u} m/s and accelerates uniformly at {a} m/s² for {t} s. "
+                    f"How far does it travel?")
+            spec = {"kind": "compute", "vars": {"u": u, "a": a, "t": t},
+                    "expr": "u*t+0.5*a*t**2", "digits": 2}
+            explain = (f"$s = ut + \\tfrac12 at^2 = ({u})({t}) + 0.5({a})({t})^2 = "
+                       f"{fmt(value)}$ m. Both terms are needed: the distance it would have "
+                       f"covered at its starting speed, plus the extra from speeding up.")
+            latex = rf"s = ut + \tfrac12 at^2 = {u}({t}) + \tfrac12({a})({t})^2 = {fmt(value)}"
+            correct, wrong = build(value, " m", [
+                (u * t, "Uses the starting speed only and ignores the acceleration.", "missing-step"),
+                (0.5 * a * t ** 2, "Ignores the starting speed.", "missing-step"),
+                (u * t + a * t ** 2, "Omits the factor of one half.", "missing-step"),
+                ((u + a * t) * t, "Multiplies the final speed by the time, which overstates the distance.", "wrong-rule")])
+        else:
+            h = rng.choice([20, 45, 80, 125])
+            value = math.sqrt(2 * G * h)
+            stem = (f"A stone is dropped from rest from a height of {h} m. Neglecting air "
+                    f"resistance and taking $g = {G}$ m/s², at what speed does it reach the "
+                    f"ground, to 2 decimal places?")
+            spec = {"kind": "compute", "vars": {"h": h, "g": G},
+                    "expr": "sqrt(2*g*h)", "digits": 2}
+            explain = (f"With $u = 0$, $v^2 = 2gh$, so $v = \\sqrt{{2({G})({h})}} = "
+                       f"{fmt(value)}$ m/s. The mass does not appear: everything falls at the "
+                       f"same rate once air resistance is ignored.")
+            latex = rf"v = \sqrt{{2gh}} = \sqrt{{2({G})({h})}} = {fmt(value)}"
+            correct, wrong = build(value, " m/s", [
+                (math.sqrt(G * h), "Omits the factor of two.", "missing-step"),
+                (2 * G * h, "Forgets to take the square root.", "missing-step"),
+                (math.sqrt(2 * h / G), "Divides by g instead of multiplying.", "inverted-operation"),
+                (G * h, "Multiplies g by the height and stops.", "missing-step")])
+
+    elif domain == "forces":
+        if depth == 0:
+            m, a = rng.choice([2, 4, 5, 8]), rng.choice([3, 5, 6, 10])
+            value = m * a
+            stem = (f"A force gives {_a(m)} {m} kg mass an acceleration of {a} m/s². "
+                    f"How large is the force?")
+            spec = {"kind": "compute", "vars": {"m": m, "a": a}, "expr": "m*a", "digits": 2}
+            explain = f"Newton's second law: $F = ma = {m} \\times {a} = {fmt(value)}$ N."
+            latex = rf"F = ma = {m} \times {a} = {fmt(value)}"
+            correct, wrong = build(value, " N", [
+                (m / a, "Divides mass by acceleration.", "inverted-operation"),
+                (a / m, "Divides acceleration by mass.", "inverted-operation"),
+                (m + a, "Adds the two quantities.", "wrong-operation"),
+                (m * a * G, "Multiplies by g, which belongs to weight, not to this force.", "wrong-rule")])
+        elif depth == 1:
+            m = rng.choice([5, 12, 20, 50])
+            value = m * G
+            stem = (f"What is the weight of {_a(m)} {m} kg component on Earth, "
+                    f"taking $g = {G}$ m/s²?")
+            spec = {"kind": "compute", "vars": {"m": m, "g": G}, "expr": "m*g", "digits": 2}
+            explain = (f"Weight is the force gravity exerts: $W = mg = {m} \\times {G} = "
+                       f"{fmt(value)}$ N. Mass is in kilograms; weight is a force in newtons.")
+            latex = rf"W = mg = {m} \times {G} = {fmt(value)}"
+            correct, wrong = build(value, " N", [
+                (m, "Reports the mass, which is not a force.", "unit-error"),
+                (m / G, "Divides by g instead of multiplying.", "inverted-operation"),
+                (m * G * 2, "The result is doubled.", "arithmetic-slip"),
+                (m + G, "Adds g to the mass.", "wrong-operation")])
+        elif depth == 2:
+            mu, m = rng.choice([0.2, 0.3, 0.4, 0.5]), rng.choice([10, 20, 25, 40])
+            value = mu * m * G
+            stem = (f"{_a(m).capitalize()} {m} kg crate rests on a level floor, and the coefficient of friction "
+                    f"between them is {fmt(mu)}. What horizontal force is needed to start it "
+                    f"sliding? Take $g = {G}$ m/s².")
+            spec = {"kind": "compute", "vars": {"u": mu, "m": m, "g": G},
+                    "expr": "u*m*g", "digits": 2}
+            explain = (f"The normal force is the weight, $mg = {fmt(m * G)}$ N, and friction is "
+                       f"$\\mu$ times it: ${fmt(mu)} \\times {fmt(m * G)} = {fmt(value)}$ N.")
+            latex = rf"F = \mu mg = {fmt(mu)} \times {m} \times {G} = {fmt(value)}"
+            correct, wrong = build(value, " N", [
+                (m * G, "Gives the weight and ignores the coefficient.", "missing-step"),
+                (mu * m, "Omits g, so this is not a force.", "missing-step"),
+                (m * G / mu, "Divides by the coefficient instead of multiplying.", "inverted-operation"),
+                (mu * G, "Leaves the mass out.", "missing-step")])
+        else:
+            f, mu, m = rng.choice([200, 300, 400]), rng.choice([0.2, 0.25]), rng.choice([20, 25, 30])
+            friction = mu * m * G
+            value = (f - friction) / m
+            stem = (f"A horizontal force of {f} N is applied to {_a(m)} {m} kg box on a floor whose "
+                    f"coefficient of friction is {fmt(mu)}. What is the box's acceleration, to "
+                    f"2 decimal places? Take $g = {G}$ m/s².")
+            spec = {"kind": "compute", "vars": {"f": f, "u": mu, "m": m, "g": G},
+                    "expr": "(f-u*m*g)/m", "digits": 2}
+            explain = (f"Friction opposes the push: ${fmt(mu)} \\times {m} \\times {G} = "
+                       f"{fmt(friction)}$ N. The resultant force is ${f} - {fmt(friction)} = "
+                       f"{fmt(f - friction)}$ N, and dividing by the mass gives {fmt(value)} m/s².")
+            latex = rf"a = \frac{{F - \mu mg}}{{m}} = \frac{{{f} - {fmt(friction)}}}{{{m}}} = {fmt(value)}"
+            correct, wrong = build(value, " m/s²", [
+                (f / m, "Ignores friction entirely.", "missing-step"),
+                ((f + friction) / m, "Adds friction instead of subtracting it.", "sign-error"),
+                (f - friction, "Gives the resultant force, not the acceleration.", "partial-answer"),
+                (friction / m, "Uses only the friction force.", "wrong-term")])
+
+    elif domain == "energy":
+        if depth == 0:
+            f, d = rng.choice([20, 50, 80, 120]), rng.choice([3, 5, 8, 10])
+            value = f * d
+            stem = (f"A force of {f} N moves a load {d} m in the direction of the force. "
+                    f"How much work is done?")
+            spec = {"kind": "compute", "vars": {"f": f, "d": d}, "expr": "f*d", "digits": 2}
+            explain = f"Work is force times distance moved: ${f} \\times {d} = {fmt(value)}$ J."
+            latex = rf"W = Fd = {f} \times {d} = {fmt(value)}"
+            correct, wrong = build(value, " J", [
+                (f / d, "Divides instead of multiplying.", "inverted-operation"),
+                (d / f, "Divides distance by force.", "inverted-operation"),
+                (f + d, "Adds the two quantities.", "wrong-operation"),
+                (f * d / 2, "Halves the result.", "arithmetic-slip")])
+        elif depth == 1:
+            m, v = rng.choice([2, 4, 10, 20]), rng.choice([3, 5, 6, 10])
+            value = 0.5 * m * v ** 2
+            stem = f"What is the kinetic energy of {_a(m)} {m} kg mass moving at {v} m/s?"
+            spec = {"kind": "compute", "vars": {"m": m, "v": v},
+                    "expr": "0.5*m*v**2", "digits": 2}
+            explain = (f"$E_k = \\tfrac12 mv^2 = 0.5 \\times {m} \\times {v}^2 = {fmt(value)}$ J. "
+                       f"The speed is squared, so doubling it quadruples the energy.")
+            latex = rf"E_k = \tfrac12 mv^2 = 0.5 \times {m} \times {v}^2 = {fmt(value)}"
+            correct, wrong = build(value, " J", [
+                (m * v ** 2, "Omits the factor of one half.", "missing-step"),
+                (0.5 * m * v, "Omits the square on the speed.", "missing-step"),
+                (m * v, "Gives the momentum instead of the energy.", "wrong-rule"),
+                (0.5 * m ** 2 * v, "Squares the mass instead of the speed.", "wrong-term")])
+        elif depth == 2:
+            m, h = rng.choice([5, 10, 20, 25]), rng.choice([2, 4, 6, 10])
+            value = m * G * h
+            stem = (f"How much potential energy does {_a(m)} {m} kg mass gain when it is raised "
+                    f"{h} m? Take $g = {G}$ m/s².")
+            spec = {"kind": "compute", "vars": {"m": m, "g": G, "h": h},
+                    "expr": "m*g*h", "digits": 2}
+            explain = f"$E_p = mgh = {m} \\times {G} \\times {h} = {fmt(value)}$ J."
+            latex = rf"E_p = mgh = {m} \times {G} \times {h} = {fmt(value)}"
+            correct, wrong = build(value, " J", [
+                (m * h, "Omits g.", "missing-step"),
+                (m * G, "Gives the weight and ignores the height.", "partial-answer"),
+                (m * G * h / 2, "Uses the factor of one half, which belongs to kinetic energy.", "wrong-rule"),
+                (G * h, "Leaves the mass out.", "missing-step")])
+        else:
+            m, h, t = rng.choice([40, 60, 80]), rng.choice([5, 10, 12]), rng.choice([4, 8, 10])
+            value = m * G * h / t
+            stem = (f"A hoist raises {_a(m)} {m} kg load {h} m in {t} s. What is its output "
+                    f"power, to 2 decimal places? Take $g = {G}$ m/s².")
+            spec = {"kind": "compute", "vars": {"m": m, "g": G, "h": h, "t": t},
+                    "expr": "m*g*h/t", "digits": 2}
+            explain = (f"The work done is $mgh = {m} \\times {G} \\times {h} = {fmt(m * G * h)}$ J, "
+                       f"and power is work per second: ${fmt(m * G * h)} \\div {t} = {fmt(value)}$ W.")
+            latex = rf"P = \frac{{mgh}}{{t}} = \frac{{{m} \times {G} \times {h}}}{{{t}}} = {fmt(value)}"
+            correct, wrong = build(value, " W", [
+                (m * G * h, "Gives the work in joules, not the power.", "partial-answer"),
+                (m * G * h * t, "Multiplies by the time instead of dividing.", "inverted-operation"),
+                (m * h / t, "Omits g.", "missing-step"),
+                (m * G / t, "Leaves the height out.", "missing-step")])
+
+    elif domain == "fluids":
+        if depth == 0:
+            m, v = rng.choice([200, 400, 600, 800]), rng.choice([2, 4, 5, 8])
+            value = m / v
+            stem = f"A block of mass {m} kg occupies {v} m³. What is its density?"
+            spec = {"kind": "compute", "vars": {"m": m, "v": v}, "expr": "m/v", "digits": 2}
+            explain = f"Density is mass per unit volume: ${m} \\div {v} = {fmt(value)}$ kg/m³."
+            latex = rf"\rho = \frac{{m}}{{V}} = \frac{{{m}}}{{{v}}} = {fmt(value)}"
+            correct, wrong = build(value, " kg/m³", [
+                (v / m, "Divides volume by mass.", "inverted-operation"),
+                (m * v, "Multiplies instead of dividing.", "inverted-operation"),
+                (m - v, "Subtracts the volume from the mass.", "wrong-operation"),
+                (m / v / 1000, "Converts as though the answer were wanted in g/cm³.", "unit-error")])
+        elif depth == 1:
+            f, a = rng.choice([200, 450, 600, 900]), rng.choice([2, 3, 5, 6])
+            value = f / a
+            stem = f"A force of {f} N presses evenly on an area of {a} m². What is the pressure?"
+            spec = {"kind": "compute", "vars": {"f": f, "a": a}, "expr": "f/a", "digits": 2}
+            explain = (f"Pressure is force per unit area: ${f} \\div {a} = {fmt(value)}$ Pa. "
+                       f"One pascal is one newton per square metre.")
+            latex = rf"p = \frac{{F}}{{A}} = \frac{{{f}}}{{{a}}} = {fmt(value)}"
+            correct, wrong = build(value, " Pa", [
+                (a / f, "Divides area by force.", "inverted-operation"),
+                (f * a, "Multiplies instead of dividing.", "inverted-operation"),
+                (f + a, "Adds the two quantities.", "wrong-operation"),
+                (f / a / 1000, "Reports kilopascals while the question asks for pascals.", "unit-error")])
+        elif depth == 2:
+            h = rng.choice([2, 5, 8, 12])
+            value = 1000 * G * h
+            stem = (f"What is the pressure due to a column of water {h} m deep? Take the density "
+                    f"of water as 1000 kg/m³ and $g = {G}$ m/s².")
+            spec = {"kind": "compute", "vars": {"r": 1000, "g": G, "h": h},
+                    "expr": "r*g*h", "digits": 2}
+            explain = (f"$p = \\rho gh = 1000 \\times {G} \\times {h} = {fmt(value)}$ Pa. The "
+                       f"area does not appear: depth alone sets the pressure in a liquid.")
+            latex = rf"p = \rho gh = 1000 \times {G} \times {h} = {fmt(value)}"
+            correct, wrong = build(value, " Pa", [
+                (1000 * h, "Omits g.", "missing-step"),
+                (G * h, "Leaves the density out.", "missing-step"),
+                (1000 * G / h, "Divides by the depth instead of multiplying.", "inverted-operation"),
+                (1000 * G * h / 2, "Halves the result.", "arithmetic-slip")])
+        else:
+            v = rng.choice([0.002, 0.005, 0.01, 0.02])
+            value = 1000 * v * G
+            stem = (f"A solid of volume {fmt(v, 3)} m³ is fully submerged in water. What upthrust "
+                    f"acts on it? Take the density of water as 1000 kg/m³ and $g = {G}$ m/s².")
+            spec = {"kind": "compute", "vars": {"r": 1000, "v": v, "g": G},
+                    "expr": "r*v*g", "digits": 2}
+            explain = (f"The upthrust equals the weight of water displaced: the displaced mass is "
+                       f"$1000 \\times {fmt(v, 3)} = {fmt(1000 * v)}$ kg, and its weight is "
+                       f"${fmt(1000 * v)} \\times {G} = {fmt(value)}$ N.")
+            latex = rf"F = \rho Vg = 1000 \times {fmt(v, 3)} \times {G} = {fmt(value)}"
+            correct, wrong = build(value, " N", [
+                (1000 * v, "Gives the displaced mass, not its weight.", "partial-answer"),
+                (v * G, "Leaves the density out.", "missing-step"),
+                (1000 * G / v, "Divides by the volume instead of multiplying.", "inverted-operation"),
+                (1000 * v * G / 2, "Halves the result.", "arithmetic-slip")])
+
+    elif domain == "thermal":
+        if depth == 0:
+            t = rng.choice([15, 27, 50, 100, 127])
+            value = t + 273
+            stem = f"A gas is at {t} °C. What is this temperature in kelvin?"
+            spec = {"kind": "compute", "vars": {"t": t}, "expr": "t+273", "digits": 2}
+            explain = (f"Add 273 to go from degrees Celsius to kelvin: ${t} + 273 = "
+                       f"{fmt(value)}$ K. A kelvin is the same size as a degree Celsius; only "
+                       f"the zero differs.")
+            latex = rf"T = {t} + 273 = {fmt(value)}"
+            correct, wrong = build(value, " K", [
+                (t - 273, "Subtracts instead of adding.", "sign-error"),
+                (273 - t, "Subtracts the temperature from 273.", "sign-error"),
+                (t + 100, "Adds 100 instead of 273.", "wrong-constant"),
+                (t * 273, "Multiplies by 273.", "wrong-operation")])
+        elif depth == 1:
+            m, dt = rng.choice([2, 4, 5]), rng.choice([10, 20, 25, 30])
+            value = m * 4200 * dt
+            stem = (f"How much heat is needed to raise the temperature of {m} kg of water by "
+                    f"{dt} °C? Take the specific heat capacity of water as 4200 J/(kg·K).")
+            spec = {"kind": "compute", "vars": {"m": m, "c": 4200, "d": dt},
+                    "expr": "m*c*d", "digits": 2}
+            explain = (f"$Q = mc\\Delta T = {m} \\times 4200 \\times {dt} = {fmt(value)}$ J.")
+            latex = rf"Q = mc\Delta T = {m} \times 4200 \times {dt} = {fmt(value)}"
+            correct, wrong = build(value, " J", [
+                (m * 4200, "Leaves the temperature rise out.", "missing-step"),
+                (4200 * dt, "Leaves the mass out.", "missing-step"),
+                (m * dt, "Omits the specific heat capacity.", "missing-step"),
+                (m * 4200 * dt / 2, "Halves the result.", "arithmetic-slip")])
+        elif depth == 2:
+            m = rng.choice([0.5, 2, 3, 5])
+            value = m * 334
+            stem = (f"How much heat is needed to melt {fmt(m)} kg of ice already at 0 °C? Take "
+                    f"the specific latent heat of fusion as 334 kJ/kg.")
+            spec = {"kind": "compute", "vars": {"m": m, "l": 334}, "expr": "m*l", "digits": 2}
+            explain = (f"$Q = mL = {fmt(m)} \\times 334 = {fmt(value)}$ kJ. The temperature does "
+                       f"not change while it melts, so no $mc\\Delta T$ term appears.")
+            latex = rf"Q = mL = {fmt(m)} \times 334 = {fmt(value)}"
+            correct, wrong = build(value, " kJ", [
+                (m / 334, "Divides instead of multiplying.", "inverted-operation"),
+                (334 / m, "Divides the latent heat by the mass.", "inverted-operation"),
+                (m + 334, "Adds the two quantities.", "wrong-operation"),
+                (m * 4.2 * 334, "Brings in a specific heat term, which does not apply while melting.", "wrong-rule")])
+        else:
+            p1, v1, v2 = rng.choice([100, 150, 200]), rng.choice([4, 6, 8]), rng.choice([1, 2])
+            value = p1 * v1 / v2
+            stem = (f"A gas at {p1} kPa occupies {v1} m³. It is compressed to {v2} m³ at constant "
+                    f"temperature. What is its new pressure?")
+            spec = {"kind": "compute", "vars": {"p": p1, "a": v1, "b": v2},
+                    "expr": "p*a/b", "digits": 2}
+            explain = (f"At constant temperature $p_1V_1 = p_2V_2$, so $p_2 = "
+                       f"\\frac{{{p1} \\times {v1}}}{{{v2}}} = {fmt(value)}$ kPa. Squeezing a gas "
+                       f"into a smaller volume raises its pressure.")
+            latex = rf"p_2 = \frac{{p_1 V_1}}{{V_2}} = \frac{{{p1} \times {v1}}}{{{v2}}} = {fmt(value)}"
+            correct, wrong = build(value, " kPa", [
+                (p1 * v2 / v1, "Inverts the volume ratio, giving a fall in pressure.", "inverted-operation"),
+                (p1 * v1 * v2, "Multiplies by the new volume instead of dividing.", "inverted-operation"),
+                (p1 / (v1 * v2), "Divides by both volumes.", "inverted-operation"),
+                (p1 + v1 - v2, "Treats the relationship as additive.", "wrong-rule")])
+
+    elif domain == "current":
         if depth == 0:
             i, t = rng.choice([1.5, 2.3, 3.0, 4.5]), rng.choice([10, 20, 30, 60])
             value = i * t

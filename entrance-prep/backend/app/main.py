@@ -21,7 +21,11 @@ def audit(db,user,entity,action,detail):
 def make_question(domain, difficulty, option_count=4, seed=None, presentation="text", skill=None):
     content=generate(domain,difficulty,option_count,seed,presentation,skill)
     subject=SUBJECT_OF[domain]
-    source={**SOURCES[subject],"sets":DOMAIN_BY_ID[domain]["sets"],"template":"original-v1","generation_seed":seed}
+    d=DOMAIN_BY_ID[domain]
+    # A sub-topic may cite its own source: Physics draws its electrical topics
+    # from the past paper and its mechanics and heat from a textbook, so the
+    # provenance recorded on a question has to be the right one of the two.
+    source={**(d.get("source") or SOURCES[subject]),"sets":d["sets"],"template":"original-v1","generation_seed":seed}
     return Question(id=uid(),subject=subject,domain=domain,skill=content.pop("skill"),difficulty=difficulty,status="draft",content=content,source=source,validation=validate(content),version=1)
 
 def seed_lock(db):
@@ -73,14 +77,17 @@ def bootstrap(db):
     if demo and not db.scalar(select(User).where(User.email=="student@demo.local")):
         db.add(User(id=uid(),email="student@demo.local",name="Student",password=hash_password("student-demo-2026"),role="student"))
     db.commit()
-    # Seeded one subject at a time, so a subject added after a database was
+    # Seeded one sub-topic at a time, so a sub-topic added after a database was
     # first filled is seeded on the next start without touching what is there.
+    # Per sub-topic rather than per subject: Physics gained mechanics and heat
+    # after it already held its electrical questions, and a per-subject guard
+    # would have skipped the whole subject and left the new sub-topics empty.
     teacher_user=db.scalar(select(User).where(User.role=="teacher"))
     seeded={(q.content["stem"],len(q.content["options"])) for q in db.scalars(select(Question))}
     added=False
     for si,subject in enumerate(GENERATED_SUBJECTS):
-        if db.scalar(select(func.count()).select_from(Question).where(Question.subject==subject)): continue
         for di,d in enumerate([x for x in DOMAINS if x["subject"]==subject]):
+            if db.scalar(select(func.count()).select_from(Question).where(Question.domain==d["id"])): continue
             for li,l in enumerate(LEVELS):
                 for n in range(3):
                     for retry in range(40):
@@ -172,7 +179,7 @@ def workspace(body:WorkspaceBody,request:Request,response:Response,db=Depends(db
     return user_public(u)
 
 @app.get("/api/catalog")
-def catalog(): return {"subjects":[{k:v for k,v in s.items() if k!="source"} for s in SUBJECTS],"domains":[{k:v for k,v in d.items() if k!="sets"} for d in DOMAINS],"levels":LEVELS,"level_guide":LEVEL_GUIDE}
+def catalog(): return {"subjects":[{k:v for k,v in s.items() if k!="source"} for s in SUBJECTS],"domains":[{k:v for k,v in d.items() if k not in ("sets","source")} for d in DOMAINS],"levels":LEVELS,"level_guide":LEVEL_GUIDE}
 
 @app.post("/api/auth/login")
 def login(body:Credentials,request:Request,response:Response,db=Depends(db_session)):

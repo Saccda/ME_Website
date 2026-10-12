@@ -7,7 +7,7 @@ from io import BytesIO
 from zipfile import ZipFile
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import select, delete, func
 from app.main import app
 from app.models import Base, engine, SessionLocal, Question, Attempt, now
 from app.generator import generate
@@ -355,6 +355,29 @@ def test_physics_answers_are_recomputed_not_asserted(clients):
     # including the conceptual ones, which are checked against a reviewed table.
     assert all(q['validation']['method']=='deterministic' and q['validation']['passed'] for q in physics)
     assert {d['id'] for d in PHYSICS_DOMAINS}=={q['domain'] for q in physics}
+
+def test_seeding_fills_a_sub_topic_added_to_a_subject_that_already_has_some():
+    # Physics gained mechanics and heat after its electrical questions were
+    # already in the database. A per-subject guard would have seen Physics as
+    # done and left the new sub-topics permanently empty.
+    from app.main import bootstrap
+    from app.catalog import DOMAINS as ALL
+    with SessionLocal() as db:
+        victim='thermal'
+        before=db.scalar(select(func.count()).select_from(Question).where(Question.domain==victim))
+        assert before, 'the sub-topic should be seeded in the first place'
+        others=db.scalar(select(func.count()).select_from(Question).where(Question.domain!=victim))
+        db.execute(delete(Question).where(Question.domain==victim))
+        db.commit()
+        assert not db.scalar(select(func.count()).select_from(Question).where(Question.domain==victim))
+        bootstrap(db)
+        db.commit()
+        after=db.scalar(select(func.count()).select_from(Question).where(Question.domain==victim))
+        assert after==before,f'reseeded {after}, expected {before}'
+        # And nothing else was touched or duplicated.
+        assert db.scalar(select(func.count()).select_from(Question).where(Question.domain!=victim))==others
+        assert {d['id'] for d in ALL if d['subject']=='physics'}=={
+            q.domain for q in db.scalars(select(Question).where(Question.subject=='physics'))}
 
 def test_fact_validator_checks_the_reviewed_table():
     content=generate('quantities','Foundation',4,11,'text',None)

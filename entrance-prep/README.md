@@ -20,7 +20,7 @@ website but no code, database, or deployment — see the root
 |---|---|---|---|
 | Logic & Reasoning | 7 | 84 | 48 |
 | Mathematics | 7 | 84 | 84 |
-| Physics | 7 | 84 | 84 |
+| Physics | 12 | 144 | 144 |
 
 Four levels throughout — Foundation, Practice, Exam Level, Challenge — against a
 local rubric. These are preparation levels, not claims about official RUPP
@@ -36,11 +36,15 @@ single tap — 25, or 30 when the topic is Physics — and
 `tools/create_exam_blueprint.py` builds the whole paper as a mock exam, sat in
 sections and marked section by section.
 
-**Physics here is electrical**, because the examination's physics section is:
-Ohm's law, charge and current, resistor networks, power and energy, work and
-potential, capacitance, and the units and instruments that go with them. Not
-general mechanics. No Physics question refers to a figure, since a generated
-question cannot supply a circuit diagram.
+**Physics covers mechanics, heat and electricity**, in that order of
+sub-topics. The seven electrical ones follow the past paper: Ohm's law, charge
+and current, resistor networks, power and energy, work and potential,
+capacitance, units and instruments. The five mechanics and heat ones follow the
+topic structure of Parts 1 and 2 of Mukherji's *Physics MCQ* — an IIT-JEE book,
+whose **topics** are the examination's but whose **difficulty is far above it**,
+so nothing is copied or adapted from it and every question is pitched at the
+past paper's level instead. No Physics question refers to a figure, since a
+generated question cannot supply a circuit diagram.
 
 ## Run locally
 
@@ -110,7 +114,7 @@ that produced alarming numbers before the instrument was corrected.
 
 ## Teacher workflow
 
-Nothing reaches a student unreviewed. A real installation seeds all 252 questions
+Nothing reaches a student unreviewed. A real installation seeds all 312 questions
 as **drafts**, and a draft is invisible to students.
 
 draft → review → approve or reject. Editing or regenerating returns a question to
@@ -125,7 +129,7 @@ docker compose exec api python tools/approve_verified.py          # reports only
 docker compose exec api python tools/approve_verified.py --apply
 ```
 
-That approves **216** — all 84 Mathematics, all 84 Physics and 48 Logic — and
+That approves **276** — all 84 Mathematics, all 144 Physics and 48 Logic — and
 leaves **36** as drafts. Those 36 are the verbal and argument-reasoning
 questions, where no machine can prove an answer, and they are exactly the ones a
 teacher must read.
@@ -215,7 +219,7 @@ npx playwright install chromium
 npx playwright test
 ```
 
-50 backend tests. Coverage includes workspace separation, key stripping, review
+61 backend tests. Coverage includes workspace separation, key stripping, review
 transitions, stale edits, failed validators, immediate and delayed feedback,
 immutable snapshots, expiry, attempt ownership, exact blueprint allocation,
 server scoring, CSRF and the origin guard, exports, subject filtering, the
