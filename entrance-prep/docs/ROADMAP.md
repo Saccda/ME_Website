@@ -19,23 +19,22 @@ This supersedes the proposal written on 2026-10-02.
 | **Capacity, measured** | 250 students, 4,250 requests, 0 failures. See [`CAPACITY.md`](CAPACITY.md). |
 | **Teacher tooling** | `approve_verified.py` approves only machine-proved questions; `remove_test_accounts.py` clears load-test accounts; a Students roster with CSV export. |
 | **Logic bank audit** | All 36 unproven answer keys checked by hand and found correct; six defect classes fixed at template level. See [`LOGIC-BANK-AUDIT.md`](LOGIC-BANK-AUDIT.md). |
+| **Password reset** | Self-service by emailed six-digit code, one hour, single use, five attempts, throttled per address, and every existing session signed out on success. Off unless SMTP is configured, so no deployment offers a reset it cannot send. |
 
 ## Next, in the order I would do them
 
-### 1. Password reset — teacher-issued
+### 1. Email verification at sign-up
 
-The only gap that locks a real student out. An email reset needs an SMTP service
-the project does not have, and addresses are unverified anyway. A teacher-issued
-reset needs no mail server:
+Built instead of the teacher-issued reset that was planned here: a student
+resets their own password with a six-digit code emailed to them, which needs
+nobody's time. The teacher-handover version was dropped because distributing
+codes to 250 students is a job nobody has.
 
-- A **Reset password** action on the existing Students list.
-- The teacher gets a one-time code to hand over; it expires in 24 hours and works
-  once.
-- The student enters the code and chooses a new password.
-- Every reset is audited, with who did it.
-
-This fits a university cohort, where staff already know who the students are. An
-email reset can be added later without changing the model.
+What remains is the one gap it cannot close. Addresses are never verified, so a
+student who mistypes theirs at sign-up can neither receive a code nor be found
+in the roster under the address they think they used. Verifying at registration
+— the same code mechanism, run at a different moment — fixes that and removes
+most of the need for a registration code at the same time.
 
 ### 2. Frozen assignment, and a class results grid
 

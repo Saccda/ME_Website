@@ -1,14 +1,15 @@
-import csv, hashlib, io, os, random, uuid
+import csv, hashlib, hmac, io, os, random, secrets, uuid
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from typing import Literal
-from fastapi import FastAPI, Depends, HTTPException, Request, Response
+from fastapi import FastAPI, BackgroundTasks, Depends, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 from sqlalchemy import select, func, update, delete, text
 from sqlalchemy.exc import IntegrityError
 from .catalog import DOMAINS, LOGIC_DOMAINS, LEVELS, LEVEL_GUIDE, SOURCE, SOURCES, SUBJECTS, SUBJECT_OF, DOMAIN_BY_ID, GENERATED_SUBJECTS
-from .models import Base, engine, SessionLocal, User, AuthSession, LoginFailure, Question, Audit, Blueprint, Attempt, now, POOL_TOTAL
+from .models import Base, engine, SessionLocal, User, AuthSession, LoginFailure, PasswordReset, Question, Audit, Blueprint, Attempt, now, POOL_TOTAL
+from . import mailer
 from .security import db_session, current_user, teacher, hash_password, verify, new_session, utc, auth_mode
 from .generator import generate
 from .validation import validate
@@ -150,7 +151,10 @@ class Registration(Credentials):
 def user_public(u): return {"id":u.id,"name":u.name,"email":u.email,"role":u.role}
 
 @app.get("/api/health")
-def health(): return {"ok":True,"demo":os.getenv("DEMO_MODE","false").lower()=="true","auth_mode":auth_mode()}
+def health(): return {"ok":True,"demo":os.getenv("DEMO_MODE","false").lower()=="true","auth_mode":auth_mode(),
+                      # So the sign-in screen only offers "I forgot my
+                      # password" where an email could actually be sent.
+                      "password_reset":mailer.configured()}
 
 class WorkspaceBody(StrictModel):
     role: Literal['student','teacher'] | None = None
@@ -204,6 +208,83 @@ def register(body:Registration,response:Response,db=Depends(db_session)):
     try: db.commit()
     except IntegrityError:
         db.rollback(); raise HTTPException(409,"This email is already registered.")
+    new_session(db,u,response)
+    return user_public(u)
+
+RESET_MINUTES=60
+RESET_MAX_ATTEMPTS=5
+
+class ResetRequest(StrictModel):
+    email:str=Field(max_length=254)
+
+class ResetConfirm(StrictModel):
+    email:str=Field(max_length=254)
+    code:str=Field(min_length=4,max_length=12)
+    password:str=Field(max_length=200)
+
+# Always the same answer, whether or not the address has an account. Saying
+# "no such account" would turn this form into a way for anyone to find out who
+# has registered.
+RESET_SENT="If that address has an account, a code is on its way. It expires in an hour."
+
+@app.post("/api/auth/reset/request")
+def reset_request(body:ResetRequest,tasks:BackgroundTasks,db=Depends(db_session)):
+    if auth_mode()=='open': raise HTTPException(404,'Sign-in is disabled. Open a workspace instead.')
+    if not mailer.configured(): raise HTTPException(503,"Password reset is not available on this site yet.")
+    email=body.email.lower().strip()
+    # Throttled on the address, which protects the owner of a real one from
+    # having their inbox used as a weapon, and shares the login limiter's table.
+    key=hashlib.sha256(("reset:"+email).encode()).hexdigest()
+    recent=db.scalar(select(func.count()).select_from(LoginFailure).where(LoginFailure.key==key,LoginFailure.created>now()-timedelta(minutes=15)))
+    if recent>=3: raise HTTPException(429,"A code was already sent. Check your email, or try again in 15 minutes.")
+    db.add(LoginFailure(id=uid(),key=key))
+    u=db.scalar(select(User).where(User.email==email))
+    if u and u.role=="student":
+        # One live code per person: issuing a second must retire the first,
+        # or every request leaves another working code behind.
+        db.execute(update(PasswordReset).where(PasswordReset.user_id==u.id,PasswordReset.used.is_(False)).values(used=True))
+        code=f"{secrets.randbelow(10**6):06d}"
+        db.add(PasswordReset(id=uid(),user_id=u.id,
+                             code_hash=hashlib.sha256(code.encode()).hexdigest(),
+                             expires=now()+timedelta(minutes=RESET_MINUTES)))
+        audit(db,u,u.id,"password_reset_requested",{"note":"Code emailed. The code itself is not recorded."})
+        # After the response, so a slow mail server does not hold the request
+        # open. A failure here is invisible to the sender by design; it is
+        # logged by the task.
+        tasks.add_task(deliver_reset,u.email,u.name,code)
+    db.commit()
+    return {"ok":True,"message":RESET_SENT}
+
+def deliver_reset(email,name,code):
+    try:
+        mailer.send(email,"Your Entrance Prep password reset code",
+                    mailer.reset_email(name,code,RESET_MINUTES))
+    except Exception as exc:
+        # Printed, not raised: the request has already returned, and the
+        # address must not learn whether delivery worked.
+        print(f"reset email to {email} failed: {type(exc).__name__}: {exc}",flush=True)
+
+@app.post("/api/auth/reset/confirm")
+def reset_confirm(body:ResetConfirm,response:Response,db=Depends(db_session)):
+    if auth_mode()=='open': raise HTTPException(404,'Sign-in is disabled. Open a workspace instead.')
+    if len(body.password)<12: raise HTTPException(422,"Use a password with at least 12 characters.")
+    email=body.email.lower().strip()
+    u=db.scalar(select(User).where(User.email==email))
+    bad=HTTPException(400,"That code is wrong or has expired. Request a new one.")
+    if not u: raise bad
+    row=db.scalar(select(PasswordReset).where(PasswordReset.user_id==u.id,PasswordReset.used.is_(False)).order_by(PasswordReset.created.desc()))
+    if not row or utc(row.expires)<now(): raise bad
+    if row.attempts>=RESET_MAX_ATTEMPTS:
+        row.used=True; db.commit(); raise bad
+    if not hmac.compare_digest(hashlib.sha256(body.code.strip().encode()).hexdigest(),row.code_hash):
+        row.attempts+=1; db.commit(); raise bad
+    row.used=True
+    u.password=hash_password(body.password)
+    # Every existing session goes: if someone else had got into the account,
+    # resetting the password is how the owner evicts them.
+    db.execute(delete(AuthSession).where(AuthSession.user_id==u.id))
+    audit(db,u,u.id,"password_reset_completed",{"note":"Set with an emailed code. All sessions signed out."})
+    db.commit()
     new_session(db,u,response)
     return user_public(u)
 

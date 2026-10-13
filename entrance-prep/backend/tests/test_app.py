@@ -4,12 +4,13 @@ os.environ["DEMO_MODE"]="true"
 os.environ['AUTH_MODE']='credentials'
 from datetime import timedelta
 from io import BytesIO
+from pathlib import Path
 from zipfile import ZipFile
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select, delete, func
 from app.main import app
-from app.models import Base, engine, SessionLocal, Question, Attempt, now
+from app.models import Base, engine, SessionLocal, User, Audit, PasswordReset, Question, Attempt, now
 from app.generator import generate
 from app.validation import validate
 from app.catalog import DOMAINS, LEVELS, PHYSICS_DOMAINS
@@ -355,6 +356,151 @@ def test_physics_answers_are_recomputed_not_asserted(clients):
     # including the conceptual ones, which are checked against a reviewed table.
     assert all(q['validation']['method']=='deterministic' and q['validation']['passed'] for q in physics)
     assert {d['id'] for d in PHYSICS_DOMAINS}=={q['domain'] for q in physics}
+
+@pytest.fixture
+def mail(monkeypatch):
+    """Capture reset emails instead of sending them."""
+    from app import main as m
+    sent=[]
+    monkeypatch.setattr(m.mailer,'configured',lambda: True)
+    monkeypatch.setattr(m.mailer,'send',lambda to,subject,body: sent.append((to,subject,body)))
+    return sent
+
+def _fresh_student(client,email):
+    client.post('/api/auth/logout')
+    r=client.post('/api/auth/register',json={'name':'Reset Me','email':email,'password':'first-password-1'})
+    assert r.status_code==200,r.text
+    client.post('/api/auth/logout')
+    return r.json()
+
+def _code_from(body):
+    import re
+    return re.search(r'\b(\d{6})\b',body).group(1)
+
+def test_password_reset_by_emailed_code(clients,mail):
+    _,student=clients
+    email='reset-basic@example.com'
+    _fresh_student(student,email)
+    r=student.post('/api/auth/reset/request',json={'email':email})
+    assert r.status_code==200
+    assert len(mail)==1 and mail[0][0]==email
+    code=_code_from(mail[0][2])
+    # The code itself must never be written to the audit trail.
+    with SessionLocal() as db:
+        u=db.scalar(select(User).where(User.email==email))
+        rows=list(db.scalars(select(Audit).where(Audit.user_id==u.id)))
+        assert rows and all(code not in str(a.detail) for a in rows)
+        # Nor stored in the clear.
+        reset=db.scalar(select(PasswordReset).where(PasswordReset.user_id==u.id))
+        assert reset.code_hash!=code and len(reset.code_hash)==64
+    ok=student.post('/api/auth/reset/confirm',json={'email':email,'code':code,'password':'second-password-2'})
+    assert ok.status_code==200,ok.text
+    # The old password is dead and the new one works.
+    student.post('/api/auth/logout')
+    assert student.post('/api/auth/login',json={'email':email,'password':'first-password-1'}).status_code==401
+    assert student.post('/api/auth/login',json={'email':email,'password':'second-password-2'}).status_code==200
+
+def test_a_reset_code_works_once_and_not_after_five_wrong_tries(clients,mail):
+    _,student=clients
+    email='reset-once@example.com'
+    _fresh_student(student,email)
+    student.post('/api/auth/reset/request',json={'email':email})
+    code=_code_from(mail[-1][2])
+    assert student.post('/api/auth/reset/confirm',json={'email':email,'code':code,'password':'brand-new-password-1'}).status_code==200
+    # Replaying the same code must fail, or an intercepted email stays useful.
+    assert student.post('/api/auth/reset/confirm',json={'email':email,'code':code,'password':'another-password-99'}).status_code==400
+    mail.clear()
+    student.post('/api/auth/logout')
+    student.post('/api/auth/reset/request',json={'email':email})
+    good=_code_from(mail[-1][2])
+    wrong='000000' if good!='000000' else '111111'
+    for _ in range(5):
+        assert student.post('/api/auth/reset/confirm',json={'email':email,'code':wrong,'password':'x'*12}).status_code==400
+    # Six digits is a small space, so the code is burned after five misses
+    # rather than left open to guessing.
+    assert student.post('/api/auth/reset/confirm',json={'email':email,'code':good,'password':'x'*12}).status_code==400
+
+def test_reset_never_reveals_whether_an_address_has_an_account(clients,mail):
+    _,student=clients
+    email='reset-known@example.com'
+    _fresh_student(student,email)
+    known=student.post('/api/auth/reset/request',json={'email':email})
+    unknown=student.post('/api/auth/reset/request',json={'email':'nobody-at-all@example.com'})
+    assert known.status_code==unknown.status_code==200
+    assert known.json()==unknown.json()
+    # Only the real address gets an email, but the caller cannot tell.
+    assert [m[0] for m in mail]==[email]
+
+def test_requesting_a_code_is_throttled_per_address(clients,mail):
+    _,student=clients
+    email='reset-throttle@example.com'
+    _fresh_student(student,email)
+    for _ in range(3):
+        assert student.post('/api/auth/reset/request',json={'email':email}).status_code==200
+    # Otherwise the form is a way to flood someone else's inbox.
+    assert student.post('/api/auth/reset/request',json={'email':email}).status_code==429
+
+def test_issuing_a_new_code_retires_the_previous_one(clients,mail):
+    _,student=clients
+    email='reset-retire@example.com'
+    _fresh_student(student,email)
+    student.post('/api/auth/reset/request',json={'email':email})
+    first=_code_from(mail[-1][2])
+    student.post('/api/auth/reset/request',json={'email':email})
+    second=_code_from(mail[-1][2])
+    assert first!=second
+    assert student.post('/api/auth/reset/confirm',json={'email':email,'code':first,'password':'x'*12}).status_code==400
+    assert student.post('/api/auth/reset/confirm',json={'email':email,'code':second,'password':'later-password-77'}).status_code==200
+
+def test_reset_signs_out_every_existing_session(clients,mail):
+    _,student=clients
+    email='reset-sessions@example.com'
+    _fresh_student(student,email)
+    # Another device, signed in and staying signed in.
+    other=TestClient(app,headers={'X-App-Request':'1'})
+    assert other.post('/api/auth/login',json={'email':email,'password':'first-password-1'}).status_code==200
+    assert other.get('/api/auth/me').status_code==200
+    student.post('/api/auth/reset/request',json={'email':email})
+    code=_code_from(mail[-1][2])
+    assert student.post('/api/auth/reset/confirm',json={'email':email,'code':code,'password':'evicting-password-3'}).status_code==200
+    # Resetting is how an owner evicts whoever else was in the account.
+    assert other.get('/api/auth/me').status_code==401
+
+def test_reset_is_refused_when_no_mail_is_configured(clients,monkeypatch):
+    from app import main as m
+    _,student=clients
+    monkeypatch.setattr(m.mailer,'configured',lambda: False)
+    r=student.post('/api/auth/reset/request',json={'email':'anyone@example.com'})
+    assert r.status_code==503
+    assert not m.health()['password_reset']
+
+def test_an_account_with_a_reset_code_can_still_be_deleted(clients,mail):
+    # password_resets has a foreign key to users, so a cleanup that does not
+    # know about it fails on a constraint rather than doing nothing. That is
+    # what happened the first time this table existed.
+    import importlib.util
+    _,student=clients
+    email='reset-delete@example.com'
+    _fresh_student(student,email)
+    student.post('/api/auth/reset/request',json={'email':email})
+    with SessionLocal() as db:
+        u=db.scalar(select(User).where(User.email==email))
+        assert db.scalar(select(PasswordReset).where(PasswordReset.user_id==u.id))
+        spec=importlib.util.spec_from_file_location('rta',str(Path(__file__).resolve().parents[1]/'tools'/'remove_test_accounts.py'))
+        rta=importlib.util.module_from_spec(spec); spec.loader.exec_module(rta)
+        for table in rta.OWNED:
+            db.execute(delete(table).where(table.user_id==u.id))
+        db.execute(delete(User).where(User.id==u.id))
+        db.commit()
+        assert not db.scalar(select(User).where(User.email==email))
+
+def test_reset_rejects_a_short_new_password(clients,mail):
+    _,student=clients
+    email='reset-short@example.com'
+    _fresh_student(student,email)
+    student.post('/api/auth/reset/request',json={'email':email})
+    code=_code_from(mail[-1][2])
+    assert student.post('/api/auth/reset/confirm',json={'email':email,'code':code,'password':'short'}).status_code==422
 
 def test_seeding_fills_a_sub_topic_added_to_a_subject_that_already_has_some():
     # Physics gained mechanics and heat after its electrical questions were

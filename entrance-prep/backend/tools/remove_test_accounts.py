@@ -16,8 +16,13 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from app.models import SessionLocal, User, Attempt, AuthSession, Audit  # noqa: E402
+from app.models import SessionLocal, User, Attempt, AuthSession, Audit, PasswordReset  # noqa: E402
 from sqlalchemy import select, delete  # noqa: E402
+
+# Every table with a foreign key to users. Miss one and the delete fails on a
+# foreign-key constraint rather than doing nothing, which is how password_resets
+# was found after it was added.
+OWNED = (Attempt, AuthSession, Audit, PasswordReset)
 
 PROTECTED = ("@demo.local", "@guest.invalid", "@workspace.invalid")
 
@@ -40,9 +45,8 @@ def run(apply, suffix):
             return
         for chunk in (victims[i:i + 400] for i in range(0, len(victims), 400)):
             ids = [u.id for u in chunk]
-            db.execute(delete(Attempt).where(Attempt.user_id.in_(ids)))
-            db.execute(delete(AuthSession).where(AuthSession.user_id.in_(ids)))
-            db.execute(delete(Audit).where(Audit.user_id.in_(ids)))
+            for table in OWNED:
+                db.execute(delete(table).where(table.user_id.in_(ids)))
             db.execute(delete(User).where(User.id.in_(ids)))
         db.commit()
         print(f"\nDeleted {len(victims)} accounts and their attempts.")

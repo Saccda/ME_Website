@@ -232,10 +232,10 @@ bank — never point them at a real student database.
 
 Honest list, in the order they are likely to bite:
 
-- **No password reset.** With 250 students, somebody will be locked out in the
-  first week, and today the only remedy is a database edit.
 - **No registration code and no email verification**, so anyone with the link can
-  create an account with any address.
+  create an account with any address. Email verification would also fix the one
+  gap in password reset: a student who mistypes their address at sign-up still
+  cannot receive a code.
 - **No frozen assignment**: every student gets a freshly generated set, so two
   students cannot be compared question by question.
 - **36 Logic questions remain unapproved** pending editorial review, and 10 of

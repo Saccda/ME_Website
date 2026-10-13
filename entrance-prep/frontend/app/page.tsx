@@ -200,24 +200,58 @@ function Modal({
 
 function AuthGate({
   demo,
+  canReset,
   onSignedIn,
 }: {
   demo: boolean;
+  canReset: boolean;
   onSignedIn: (user: User) => void;
 }) {
-  const [mode, setMode] = useState<"signup" | "signin">("signup");
+  const [mode, setMode] = useState<
+    "signup" | "signin" | "forgot" | "code"
+  >("signup");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const signup = mode === "signup";
+  const resetting = mode === "forgot" || mode === "code";
+  function go(next: typeof mode) {
+    setMode(next);
+    setError("");
+    setNotice("");
+  }
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (busy) return;
     setBusy(true);
     setError("");
     try {
+      if (mode === "forgot") {
+        const r = await api<{ message: string }>(
+          "/auth/reset/request",
+          "POST",
+          { email: email.trim() },
+        );
+        // Straight on to the code step, and the same message either way:
+        // whether that address has an account is not ours to reveal.
+        setMode("code");
+        setNotice(r.message);
+        return;
+      }
+      if (mode === "code") {
+        onSignedIn(
+          await api<User>("/auth/reset/confirm", "POST", {
+            email: email.trim(),
+            code: code.trim(),
+            password,
+          }),
+        );
+        return;
+      }
       onSignedIn(
         signup
           ? await api<User>("/auth/register", "POST", {
@@ -277,11 +311,23 @@ function AuthGate({
           alt="Mechanical Engineering · Faculty of Engineering · Royal University of Phnom Penh"
         />
         <div>
-          <h2>{signup ? "Create your account" : "Sign in"}</h2>
+          <h2>
+            {signup
+              ? "Create your account"
+              : mode === "forgot"
+                ? "Reset your password"
+                : mode === "code"
+                  ? "Enter your code"
+                  : "Sign in"}
+          </h2>
           <p className="help">
             {signup
               ? "Your account keeps your practice history and results on this site."
-              : "Welcome back. Continue where you left off."}
+              : mode === "forgot"
+                ? "Enter the address you registered with and we will email you a code."
+                : mode === "code"
+                  ? "Check your email, then choose a new password."
+                  : "Welcome back. Continue where you left off."}
           </p>
           <form onSubmit={submit}>
             {signup && (
@@ -305,25 +351,50 @@ function AuthGate({
                 required
                 maxLength={254}
                 autoComplete="email"
+                readOnly={mode === "code"}
               />
             </label>
-            <label>
-              Password
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={signup ? 12 : 1}
-                autoComplete={signup ? "new-password" : "current-password"}
-              />
-              {signup && (
-                <span className="help">
-                  At least 12 characters. Do not reuse a password from another
-                  site.
-                </span>
-              )}
-            </label>
+            {mode === "code" && (
+              <label>
+                Six-digit code
+                <input
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  required
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                />
+              </label>
+            )}
+            {mode !== "forgot" && (
+              <label>
+                {mode === "code" ? "New password" : "Password"}
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={signup || mode === "code" ? 12 : 1}
+                  autoComplete={
+                    signup || mode === "code"
+                      ? "new-password"
+                      : "current-password"
+                  }
+                />
+                {(signup || mode === "code") && (
+                  <span className="help">
+                    At least 12 characters. Do not reuse a password from another
+                    site.
+                  </span>
+                )}
+              </label>
+            )}
+            {notice && (
+              <p className="help" role="status">
+                {notice}
+              </p>
+            )}
             {error && (
               <p className="help" role="alert" style={{ color: "var(--red)" }}>
                 {error}
@@ -334,20 +405,30 @@ function AuthGate({
                 ? "Please wait…"
                 : signup
                   ? "Create account"
-                  : "Sign in"}
+                  : mode === "forgot"
+                    ? "Email me a code"
+                    : mode === "code"
+                      ? "Set new password"
+                      : "Sign in"}
             </button>
           </form>
           <button
             className="button secondary login-toggle"
-            onClick={() => {
-              setMode(signup ? "signin" : "signup");
-              setError("");
-            }}
+            onClick={() => go(resetting || signup ? "signin" : "signup")}
           >
-            {signup
-              ? "I already have an account"
-              : "I need to create an account"}
+            {resetting
+              ? "Back to sign in"
+              : signup
+                ? "I already have an account"
+                : "I need to create an account"}
           </button>
+          {/* Only where the server can actually send mail, so this is never a
+              door that leads nowhere. */}
+          {canReset && mode === "signin" && (
+            <button className="text-button forgot-link" onClick={() => go("forgot")}>
+              I forgot my password
+            </button>
+          )}
           {demo && (
             <div className="demo-login">
               <strong>Demonstration site</strong>
@@ -377,6 +458,9 @@ export default function App() {
     [catalog, setCatalog] = useState<Catalog | null>(null),
     [loading, setLoading] = useState(true),
     [demo, setDemo] = useState(false),
+    // Whether the server can actually send an email, so the sign-in screen
+    // does not offer a reset that would go nowhere.
+    [canReset, setCanReset] = useState(false),
     [view, setView] = useState("overview"),
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
@@ -474,11 +558,16 @@ export default function App() {
       try {
         const [c, h] = await Promise.all([
           api<Catalog>("/catalog"),
-          api<{ demo: boolean; auth_mode: string }>("/health"),
+          api<{
+            demo: boolean;
+            auth_mode: string;
+            password_reset?: boolean;
+          }>("/health"),
         ]);
         setCatalog(c);
         setDemo(h.demo);
         setAuthMode(h.auth_mode);
+        setCanReset(!!h.password_reset);
         // Outside open mode a visitor who has not signed in yet is the normal
         // first case, not a failure: show the sign-up screen rather than an error.
         const u =
@@ -681,6 +770,7 @@ export default function App() {
     return (
       <AuthGate
         demo={demo}
+        canReset={canReset}
         onSignedIn={async (signed) => {
           setUser(signed);
           setError("");

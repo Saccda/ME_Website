@@ -61,6 +61,22 @@ class LoginFailure(Base):
     key: Mapped[str] = mapped_column(String(64), index=True)
     created: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
+class PasswordReset(Base):
+    """A one-time code emailed to someone who has forgotten their password.
+
+    The code is stored hashed, so a leaked database does not hand out working
+    codes. Six digits is only a million possibilities, so the real defence is
+    the attempt counter below plus the hour's expiry, not the hash.
+    """
+    __tablename__ = "password_resets"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    code_hash: Mapped[str] = mapped_column(String(64))
+    expires: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used: Mapped[bool] = mapped_column(default=False)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    created: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
 class Question(Base):
     __tablename__ = "questions"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)

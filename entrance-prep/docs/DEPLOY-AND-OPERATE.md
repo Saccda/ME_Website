@@ -177,7 +177,7 @@ curl http://127.0.0.1:3100/api/health
 ```
 
 The API applies `alembic upgrade head` on start, so the schema is created and
-migrated for you (currently through `0003`). Startup seeding is wrapped in a
+migrated for you (currently through `0004`). Startup seeding is wrapped in a
 PostgreSQL advisory lock, so the four workers cannot seed the bank twice.
 
 Confirm the workers actually started — `logs api` should show four
@@ -231,6 +231,50 @@ paper is marked, as well as the total.
 
 Teacher studio can build other papers the same way: a blueprint row may name a
 whole subject, or a single sub-topic and level as rows always could.
+
+## 5b. Password reset by email
+
+Without this a student who forgets their password registers again with another
+address, keeping none of their history and leaving you a duplicate in the
+roster. With it they reset it themselves and nobody has to be asked.
+
+Add five lines to `.env` and restart. `SMTP_USER` is a Gmail address and
+`SMTP_PASSWORD` its 16-character app password, which requires 2-Step
+Verification on that account (Google Account → Security → App passwords).
+Google shows the app password once.
+
+```
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your.address@gmail.com
+SMTP_PASSWORD=the16characterapppassword
+SMTP_FROM=ME @ RUPP Entrance Prep <your.address@gmail.com>
+```
+
+```bash
+docker compose up -d
+```
+
+```bash
+curl.exe -s https://prep.your-domain.example/api/health
+```
+
+`"password_reset":true` means the sign-in screen now offers "I forgot my
+password". Leave the settings out and it offers nothing, which is deliberate:
+no door that leads nowhere.
+
+**The From address is not free.** A domain's SPF record says which servers may
+send as it, and `rupp.edu.kh` publishes `-all` against Microsoft's servers only
+— so sending as an `@rupp.edu.kh` address through Gmail is treated as spoofing
+and will be binned. Send as whichever account is authenticating. To use the
+university address instead, its IT must enable **Authenticated SMTP** on that
+mailbox in the Microsoft 365 admin centre; then only these five values change.
+
+What a student sees: they enter their address, get a six-digit code by email
+valid for an hour and usable once, then choose a new password. Requests are
+throttled to three per address per 15 minutes so the form cannot be used to
+flood somebody's inbox, a code is burned after five wrong attempts, and a
+successful reset signs out every existing session on that account.
 
 ## 6. Giving a colleague teacher access
 

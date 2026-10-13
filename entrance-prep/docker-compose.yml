@@ -52,6 +52,13 @@ services:
       # fails silently -- the request succeeds and the session simply vanishes.
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
       APP_ORIGINS: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN}
+      # Optional. Empty means the sign-in screen offers no password reset,
+      # rather than offering one that cannot send.
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
       # Endpoints are synchronous and hold one connection each, so the request
       # thread pool is matched to this. Keep (size + overflow) x api replicas
       # below PostgreSQL's max_connections, which defaults to 100.
