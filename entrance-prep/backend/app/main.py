@@ -239,7 +239,12 @@ def reset_request(body:ResetRequest,tasks:BackgroundTasks,db=Depends(db_session)
     if recent>=3: raise HTTPException(429,"A code was already sent. Check your email, or try again in 15 minutes.")
     db.add(LoginFailure(id=uid(),key=key))
     u=db.scalar(select(User).where(User.email==email))
-    if u and u.role=="student":
+    # Any real account, teachers included: a teacher who forgets their password
+    # would otherwise need a database edit, which is the problem this exists to
+    # remove. What is excluded is the synthetic accounts open mode creates --
+    # ".invalid" is reserved by RFC 2606, so no real address can end in it and
+    # no mail could ever reach one.
+    if u and not u.email.lower().endswith(".invalid"):
         # One live code per person: issuing a second must retire the first,
         # or every request leaves another working code behind.
         db.execute(update(PasswordReset).where(PasswordReset.user_id==u.id,PasswordReset.used.is_(False)).values(used=True))

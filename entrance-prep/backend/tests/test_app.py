@@ -474,6 +474,25 @@ def test_reset_is_refused_when_no_mail_is_configured(clients,monkeypatch):
     assert r.status_code==503
     assert not m.health()['password_reset']
 
+def test_a_teacher_can_reset_too_but_a_synthetic_account_cannot(clients,mail,monkeypatch):
+    from app.main import bootstrap
+    _,student=clients
+    email='reset-teacher@example.com'
+    _fresh_student(student,email)
+    with SessionLocal() as db:
+        db.scalar(select(User).where(User.email==email)).role='teacher'
+        # An open-mode workspace account: a real address can never end .invalid.
+        db.add(User(id='synthetic-1',email='someone@guest.invalid',name='Teacher workspace',
+                    password='x:'+'0'*64,role='teacher'))
+        db.commit()
+    mail.clear()
+    # A locked-out teacher must have a way back that is not a database edit.
+    assert student.post('/api/auth/reset/request',json={'email':email}).status_code==200
+    assert [m[0] for m in mail]==[email]
+    mail.clear()
+    assert student.post('/api/auth/reset/request',json={'email':'someone@guest.invalid'}).status_code==200
+    assert mail==[],'nothing should be sent to an address that cannot receive'
+
 def test_an_account_with_a_reset_code_can_still_be_deleted(clients,mail):
     # password_resets has a foreign key to users, so a cleanup that does not
     # know about it fails on a constraint rather than doing nothing. That is
