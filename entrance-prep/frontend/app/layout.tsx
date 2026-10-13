@@ -4,9 +4,12 @@ import "katex/dist/katex.min.css";
 export const metadata: Metadata = {
   title: "Entrance Prep | Mechanical Engineering @ RUPP",
   description:
-    "Practise the reasoning and mathematics the entrance exam asks for, with a worked explanation behind every answer.",
+    "Practise Mathematics, Physics and Logic for the Mechanical Engineering entrance examination, with a worked explanation behind every answer.",
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/brand/me-logo.png", apple: "/brand/me-logo.png" },
+  // me-icon, not me-logo: the logo is 501x361, and a favicon is drawn into a
+  // square box, so the browser squashed it by about 28%. me-icon is the same
+  // mark padded onto a square canvas, so its proportions survive.
+  icons: { icon: "/brand/me-icon.png", apple: "/brand/me-icon.png" },
 };
 export const viewport: Viewport = {
   themeColor: "#0B2D4D",
