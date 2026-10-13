@@ -253,12 +253,6 @@ small {
 .topbar-right {
   color: var(--muted);
 }
-.topbar-right img {
-  width: 30px;
-  height: 34px;
-  object-fit: contain;
-  margin-left: 7px;
-}
 .live-dot {
   width: 6px;
   height: 6px;
@@ -2174,11 +2168,6 @@ input[type="checkbox"] {
   }
   .topbar-right {
     gap: 8px;
-  }
-  .topbar-right img {
-    width: 26px;
-    height: 29px;
-    margin: 0;
   }
   .topbar-right .live-dot {
     display: none;

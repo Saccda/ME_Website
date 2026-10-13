@@ -692,7 +692,7 @@ export default function App() {
     return (
       <div className="loading">
         <img src="/brand/me-logo.png" width="70" alt="ME @ RUPP" />
-        <h2>Open your Logic workspace</h2>
+        <h2>Open your workspace</h2>
         <p role="alert">{error || "Connecting to your learning workspace…"}</p>
         <button className="button" onClick={() => window.location.reload()}>
           Try again
@@ -778,7 +778,7 @@ export default function App() {
           <div className="foundation-note">
             <ShieldCheck size={21} />
             <strong>Learn. Review. Improve.</strong>
-            <p>Strong reasoning starts with a strong foundation.</p>
+            <p>Strong results start with a strong foundation.</p>
           </div>
           <div className="user-chip">
             <div className="avatar">{user.name[0]}</div>
@@ -833,14 +833,12 @@ export default function App() {
             <ChevronRight size={14} />
             <strong>{nav.find((n) => n.id === view)?.label}</strong>
           </div>
+          {/* No crests here. They repeated the sign-in lockup, said nothing a
+              signed-in user needs, and one of them was an 805 KB PNG drawn at
+              30 pixels wide. */}
           <div className="topbar-right">
             <span className="live-dot" />
             <span>Entrance prep · {EDITION}</span>
-            <img
-              src="/brand/rupp-logo.png"
-              alt="Royal University of Phnom Penh"
-            />
-            <img src="/brand/fe-logo.png" alt="Faculty of Engineering" />
           </div>
         </header>
         <main>
@@ -891,14 +889,13 @@ export default function App() {
                       <p className="eyebrow">
                         THEORY → PRACTICE → REFLECTION → IMPROVEMENT
                       </p>
-                      <h1>
-                        A stronger foundation,
-                        <br />
-                        one question at a time.
-                      </h1>
+                      {/* No hard break: it is one sentence, and a <br /> fired
+                          it onto two lines even on a wide screen with room to
+                          spare. The flex row below caps the width instead. */}
+                      <h1>A stronger foundation, one question at a time.</h1>
                       <p>
-                        Welcome back, {user.name}. Build the reasoning behind
-                        every answer.
+                        Welcome back, {user.name}. Every answer comes with the
+                        working behind it.
                       </p>
                     </div>
                     <Badge color="gold">
@@ -909,15 +906,16 @@ export default function App() {
                   <section className="hero">
                     <div>
                       <Badge color="hero-badge">THINK LIKE AN ENGINEER</Badge>
+                      {/* Two sentences, so the break between them is meant.
+                          The paragraph's was not: it split one sentence. */}
                       <h2>
-                        Observe the pattern.
+                        Work the problem.
                         <br />
-                        Explain the reasoning.
+                        Understand the answer.
                       </h2>
                       <p>
                         Checked multiple-choice practice, guided explanations,
-                        <br className="desktop-break" /> and a clear path from
-                        foundation to challenge.
+                        and a clear path from foundation to challenge.
                       </p>
                       <button
                         className="button gold-button"
@@ -946,7 +944,7 @@ export default function App() {
                       </div>
                       <div className="art-caption">
                         A → B → C<br />
-                        <small>Every conclusion needs a reason.</small>
+                        <small>Every answer shows its working.</small>
                       </div>
                     </div>
                   </section>
@@ -1114,7 +1112,7 @@ export default function App() {
                   <div className="learning-card learning-band">
                     <ShieldCheck size={27} />
                     <div>
-                      <h3>Reasoning you can trust</h3>
+                      <h3>Questions you can trust</h3>
                       <p>
                         Students receive approved questions. Teachers review the
                         wording, correct answer, and every distractor.
@@ -1163,7 +1161,7 @@ export default function App() {
                   <PageHeading
                     label="TEACHER STUDIO"
                     title="Build questions with intention."
-                    description="Choose a reasoning skill. Generate originals. Review before students see them."
+                    description="Choose a sub-topic and level. Generate originals. Review before students see them."
                   />
                   <div className="two-column">
                     <section className="panel">
@@ -1574,7 +1572,7 @@ export default function App() {
                 <>
                   <PageHeading
                     label="LEARN BY DOING"
-                    title="Practice the reasoning."
+                    title="Practice what the exam asks."
                     description="Choose a topic and press start. Everything else already has a sensible default."
                   />
                   <div className="two-column">
@@ -1605,7 +1603,7 @@ export default function App() {
                           <strong>
                             {practice.mode === "practice"
                               ? "Understand as you go"
-                              : "Test your independent reasoning"}
+                              : "Test yourself under time"}
                           </strong>
                           <p>
                             {practice.mode === "practice"
@@ -1895,7 +1893,7 @@ export default function App() {
                     title={
                       user.role === "teacher"
                         ? "Design the practice blueprint."
-                        : "Put your reasoning to the test."
+                        : "Sit the real shape of the paper."
                     }
                     description="Timed mock exams use teacher-defined topic and difficulty allocations."
                   />
@@ -3163,9 +3161,9 @@ function AttemptPlayer({
           <h1>{a.title}</h1>
           <p>
             {done
-              ? `${a.score} / ${a.questions.length} correct${missedCount ? ` · ${missedCount} not answered` : ""} · Review the reasoning below.`
+              ? `${a.score} / ${a.questions.length} correct${missedCount ? ` · ${missedCount} not answered` : ""} · Review the working below.`
               : a.mode === "practice"
-                ? "Check your answer to learn the reasoning."
+                ? "Check your answer to see the working."
                 : "Explanations are available after you submit."}
           </p>
         </div>
@@ -3225,7 +3223,7 @@ function AttemptPlayer({
             <div className="explanation">
               <h3>
                 {q.feedback.is_correct
-                  ? "Correct. Keep testing your reasoning."
+                  ? "Correct. Keep checking your working."
                   : `The correct answer is ${q.feedback.correct}.`}
               </h3>
               <p>
