@@ -1,13 +1,21 @@
-# Pinned, and deliberately not renamed to match this directory. The project name
-# is what Compose attaches the database volume to, so changing it would start the
-# stack against a new, empty database while the students' data sat in the old
-# volume looking lost. Left as it was first deployed. It also means `docker
-# compose` here needs no `-p` flag.
-name: logic-studio
+# Pinned so `docker compose` here needs no -p flag, and so the project name
+# never silently follows a directory rename.
+#
+# Changing it is a migration, not an edit: the project name is what Compose
+# attaches the volume to, so a new name means a new, empty database while the
+# old one sits in the old volume looking lost. It was changed from
+# "logic-studio" while the database still held nothing but the question bank,
+# one teacher and one blueprint -- all three of which rebuild on startup. Do
+# not change it again once students have accounts; copy the volume instead.
+name: entrance-prep
 services:
   database:
     image: postgres:17-alpine
     environment:
+      # Still "logic" on purpose. It is invisible outside the container, and
+      # renaming it would mean editing the DSN and the healthcheck too -- three
+      # more chances to typo something that stops the stack booting, for no
+      # benefit anyone can see.
       POSTGRES_DB: logic
       POSTGRES_USER: logic
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
@@ -15,7 +23,7 @@ services:
     # Keep it above API_WORKERS x (DB_POOL_SIZE + DB_MAX_OVERFLOW).
     command: postgres -c max_connections=${POSTGRES_MAX_CONNECTIONS:-300}
     volumes:
-      - logic-data:/var/lib/postgresql/data
+      - data:/var/lib/postgresql/data
     healthcheck:
       test: [CMD-SHELL, pg_isready -U logic -d logic]
       interval: 5s
@@ -72,4 +80,4 @@ services:
       - api
     restart: unless-stopped
 volumes:
-  logic-data:
+  data:

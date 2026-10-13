@@ -22,10 +22,40 @@ Then check that `logic-app/` holds nothing else you want — it will still conta
 build leftovers such as `node_modules`, `.next` and `.venv`, all of which are
 rebuilt inside the images and can be deleted.
 
-The Compose project name is now pinned to `logic-studio` inside
-`docker-compose.yml`, which is the name your existing database volume is
-attached to. So the stack comes back up on the same data, and `-p logic-studio`
-is no longer needed on the command line — though passing it does no harm.
+The Compose project name is pinned inside `docker-compose.yml`, so `-p` is no
+longer needed on the command line — though passing it does no harm.
+
+## 0b. If you are pulling the project rename
+
+The project was called `logic-studio` until the name was changed to
+`entrance-prep`. **That is a migration, not an edit.** The project name is what
+Compose attaches the volume to, so the new name means a new, empty volume while
+the old database sits in `logic-studio_logic-data`.
+
+It was done while the database held nothing but the question bank, one teacher
+and one blueprint, all three of which rebuild themselves. So:
+
+```bash
+docker compose -p logic-studio down
+```
+
+```bash
+docker compose up -d --build
+```
+
+The API creates the schema, seeds all 312 questions as drafts, and recreates the
+teacher from `.env`. Then approve the bank and rebuild the paper (§4 and §5),
+and confirm Docker Desktop shows `entrance-prep` rather than `logic-studio`.
+
+Only once the new stack is working, reclaim the old volume:
+
+```bash
+docker volume rm logic-studio_logic-data
+```
+
+**Never do this again after students have accounts.** Copy the volume instead:
+`docker volume create <new>_data` then
+`docker run --rm -v <old>_logic-data:/from -v <new>_data:/to alpine sh -c "cd /from && cp -a . /to"`.
 
 ## 1. Settings
 
@@ -272,7 +302,7 @@ it cannot take real students with it.
 
 - Serve over HTTPS with `COOKIE_SECURE=true`, or sessions will not persist.
 - `PUBLIC_ORIGIN` must be the real public origin, or every write is refused.
-- **Back up the `logic-data` volume** before any future migration.
+- **Back up the `entrance-prep_data` volume** before any future migration.
 - Stagger sign-up by tutorial group if you can. It is well within capacity
   either way, but a staggered start also spreads the support questions.
 - **There is still no password reset.** With 250 students somebody will be locked

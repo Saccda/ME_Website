@@ -206,7 +206,7 @@ generates when its members read the questions; it is not a ceiling.
    excludes everyone else. Not built — see `ROADMAP.md`.
 2. **Stagger sign-up if you can** — by tutorial group rather than all at once.
    Not for capacity, which is fine, but to spread the support questions.
-3. **Back up the `logic-data` volume** before any future migration.
+3. **Back up the `entrance-prep_data` volume** before any future migration.
 
 ## How to repeat this measurement
 

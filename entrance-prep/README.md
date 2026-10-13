@@ -91,9 +91,10 @@ gitignored and must never be committed.
 docker compose up -d --build
 ```
 
-The project name is pinned to `logic-studio` inside `docker-compose.yml`, which
-is what the database volume is attached to. Do not change it: the stack would
-come up against a new, empty database.
+The project name is pinned to `entrance-prep` inside `docker-compose.yml`, which
+is what the database volume is attached to. Do not change it once students have
+accounts: the stack would come up against a new, empty database while theirs sat
+in the old volume.
 
 The web port binds to `127.0.0.1` only, so put HTTPS in front of it — currently
 a Cloudflare Tunnel on the lab desktop. The database and API are never publicly
