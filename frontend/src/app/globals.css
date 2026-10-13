@@ -10111,6 +10111,54 @@ a.partner-logo:focus-visible {
   text-wrap: balance;
 }
 
+/* The program's own platform, and the only route to it anywhere on the site,
+   so it carries a gold edge and a larger title rather than repeating the plain
+   white row below it -- two identical rows made the second one read as a
+   footnote to the first. */
+.admissions-practice {
+  margin-top: 28px;
+  padding: 26px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 28px;
+  color: var(--ink);
+  background: var(--white);
+  border-top: 3px solid var(--brand-gold);
+}
+
+.admissions-practice > div {
+  display: grid;
+  gap: 7px;
+}
+
+.admissions-practice-eyebrow {
+  color: var(--brand-navy);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.admissions-practice strong {
+  font-size: 1.2rem;
+  line-height: 1.25;
+}
+
+.admissions-practice p {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+/* The label is two words; without this it broke across two lines inside the
+   flex row. */
+.admissions-practice .button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .admissions-past-exams {
   margin-top: 18px;
   padding: 24px 26px;
@@ -10614,6 +10662,7 @@ a.partner-logo:focus-visible {
   }
 
   .admissions-hero-actions,
+  .admissions-practice,
   .admissions-past-exams,
   .admissions-help-band .shell {
     align-items: stretch;
@@ -10621,6 +10670,7 @@ a.partner-logo:focus-visible {
   }
 
   .admissions-hero-actions .button,
+  .admissions-practice .button,
   .admissions-past-exams .button {
     width: 100%;
     justify-content: space-between;

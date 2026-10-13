@@ -39,6 +39,16 @@ export default async function AdmissionsPage() {
                 <a className="button button-gold" href="#admission-calendar">
                   View important dates <span aria-hidden="true">↓</span>
                 </a>
+                {settings.entrance_prep_url ? (
+                  <a
+                    className="admissions-text-link"
+                    href={settings.entrance_prep_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Practise online <span aria-hidden="true">↗</span>
+                  </a>
+                ) : null}
                 <a
                   className="admissions-text-link"
                   href={admissionsContent.pastExamsUrl}
@@ -116,6 +126,35 @@ export default async function AdmissionsPage() {
               ))}
             </div>
 
+            {/* Directly under the subject cards: a student who has just read
+                which three subjects are examined is being told, in the same
+                breath, where to practise them. Shown only while an address is
+                set in Wagtail, so the platform can be moved or taken down
+                without a code change. */}
+            {settings.entrance_prep_url ? (
+              <div className="admissions-practice">
+                <div>
+                  <span className="admissions-practice-eyebrow">
+                    ME Entrance Prep
+                  </span>
+                  <strong>Practise all three subjects online, free</strong>
+                  <p>
+                    Multiple-choice practice in Mathematics, Physics and Logic,
+                    with a worked explanation behind every answer. Create an
+                    account to keep your results.
+                  </p>
+                </div>
+                <a
+                  className="button button-gold"
+                  href={settings.entrance_prep_url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Start practising <span aria-hidden="true">↗</span>
+                </a>
+              </div>
+            ) : null}
+
             {admissionsContent.applicationForm.downloadUrl ? (
               <p className="admissions-form-download">
                 <a
@@ -151,29 +190,6 @@ export default async function AdmissionsPage() {
                 Open past exams <span aria-hidden="true">↗</span>
               </a>
             </div>
-
-            {/* Shown only while an address is set in Wagtail, so the platform
-                can be moved or taken down without a code change. */}
-            {settings.entrance_prep_url ? (
-              <div className="admissions-past-exams">
-                <div>
-                  <strong>Practise the examination subjects online.</strong>
-                  <span>
-                    Multiple-choice practice in Mathematics, Physics and Logic,
-                    with a worked explanation behind every answer. Create an
-                    account to keep your results.
-                  </span>
-                </div>
-                <a
-                  className="button button-gold"
-                  href={settings.entrance_prep_url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Start practising <span aria-hidden="true">↗</span>
-                </a>
-              </div>
-            ) : null}
           </div>
         </section>
 
