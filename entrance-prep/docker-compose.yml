@@ -69,6 +69,12 @@ services:
       WEB_CONCURRENCY: ${API_WORKERS:-4}
       DB_POOL_SIZE: ${DB_POOL_SIZE:-50}
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-20}
+    volumes:
+      # Read-only, and solely so tools/import_exam_bank.py can find the
+      # examination panel's bank, which is kept out of the repository because
+      # the GitHub remote is public. Nothing under app/ reads this path and no
+      # route serves it -- only that tool opens it, and only when run by hand.
+      - ./private:/app/private:ro
     depends_on:
       database:
         condition: service_healthy

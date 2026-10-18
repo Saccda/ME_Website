@@ -185,7 +185,7 @@ Confirm the workers actually started — `logs api` should show four
 
 ## 4. Approve something to practise — do not skip this
 
-A fresh installation seeds **312 questions, none approved**. That is the correct
+A fresh installation seeds **396 questions, none approved**. That is the correct
 default, since nothing should reach a student unreviewed, but on launch day a
 student would otherwise get
 
@@ -196,9 +196,11 @@ docker compose exec api python tools/approve_verified.py          # reports only
 docker compose exec api python tools/approve_verified.py --apply
 ```
 
-Measured result: **276 approved** (84 Mathematics, 144 Physics, 48 Logic), **36
+Measured result: **360 approved** (84 Mathematics, 228 Physics, 48 Logic), **36
 left as drafts**. Run it again after any release that adds sub-topics — the
-startup seeding fills new ones as drafts, so they need approving too. The 36 are the `editorial` ones — verbal and argument
+startup seeding fills new ones as drafts, so they need approving too, and the
+release that added seven Physics sub-topics is exactly why that count moved
+from 276. The 36 are the `editorial` ones — verbal and argument
 reasoning, where no machine can prove an answer — and they are exactly the
 questions a teacher must read. They stay invisible to students until approved in
 Question bank, and until then those three Logic sub-topics show as "none
@@ -210,6 +212,40 @@ unambiguous, the distractors plausible, or the difficulty label fair. Every
 approval is recorded in the audit trail as `approved_machine_proved` with that
 caveat.
 
+## 4b. Load the examination panel's physics bank
+
+The panel's own 100 physics questions are **not in this repository**, and must
+not be: the GitHub remote is public, and these are the questions the real paper
+draws on. They live in `entrance-prep/private/exam_bank.json`, which
+`.gitignore` already covers, and the file is carried to the lab by hand.
+
+Put the file in `entrance-prep/private/` on the lab, then:
+
+```bash
+docker compose exec api python tools/import_exam_bank.py          # reports only
+docker compose exec api python tools/import_exam_bank.py --apply
+```
+
+`private/` is bind-mounted read-only into the container at `/app/private`, so
+the tool finds the file without it ever entering the image.
+
+Every question is put through the same validator the generators are held to,
+and the whole file is refused if any one of them fails, rather than importing
+the good ones and leaving a bank nobody can account for. The 29 computable
+answers carry a `compute` spec and are recomputed on every run. They arrive
+**approved**, unlike generated seeds, because the author is the examination
+panel and the keys were checked item by item; pass `--draft` to review them in
+Teacher studio first.
+
+Re-running updates what it imported before rather than adding a second copy,
+matching on the `ref` recorded in each question's source, so it is safe after
+the panel revises an item.
+
+One thing the import changes on purpose: in the panel's file the correct answer
+is A 34 times, B 57, C 9 and **D never**, so a student who noticed could score
+57/100 by answering B without reading a question. Option order is redistributed
+so each letter is correct 25 times. Wording, options and keys are unchanged.
+
 ## 5. The mock exam that matches the real paper
 
 80 questions in 90 minutes — 25 Mathematics, 25 Logic, 30 Physics, four options
@@ -219,6 +255,12 @@ each, sat in that order. One command builds it:
 docker compose exec api python tools/create_exam_blueprint.py          # reports only
 docker compose exec api python tools/create_exam_blueprint.py --apply
 ```
+
+The physics section draws on the panel's bank above, so step 4b has to come
+first. A generated question is honest practice for a topic; the panel's items
+are the paper itself, which is the point of sitting a mock. Mathematics and
+Logic have no panel bank and draw on the generated one. `--mixed-physics`
+widens physics to the generated bank too.
 
 It refuses to publish a paper the bank cannot fill and names the short section.
 Re-running updates the paper it made before rather than adding a second one, so
