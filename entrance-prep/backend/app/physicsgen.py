@@ -752,6 +752,457 @@ def template(domain, depth, rng):
                 (peak / 2 / r, "Halves the peak instead of dividing by root two.", "wrong-rule"),
                 (r / (peak / math.sqrt(2)), "Inverts Ohm's law.", "inverted-operation")])
 
+    elif domain == "momentum":
+        if depth == 0:
+            m, v = rng.choice([2, 5, 8, 12]), rng.choice([4, 6, 15, 20])
+            value = m * v
+            stem = f"A trolley of mass {m} kg moves at {v} m/s. What is its momentum?"
+            spec = {"kind": "compute", "vars": {"m": m, "v": v}, "expr": "m*v", "digits": 2}
+            explain = (f"Momentum is mass times velocity: ${m} \\times {v} = {fmt(value)}$ kg·m/s. "
+                       f"It is a vector, so its direction is the direction of travel.")
+            latex = rf"p = mv = {m} \times {v} = {fmt(value)}"
+            correct, wrong = build(value, " kg·m/s", [
+                (0.5 * m * v ** 2, "Computes kinetic energy instead of momentum.", "wrong-rule"),
+                (0.5 * m * v, "Carries a factor of one half that momentum does not have.", "wrong-rule"),
+                (m / v, "Divides mass by velocity.", "inverted-operation"),
+                (m + v, "Adds the two quantities.", "wrong-operation")])
+        elif depth == 1:
+            m, u, v = rng.choice([2, 4, 5]), rng.choice([3, 5, 8]), rng.choice([12, 15, 20])
+            value = m * (v - u)
+            stem = (f"A body of mass {m} kg speeds up from {u} m/s to {v} m/s. What impulse "
+                    f"has acted on it?")
+            spec = {"kind": "compute", "vars": {"m": m, "u": u, "v": v},
+                    "expr": "m*(v-u)", "digits": 2}
+            explain = (f"Impulse equals the change in momentum: ${m}({v} - {u}) = {fmt(value)}$ "
+                       f"N·s. Only the change matters, not the speeds themselves.")
+            latex = rf"J = m(v-u) = {m}({v} - {u}) = {fmt(value)}"
+            correct, wrong = build(value, " N·s", [
+                (m * (v + u), "Adds the speeds instead of taking the change.", "wrong-operation"),
+                (m * v, "Uses the final speed only.", "missing-step"),
+                (v - u, "Leaves the mass out.", "missing-step"),
+                (m * u, "Uses the starting speed only.", "missing-step")])
+        elif depth == 2:
+            m1, u1, m2 = rng.choice([2, 3, 4]), rng.choice([4, 6, 8]), rng.choice([1, 2, 6])
+            value = m1 * u1 / (m1 + m2)
+            stem = (f"A {m1} kg trolley moving at {u1} m/s strikes a stationary {m2} kg trolley "
+                    f"and the two move off locked together. What is their common speed?")
+            spec = {"kind": "compute", "vars": {"m1": m1, "u1": u1, "m2": m2},
+                    "expr": "m1*u1/(m1+m2)", "digits": 2}
+            explain = (f"Momentum is conserved: ${m1} \\times {u1} = ({m1} + {m2})v$, so "
+                       f"$v = {fmt(value)}$ m/s. Kinetic energy is not conserved here — the "
+                       f"collision is inelastic — but momentum always is.")
+            latex = rf"v = \frac{{m_1u_1}}{{m_1+m_2}} = \frac{{{m1}({u1})}}{{{m1+m2}}} = {fmt(value)}"
+            correct, wrong = build(value, " m/s", [
+                (u1, "Assumes the moving trolley keeps its speed.", "missing-step"),
+                (m1 * u1 / m2, "Divides by the struck mass alone.", "wrong-rule"),
+                (u1 / 2, "Halves the speed regardless of the two masses.", "wrong-rule"),
+                (m1 * u1, "Stops at the momentum without dividing by the total mass.", "missing-step")])
+        else:
+            m, mb, v = rng.choice([4, 5, 8]), rng.choice([10, 20, 40]), rng.choice([300, 400, 500])
+            value = mb / 1000 * v / m
+            stem = (f"A rifle of mass {m} kg fires a {mb} g bullet at {v} m/s. What is the "
+                    f"recoil speed of the rifle, to 2 decimal places?")
+            spec = {"kind": "compute", "vars": {"m": m, "mb": mb, "v": v},
+                    "expr": "mb/1000*v/m", "digits": 2}
+            explain = (f"The pair starts at rest, so the momenta are equal and opposite: "
+                       f"$({mb}/1000)({v}) = {m}v_r$, giving $v_r = {fmt(value)}$ m/s. The bullet "
+                       f"mass must be converted to kilograms first.")
+            latex = rf"v_r = \frac{{m_bv_b}}{{m}} = \frac{{{mb / 1000:g}({v})}}{{{m}}} = {fmt(value)}"
+            correct, wrong = build(value, " m/s", [
+                (mb * v / m, "Leaves the bullet mass in grams.", "unit-error"),
+                (v / m, "Omits the bullet mass entirely.", "missing-step"),
+                (m * v / (mb / 1000), "Inverts the mass ratio.", "inverted-operation"),
+                (mb / 1000 * v, "Stops at the bullet's momentum.", "missing-step")])
+
+    elif domain == "rotation":
+        if depth == 0:
+            v, r = rng.choice([6, 10, 12, 20]), rng.choice([4, 5, 8, 10])
+            value = v ** 2 / r
+            stem = (f"A car rounds a bend of radius {r} m at a steady {v} m/s. What is its "
+                    f"centripetal acceleration?")
+            spec = {"kind": "compute", "vars": {"v": v, "r": r}, "expr": "v**2/r", "digits": 2}
+            explain = (f"$a_c = v^2/r = {v}^2 \\div {r} = {fmt(value)}$ m/s². The speed is "
+                       f"squared, so doubling it quadruples the acceleration.")
+            latex = rf"a_c = \frac{{v^2}}{{r}} = \frac{{{v}^2}}{{{r}}} = {fmt(value)}"
+            correct, wrong = build(value, " m/s²", [
+                (v / r, "Does not square the speed.", "missing-step"),
+                (v ** 2 * r, "Multiplies by the radius instead of dividing.", "inverted-operation"),
+                (r / v ** 2, "Inverts the whole expression.", "inverted-operation"),
+                (2 * v / r, "Doubles the speed rather than squaring it.", "wrong-rule")])
+        elif depth == 1:
+            w, t = rng.choice([10, 20, 25, 40]), rng.choice([30, 60, 120])
+            value = w * t / (2 * math.pi)
+            stem = (f"A wheel turns at a steady {w} rad/s. How many complete revolutions does it "
+                    f"make in {t} s, to the nearest revolution?")
+            spec = {"kind": "compute", "vars": {"w": w, "t": t}, "expr": "w*t/(2*pi)", "digits": 0}
+            explain = (f"It sweeps ${w} \\times {t} = {w * t}$ radians, and one revolution is "
+                       f"$2\\pi$ radians, so that is ${w * t} \\div 2\\pi \\approx "
+                       f"{fmt(value, 0)}$ revolutions.")
+            latex = rf"N = \frac{{\omega t}}{{2\pi}} = \frac{{{w}({t})}}{{2\pi}} \approx {fmt(value, 0)}"
+            correct, wrong = build(value, " rev", [
+                (w * t, "Leaves the answer in radians.", "unit-error"),
+                (w * t / math.pi, "Divides by pi rather than two pi.", "wrong-rule"),
+                (w * t * 2 * math.pi, "Multiplies by two pi instead of dividing.", "inverted-operation"),
+                (w / t, "Divides the angular speed by the time.", "inverted-operation")], digits=0)
+        elif depth == 2:
+            inertia, alpha = rng.choice([2, 4, 6, 10]), rng.choice([3, 5, 8, 12])
+            value = inertia * alpha
+            stem = (f"A flywheel of moment of inertia {inertia} kg·m² is given an angular "
+                    f"acceleration of {alpha} rad/s². What net torque acts on it?")
+            spec = {"kind": "compute", "vars": {"i": inertia, "al": alpha},
+                    "expr": "i*al", "digits": 2}
+            explain = (f"Torque is the rotational form of $F = ma$: $\\tau = I\\alpha = "
+                       f"{inertia} \\times {alpha} = {fmt(value)}$ N·m.")
+            latex = rf"\tau = I\alpha = {inertia} \times {alpha} = {fmt(value)}"
+            correct, wrong = build(value, " N·m", [
+                (inertia / alpha, "Divides the inertia by the acceleration.", "inverted-operation"),
+                (alpha / inertia, "Inverts the relationship.", "inverted-operation"),
+                (0.5 * inertia * alpha, "Introduces a factor of one half.", "wrong-rule"),
+                (inertia + alpha, "Adds the two quantities.", "wrong-operation")])
+        else:
+            inertia, w = rng.choice([2, 4, 5, 8]), rng.choice([6, 10, 12, 20])
+            value = 0.5 * inertia * w ** 2
+            stem = (f"A flywheel of moment of inertia {inertia} kg·m² spins at {w} rad/s. What is "
+                    f"its rotational kinetic energy?")
+            spec = {"kind": "compute", "vars": {"i": inertia, "w": w},
+                    "expr": "0.5*i*w**2", "digits": 2}
+            explain = (f"$E_r = \\tfrac12 I\\omega^2 = 0.5 \\times {inertia} \\times {w}^2 = "
+                       f"{fmt(value)}$ J. It mirrors $\\tfrac12 mv^2$, with inertia for mass and "
+                       f"angular speed for speed.")
+            latex = rf"E_r = \tfrac12 I\omega^2 = \tfrac12({inertia})({w})^2 = {fmt(value)}"
+            correct, wrong = build(value, " J", [
+                (inertia * w ** 2, "Omits the factor of one half.", "missing-step"),
+                (0.5 * inertia * w, "Does not square the angular speed.", "missing-step"),
+                (0.5 * inertia ** 2 * w, "Squares the inertia instead of the angular speed.", "wrong-rule"),
+                (inertia * w, "Gives angular momentum rather than energy.", "wrong-rule")])
+
+    elif domain == "thermo":
+        if depth == 0:
+            process = rng.choice(["an isothermal process", "an isochoric process",
+                                  "an isobaric process"])
+            stem = f"In {process}, which quantity stays constant?"
+            spec = {"kind": "fact", "table": "constant_in_process", "key": process}
+            correct, wrong = _fact_options("constant_in_process", process, rng)
+            explain = (f"In {process} it is {correct} that is held constant. The name says which: "
+                       f"iso-thermal fixes temperature, iso-choric fixes volume, iso-baric fixes "
+                       f"pressure.")
+            latex = None
+        elif depth == 1:
+            heat, work = rng.choice([300, 500, 800, 1200]), rng.choice([100, 200, 450])
+            value = heat - work
+            stem = (f"A system absorbs {heat} J of heat and does {work} J of work on its "
+                    f"surroundings. What is the change in its internal energy?")
+            spec = {"kind": "compute", "vars": {"q": heat, "w": work}, "expr": "q-w", "digits": 2}
+            explain = (f"The first law is $\\Delta U = Q - W$: ${heat} - {work} = {fmt(value)}$ J. "
+                       f"Heat in raises the internal energy, work done by the system lowers it.")
+            latex = rf"\Delta U = Q - W = {heat} - {work} = {fmt(value)}"
+            correct, wrong = build(value, " J", [
+                (heat + work, "Adds the work instead of subtracting it.", "sign-error"),
+                (work - heat, "Reverses the subtraction.", "sign-error"),
+                (heat, "Ignores the work done.", "missing-step"),
+                (work, "Reports the work rather than the change in internal energy.", "wrong-rule")])
+        elif depth == 2:
+            hot = rng.choice([800, 1000, 1500, 2000])
+            cold = rng.choice([200, 300, 450, 600])
+            value = (hot - cold) / hot * 100
+            stem = (f"A heat engine takes in {hot} J from its hot reservoir and rejects {cold} J "
+                    f"to the cold one. What is its efficiency, to 2 decimal places?")
+            spec = {"kind": "compute", "vars": {"h": hot, "c": cold},
+                    "expr": "(h-c)/h*100", "digits": 2}
+            explain = (f"Efficiency is useful work over heat supplied: $({hot} - {cold}) \\div "
+                       f"{hot} = {fmt(value / 100, 4)}$, which is {fmt(value)}%. The rejected heat "
+                       f"is the part that does no work.")
+            latex = rf"e = \frac{{Q_H - Q_C}}{{Q_H}} = \frac{{{hot} - {cold}}}{{{hot}}} = {fmt(value)}\%"
+            correct, wrong = build(value, "%", [
+                (cold / hot * 100, "Reports the fraction rejected rather than the fraction used.", "wrong-rule"),
+                (hot / cold * 100, "Inverts the ratio and exceeds 100%.", "inverted-operation"),
+                ((hot - cold) / cold * 100, "Divides by the rejected heat.", "wrong-rule"),
+                (hot - cold, "Gives the work in joules, not an efficiency.", "unit-error")])
+        else:
+            hot_c = rng.choice([227, 327, 427, 527])
+            cold_c = rng.choice([27, 77, 127])
+            value = (1 - (cold_c + 273.15) / (hot_c + 273.15)) * 100
+            stem = (f"A Carnot engine works between reservoirs at {hot_c} °C and {cold_c} °C. "
+                    f"What is the greatest efficiency it can reach, to 2 decimal places?")
+            spec = {"kind": "compute", "vars": {"h": hot_c, "c": cold_c},
+                    "expr": "(1-(c+273.15)/(h+273.15))*100", "digits": 2}
+            explain = (f"Carnot efficiency is $1 - T_C/T_H$ with both temperatures in kelvin: "
+                       f"$1 - {cold_c + 273.15:g}/{hot_c + 273.15:g} = {fmt(value / 100, 4)}$, or "
+                       f"{fmt(value)}%. Using Celsius here is the usual mistake.")
+            latex = (rf"e = 1 - \frac{{T_C}}{{T_H}} = 1 - \frac{{{cold_c + 273.15:g}}}"
+                     rf"{{{hot_c + 273.15:g}}} = {fmt(value)}\%")
+            correct, wrong = build(value, "%", [
+                ((1 - cold_c / hot_c) * 100, "Uses Celsius instead of kelvin.", "unit-error"),
+                ((1 - (hot_c + 273.15) / (cold_c + 273.15)) * 100, "Inverts the temperature ratio.", "inverted-operation"),
+                ((cold_c + 273.15) / (hot_c + 273.15) * 100, "Gives the ratio itself rather than one minus it.", "missing-step"),
+                (hot_c - cold_c, "Reports the temperature difference as a percentage.", "wrong-rule")])
+
+    elif domain == "flow":
+        if depth == 0:
+            v, d1, d2 = rng.choice([2, 3, 4]), rng.choice([10, 12, 20]), rng.choice([5, 6, 4])
+            value = v * (d1 / d2) ** 2
+            stem = (f"Water flows at {v} m/s through a pipe of internal diameter {d1} cm. What is "
+                    f"its speed where the pipe narrows to {d2} cm?")
+            spec = {"kind": "compute", "vars": {"v": v, "d1": d1, "d2": d2},
+                    "expr": "v*(d1/d2)**2", "digits": 2}
+            explain = (f"Continuity gives $A_1v_1 = A_2v_2$, and area goes with the square of the "
+                       f"diameter, so $v_2 = {v}({d1}/{d2})^2 = {fmt(value)}$ m/s. Halving the "
+                       f"diameter quadruples the speed.")
+            latex = rf"v_2 = v_1\left(\frac{{d_1}}{{d_2}}\right)^2 = {v}\left(\frac{{{d1}}}{{{d2}}}\right)^2 = {fmt(value)}"
+            correct, wrong = build(value, " m/s", [
+                (v * d1 / d2, "Scales with diameter rather than with area.", "missing-step"),
+                (v * (d2 / d1) ** 2, "Inverts the diameter ratio.", "inverted-operation"),
+                (v * d2 / d1, "Inverts the ratio and omits the square.", "inverted-operation"),
+                (v, "Assumes the speed is unchanged.", "no-change")])
+        elif depth == 1:
+            force, a1, a2 = rng.choice([50, 100, 200]), rng.choice([0.01, 0.02]), rng.choice([0.2, 0.5])
+            value = force * a2 / a1
+            stem = (f"In a hydraulic press a force of {force} N is applied to a piston of area "
+                    f"{a1:g} m². What force appears on a piston of area {a2:g} m²?")
+            spec = {"kind": "compute", "vars": {"f": force, "a1": a1, "a2": a2},
+                    "expr": "f*a2/a1", "digits": 2}
+            explain = (f"Pascal's principle makes the pressure equal on both pistons, so "
+                       f"$F_2 = F_1 A_2/A_1 = {force} \\times {a2:g}/{a1:g} = {fmt(value)}$ N. "
+                       f"The force is multiplied by the area ratio, not by distance.")
+            latex = rf"F_2 = F_1\frac{{A_2}}{{A_1}} = {force}\frac{{{a2:g}}}{{{a1:g}}} = {fmt(value)}"
+            correct, wrong = build(value, " N", [
+                (force * a1 / a2, "Inverts the area ratio and reduces the force.", "inverted-operation"),
+                (force, "Assumes the force passes through unchanged.", "no-change"),
+                (force * a2, "Multiplies by the output area without dividing by the input.", "missing-step"),
+                (force / a1, "Gives the pressure rather than the output force.", "wrong-rule")])
+        elif depth == 2:
+            h = rng.choice([1.25, 2, 3.2, 5])
+            value = math.sqrt(2 * G * h)
+            stem = (f"Water escapes through a small hole {h:g} m below the surface of a large "
+                    f"open tank. Taking $g = {G}$ m/s², what is the efflux speed, to 2 decimal "
+                    f"places?")
+            spec = {"kind": "compute", "vars": {"h": h, "g": G},
+                    "expr": "sqrt(2*g*h)", "digits": 2}
+            explain = (f"Torricelli's law follows from Bernoulli: $v = \\sqrt{{2gh}} = "
+                       f"\\sqrt{{2({G})({h:g})}} = {fmt(value)}$ m/s — the speed a body would "
+                       f"reach falling that same height.")
+            latex = rf"v = \sqrt{{2gh}} = \sqrt{{2({G})({h:g})}} = {fmt(value)}"
+            correct, wrong = build(value, " m/s", [
+                (2 * G * h, "Forgets the square root.", "missing-step"),
+                (math.sqrt(G * h), "Omits the factor of two.", "missing-step"),
+                (math.sqrt(2 * h / G), "Divides by g instead of multiplying.", "inverted-operation"),
+                (G * h, "Multiplies g by the depth and stops.", "missing-step")])
+        else:
+            rho, v, dia = rng.choice([1000, 800]), rng.choice([1, 2, 3]), rng.choice([0.05, 0.1, 0.2])
+            eta = rng.choice([0.001, 0.002])
+            value = rho * v * dia / eta
+            stem = (f"A fluid of density {rho} kg/m³ and dynamic viscosity {eta:g} Pa·s flows at "
+                    f"{v} m/s through a pipe of diameter {dia:g} m. What is the Reynolds number?")
+            spec = {"kind": "compute", "vars": {"rho": rho, "v": v, "d": dia, "eta": eta},
+                    "expr": "rho*v*d/eta", "digits": 0}
+            explain = (f"$Re = \\rho v D/\\eta = ({rho})({v})({dia:g})/{eta:g} = {fmt(value, 0)}$. "
+                       f"It is dimensionless, and above roughly 4000 the flow is turbulent.")
+            latex = rf"Re = \frac{{\rho v D}}{{\eta}} = \frac{{({rho})({v})({dia:g})}}{{{eta:g}}} = {fmt(value, 0)}"
+            correct, wrong = build(value, "", [
+                (eta / (rho * v * dia), "Inverts the whole expression.", "inverted-operation"),
+                (rho * v / (dia * eta), "Divides by the diameter instead of multiplying.", "inverted-operation"),
+                (rho * v * dia, "Leaves the viscosity out.", "missing-step"),
+                (v * dia / eta, "Leaves the density out.", "missing-step")], digits=0)
+
+    elif domain == "waves":
+        if depth == 0:
+            f, lam = rng.choice([50, 170, 250, 400]), rng.choice([0.8, 2, 4, 1.5])
+            value = f * lam
+            stem = (f"A wave has a frequency of {f} Hz and a wavelength of {lam:g} m. What is "
+                    f"its speed?")
+            spec = {"kind": "compute", "vars": {"f": f, "l": lam}, "expr": "f*l", "digits": 2}
+            explain = (f"$v = f\\lambda = {f} \\times {lam:g} = {fmt(value)}$ m/s. Each cycle "
+                       f"advances the wave by one wavelength, and there are {f} of them a second.")
+            latex = rf"v = f\lambda = {f} \times {lam:g} = {fmt(value)}"
+            correct, wrong = build(value, " m/s", [
+                (f / lam, "Divides frequency by wavelength.", "inverted-operation"),
+                (lam / f, "Inverts the relationship.", "inverted-operation"),
+                (f + lam, "Adds the two quantities.", "wrong-operation"),
+                (1 / (f * lam), "Takes the reciprocal of the product.", "inverted-operation")])
+        elif depth == 1:
+            length = rng.choice([0.25, 0.5, 1.0, 2.0])
+            value = 2 * math.pi * math.sqrt(length / G)
+            stem = (f"A simple pendulum is {length:g} m long. Taking $g = {G}$ m/s², what is its "
+                    f"period, to 2 decimal places?")
+            spec = {"kind": "compute", "vars": {"l": length, "g": G},
+                    "expr": "2*pi*sqrt(l/g)", "digits": 2}
+            explain = (f"$T = 2\\pi\\sqrt{{L/g}} = 2\\pi\\sqrt{{{length:g}/{G}}} = {fmt(value)}$ s. "
+                       f"The mass of the bob does not appear, and the length is under the root, so "
+                       f"quadrupling it only doubles the period.")
+            latex = rf"T = 2\pi\sqrt{{\frac{{L}}{{g}}}} = 2\pi\sqrt{{\frac{{{length:g}}}{{{G}}}}} = {fmt(value)}"
+            correct, wrong = build(value, " s", [
+                (2 * math.pi * math.sqrt(G / length), "Inverts the fraction under the root.", "inverted-operation"),
+                (2 * math.pi * length / G, "Omits the square root.", "missing-step"),
+                (math.sqrt(length / G), "Leaves out the factor of two pi.", "missing-step"),
+                (1 / (2 * math.pi * math.sqrt(length / G)), "Gives the frequency instead of the period.", "wrong-rule")])
+        elif depth == 2:
+            amp, f = rng.choice([0.02, 0.05, 0.1, 0.2]), rng.choice([2, 5, 10])
+            value = amp * 2 * math.pi * f
+            stem = (f"A body in simple harmonic motion has an amplitude of {amp:g} m and a "
+                    f"frequency of {f} Hz. What is its maximum speed, to 2 decimal places?")
+            spec = {"kind": "compute", "vars": {"a": amp, "f": f},
+                    "expr": "a*2*pi*f", "digits": 2}
+            explain = (f"$v_{{max}} = A\\omega$ and $\\omega = 2\\pi f$, so $v_{{max}} = "
+                       f"{amp:g} \\times 2\\pi \\times {f} = {fmt(value)}$ m/s. It occurs as the "
+                       f"body passes through the centre, where the acceleration is zero.")
+            latex = rf"v_{{max}} = A\omega = {amp:g}(2\pi \times {f}) = {fmt(value)}"
+            correct, wrong = build(value, " m/s", [
+                (amp * f, "Uses the frequency in place of the angular frequency.", "missing-step"),
+                (amp * (2 * math.pi * f) ** 2, "Gives the maximum acceleration instead.", "wrong-rule"),
+                (2 * math.pi * f / amp, "Divides by the amplitude.", "inverted-operation"),
+                (amp / (2 * math.pi * f), "Inverts the relationship.", "inverted-operation")])
+        else:
+            length, v, n = rng.choice([0.5, 1.0, 2.0]), rng.choice([100, 200, 340]), rng.choice([2, 3, 4])
+            value = n * v / (2 * length)
+            stem = (f"A string of length {length:g} m is fixed at both ends and carries waves at "
+                    f"{v} m/s. What is the frequency of its harmonic number {n}?")
+            spec = {"kind": "compute", "vars": {"n": n, "v": v, "l": length},
+                    "expr": "n*v/(2*l)", "digits": 2}
+            explain = (f"$f_n = nv/2L = {n}({v}) \\div (2 \\times {length:g}) = {fmt(value)}$ Hz. "
+                       f"The fundamental fits half a wavelength on the string, and harmonic $n$ "
+                       f"fits $n$ of those halves.")
+            latex = rf"f_n = \frac{{nv}}{{2L}} = \frac{{{n}({v})}}{{2({length:g})}} = {fmt(value)}"
+            correct, wrong = build(value, " Hz", [
+                (n * v / length, "Omits the factor of two in the denominator.", "missing-step"),
+                (v / (2 * length), "Gives the fundamental and ignores the harmonic number.", "missing-step"),
+                (n * v * 2 * length, "Multiplies by the length instead of dividing.", "inverted-operation"),
+                (2 * length / (n * v), "Gives a period rather than a frequency.", "unit-error")])
+
+    elif domain == "fields":
+        if depth == 0:
+            q1, q2 = rng.choice([2, 3, 5, 8]), rng.choice([3, 4, 6, 10])
+            r = rng.choice([0.1, 0.2, 0.5])
+            value = 8.99e9 * q1 * 1e-6 * q2 * 1e-6 / r ** 2
+            stem = (f"Two point charges of {q1} μC and {q2} μC sit {r:g} m apart in vacuum. Taking "
+                    f"$k = 8.99 \\times 10^9$ N·m²/C², what is the force between them, to 2 "
+                    f"decimal places?")
+            spec = {"kind": "compute", "vars": {"q1": q1, "q2": q2, "r": r},
+                    "expr": "8.99e9*q1*1e-6*q2*1e-6/r**2", "digits": 2}
+            explain = (f"$F = kq_1q_2/r^2 = (8.99\\times10^9)({q1}\\times10^{{-6}})"
+                       f"({q2}\\times10^{{-6}}) \\div {r:g}^2 = {fmt(value)}$ N. The microcoulombs "
+                       f"must be converted before the division.")
+            latex = rf"F = \frac{{kq_1q_2}}{{r^2}} = {fmt(value)}"
+            correct, wrong = build(value, " N", [
+                (8.99e9 * q1 * 1e-6 * q2 * 1e-6 / r, "Does not square the separation.", "missing-step"),
+                (8.99e9 * q1 * q2 / r ** 2, "Leaves the charges in microcoulombs.", "unit-error"),
+                (8.99e9 * (q1 + q2) * 1e-6 / r ** 2, "Adds the charges instead of multiplying.", "wrong-operation"),
+                (8.99e9 * q1 * 1e-6 * q2 * 1e-6 * r ** 2, "Multiplies by the square of the separation.", "inverted-operation")])
+        elif depth == 1:
+            q, field = rng.choice([2, 4, 5, 10]), rng.choice([2000, 5000, 8000])
+            value = q * 1e-6 * field
+            stem = (f"What force acts on a charge of {q} μC placed in a uniform electric field of "
+                    f"{field} N/C?")
+            spec = {"kind": "compute", "vars": {"q": q, "e": field},
+                    "expr": "q*1e-6*e", "digits": 4}
+            explain = (f"$F = qE = ({q}\\times10^{{-6}})({field}) = {fmt(value, 4)}$ N. The field "
+                       f"is force per unit charge, so multiplying by the charge returns a force.")
+            latex = rf"F = qE = ({q}\times10^{{-6}})({field}) = {fmt(value, 4)}"
+            correct, wrong = build(value, " N", [
+                (q * field, "Leaves the charge in microcoulombs.", "unit-error"),
+                (field / (q * 1e-6), "Divides the field by the charge.", "inverted-operation"),
+                (q * 1e-6 / field, "Inverts the relationship.", "inverted-operation"),
+                (q * 1e-6 + field, "Adds the two quantities.", "wrong-operation")], digits=4)
+        elif depth == 2:
+            b, i = rng.choice([0.2, 0.5, 0.8]), rng.choice([3, 5, 8])
+            length, theta = rng.choice([0.4, 0.5, 1.2]), rng.choice([30, 45, 60, 90])
+            value = b * i * length * math.sin(math.radians(theta))
+            stem = (f"A straight conductor of length {length:g} m carries {i} A and lies at "
+                    f"{theta}° to a uniform magnetic field of {b:g} T. What force acts on it, to "
+                    f"2 decimal places?")
+            spec = {"kind": "compute", "vars": {"b": b, "i": i, "l": length, "th": theta},
+                    "expr": "b*i*l*sin(radians(th))", "digits": 2}
+            explain = (f"$F = BIL\\sin\\theta = ({b:g})({i})({length:g})\\sin{theta}° = "
+                       f"{fmt(value)}$ N. The force is greatest at 90° and vanishes when the "
+                       f"conductor lies along the field.")
+            latex = rf"F = BIL\sin\theta = ({b:g})({i})({length:g})\sin{theta}° = {fmt(value)}"
+            correct, wrong = build(value, " N", [
+                (b * i * length * math.cos(math.radians(theta)), "Uses the cosine of the angle.", "wrong-rule"),
+                (b * i * length, "Ignores the angle entirely.", "missing-step"),
+                (b * i / length * math.sin(math.radians(theta)), "Divides by the length.", "inverted-operation"),
+                (b * length * math.sin(math.radians(theta)), "Leaves the current out.", "missing-step")])
+        else:
+            turns, dphi = rng.choice([50, 100, 200, 400]), rng.choice([0.02, 0.05, 0.1])
+            dt = rng.choice([0.1, 0.2, 0.5])
+            value = turns * dphi / dt
+            stem = (f"The flux through a {turns}-turn coil changes by {dphi:g} Wb in {dt:g} s. "
+                    f"What is the magnitude of the emf induced in it?")
+            spec = {"kind": "compute", "vars": {"n": turns, "p": dphi, "t": dt},
+                    "expr": "n*p/t", "digits": 2}
+            explain = (f"Faraday's law gives $|\\varepsilon| = N\\Delta\\Phi/\\Delta t = "
+                       f"{turns}({dphi:g}) \\div {dt:g} = {fmt(value)}$ V. The minus sign in the "
+                       f"law is Lenz's law, which fixes direction rather than size.")
+            latex = rf"|\varepsilon| = N\frac{{\Delta\Phi}}{{\Delta t}} = {turns}\frac{{{dphi:g}}}{{{dt:g}}} = {fmt(value)}"
+            correct, wrong = build(value, " V", [
+                (dphi / dt, "Leaves out the number of turns.", "missing-step"),
+                (turns * dphi * dt, "Multiplies by the time instead of dividing.", "inverted-operation"),
+                (turns * dt / dphi, "Inverts the rate of change.", "inverted-operation"),
+                (turns * dphi, "Stops before dividing by the time.", "missing-step")])
+
+    elif domain == "ac":
+        if depth == 0:
+            peak = rng.choice([4, 10, 14, 20])
+            value = peak / math.sqrt(2)
+            stem = (f"An alternating current has a peak value of {peak} A. What is its RMS value, "
+                    f"to 2 decimal places?")
+            spec = {"kind": "compute", "vars": {"p": peak}, "expr": "p/sqrt(2)", "digits": 2}
+            explain = (f"$I_{{rms}} = I_{{max}}/\\sqrt2 = {peak} \\div 1.414 = {fmt(value)}$ A. "
+                       f"The RMS value is the direct current that would heat a resistor equally.")
+            latex = rf"I_{{rms}} = \frac{{I_{{max}}}}{{\sqrt2}} = \frac{{{peak}}}{{\sqrt2}} = {fmt(value)}"
+            correct, wrong = build(value, " A", [
+                (peak * math.sqrt(2), "Multiplies by root two instead of dividing.", "inverted-operation"),
+                (peak / 2, "Halves the peak instead of dividing by root two.", "wrong-rule"),
+                (peak, "Treats the peak value as the RMS value.", "no-change"),
+                (peak * 2, "Doubles the peak value.", "scale-error")])
+        elif depth == 1:
+            henry, f = rng.choice([50, 100, 200, 400]), rng.choice([50, 60, 400])
+            value = 2 * math.pi * f * henry / 1000
+            stem = (f"What is the reactance of a {henry} mH inductor at {f} Hz, to 2 decimal "
+                    f"places?")
+            spec = {"kind": "compute", "vars": {"l": henry, "f": f},
+                    "expr": "2*pi*f*l/1000", "digits": 2}
+            explain = (f"$X_L = 2\\pi f L = 2\\pi({f})({henry / 1000:g}) = {fmt(value)}$ Ω, with "
+                       f"the inductance first converted to henries. Reactance rises with "
+                       f"frequency, so an inductor blocks fast changes.")
+            latex = rf"X_L = 2\pi f L = 2\pi({f})({henry / 1000:g}) = {fmt(value)}"
+            correct, wrong = build(value, " Ω", [
+                (2 * math.pi * f * henry, "Leaves the inductance in millihenries.", "unit-error"),
+                (1 / (2 * math.pi * f * henry / 1000), "Uses the capacitive formula instead.", "wrong-rule"),
+                (f * henry / 1000, "Omits the factor of two pi.", "missing-step"),
+                (2 * math.pi * henry / 1000 / f, "Divides by the frequency.", "inverted-operation")])
+        elif depth == 2:
+            cap, f = rng.choice([1, 2, 4, 10]), rng.choice([50, 60, 400])
+            value = 1 / (2 * math.pi * f * cap * 1e-6)
+            stem = (f"What is the reactance of {_a(cap)} {cap} μF capacitor at {f} Hz, to 2 "
+                    f"decimal places?")
+            spec = {"kind": "compute", "vars": {"c": cap, "f": f},
+                    "expr": "1/(2*pi*f*c*1e-6)", "digits": 2}
+            explain = (f"$X_C = 1/(2\\pi f C) = 1 \\div (2\\pi({f})({cap}\\times10^{{-6}})) = "
+                       f"{fmt(value)}$ Ω. Reactance falls as frequency rises, which is the "
+                       f"opposite of an inductor.")
+            latex = rf"X_C = \frac{{1}}{{2\pi f C}} = {fmt(value)}"
+            correct, wrong = build(value, " Ω", [
+                (2 * math.pi * f * cap * 1e-6, "Inverts the formula.", "inverted-operation"),
+                (1 / (2 * math.pi * f * cap), "Leaves the capacitance in microfarads.", "unit-error"),
+                (1 / (f * cap * 1e-6), "Omits the factor of two pi.", "missing-step"),
+                (1 / (2 * math.pi * cap * 1e-6 / f), "Divides by the frequency instead of multiplying.", "inverted-operation")])
+        else:
+            r = rng.choice([30, 40, 60])
+            xl, xc = rng.choice([80, 120, 160]), rng.choice([20, 40, 100])
+            value = math.sqrt(r ** 2 + (xl - xc) ** 2)
+            stem = (f"A series RLC circuit has R = {r} Ω, $X_L$ = {xl} Ω and $X_C$ = {xc} Ω. What "
+                    f"is its impedance, to 2 decimal places?")
+            spec = {"kind": "compute", "vars": {"r": r, "xl": xl, "xc": xc},
+                    "expr": "sqrt(r**2+(xl-xc)**2)", "digits": 2}
+            explain = (f"$Z = \\sqrt{{R^2 + (X_L - X_C)^2}} = \\sqrt{{{r}^2 + ({xl} - {xc})^2}} = "
+                       f"{fmt(value)}$ Ω. The two reactances oppose each other, so they subtract "
+                       f"before being combined with the resistance.")
+            latex = rf"Z = \sqrt{{R^2 + (X_L-X_C)^2}} = \sqrt{{{r}^2 + ({xl}-{xc})^2}} = {fmt(value)}"
+            correct, wrong = build(value, " Ω", [
+                (r + xl - xc, "Adds the terms arithmetically instead of in quadrature.", "wrong-rule"),
+                (math.sqrt(r ** 2 + (xl + xc) ** 2), "Adds the reactances instead of subtracting.", "sign-error"),
+                (r ** 2 + (xl - xc) ** 2, "Forgets the square root.", "missing-step"),
+                (math.sqrt(r ** 2 + xl ** 2 + xc ** 2), "Squares each reactance separately.", "wrong-rule")])
+
     return stem, correct, explain, wrong, spec, latex
 
 
@@ -802,6 +1253,19 @@ FACTS = {
         "pool": ["direct current (DC)", "alternating current (AC)", "pulsating current",
                  "static charge", "no current at all"],
         "why": "That is not how this source behaves.",
+    },
+    # Adiabatic is deliberately absent: it is defined by no heat crossing the
+    # boundary rather than by a quantity staying constant, so it has no honest
+    # answer to this question and would make the pool dishonest if forced in.
+    "constant_in_process": {
+        "answers": {
+            "an isothermal process": "the temperature",
+            "an isochoric process": "the volume",
+            "an isobaric process": "the pressure",
+        },
+        "pool": ["the temperature", "the volume", "the pressure",
+                 "the internal energy", "the entropy"],
+        "why": "A different process holds that quantity fixed.",
     },
     "actions": {
         "answers": {

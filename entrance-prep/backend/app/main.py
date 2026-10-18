@@ -430,6 +430,17 @@ def review(qid:str,body:ReviewAction,u=Depends(teacher),db=Depends(db_session)):
 def history(qid:str,u=Depends(teacher),db=Depends(db_session)):
     return [{"action":a.action,"detail":a.detail,"at":utc(a.created).isoformat()} for a in db.scalars(select(Audit).where(Audit.entity_id==qid).order_by(Audit.created.desc()))]
 
+# Where a question came from, under the one name every filter uses. Practice,
+# availability and mock-exam rows all have to agree on this, and they used to
+# each inline their own copy of the test.
+TEXTBOOK_KINDS=('textbook-excerpt','adapted-textbook')
+ORIGINS=('original','textbook','exam-bank')
+
+def origin_of(q):
+    kind=q.source.get('kind')
+    if kind in TEXTBOOK_KINDS: return 'textbook'
+    return 'exam-bank' if kind=='exam-bank' else 'original'
+
 class BlueprintRow(StrictModel):
     """One section of a paper.
 
@@ -438,6 +449,11 @@ class BlueprintRow(StrictModel):
     real examination is described -- 25 Logic, 25 Mathematics, 30 Physics --
     without dictating which sub-topics or levels those questions come from. A
     row naming a domain and difficulty, as rows did before, still works.
+
+    `origin` narrows by provenance instead of by topic, which is what a mock
+    exam wants and ordinary practice does not: a row can ask for the
+    examination panel's own questions, so the paper is made of the real thing,
+    while practice keeps drawing on the generated bank as well.
     """
     subject:str|None=None
     domain:str|None=None
@@ -445,8 +461,9 @@ class BlueprintRow(StrictModel):
     count:int=Field(ge=1,le=50)
     options:Literal[4,5]=4
     skill:str|None=None
+    origin:Literal["original","textbook","exam-bank"]|None=None
 
-    @field_validator("subject","domain","difficulty","skill")
+    @field_validator("subject","domain","difficulty","skill","origin")
     @classmethod
     def blank_is_unset(cls,v):
         # A form posts "" for an untouched select; treat that as no filter
@@ -464,10 +481,14 @@ def pool(db,row):
     for field,key in ((Question.subject,"subject"),(Question.domain,"domain"),
                       (Question.difficulty,"difficulty"),(Question.skill,"skill")):
         if row.get(key): query=query.where(field==row[key])
-    return [q for q in db.scalars(query).all() if len(q.content["options"])==row["options"]]
+    # Provenance lives inside the source JSON, so it is filtered in Python
+    # rather than in the query.
+    return [q for q in db.scalars(query).all()
+            if len(q.content["options"])==row["options"]
+            and (not row.get("origin") or origin_of(q)==row["origin"])]
 
 def row_label(r):
-    named=" / ".join(str(r[k]) for k in ("subject","domain","difficulty","skill") if r.get(k))
+    named=" / ".join(str(r[k]) for k in ("subject","domain","difficulty","skill","origin") if r.get(k))
     return named or "any subject"
 
 def resolve_blueprint(db,rows):
@@ -526,7 +547,7 @@ def edit_blueprint(bid:str,body:BlueprintBody,u=Depends(teacher),db=Depends(db_s
 def availability(u=Depends(current_user),db=Depends(db_session)):
     result=[]
     for q in db.scalars(select(Question).where(Question.status=="approved")):
-        key={"subject":q.subject,"domain":q.domain,"difficulty":q.difficulty,"skill":q.skill,"options":len(q.content["options"]),'origin':'textbook' if q.source.get('kind') in ('textbook-excerpt','adapted-textbook') else 'original'}
+        key={"subject":q.subject,"domain":q.domain,"difficulty":q.difficulty,"skill":q.skill,"options":len(q.content["options"]),'origin':origin_of(q)}
         entry=next((x for x in result if all(x[k]==v for k,v in key.items())),None)
         if entry: entry["count"]+=1
         else: result.append({**key,"count":1})
@@ -542,7 +563,7 @@ class AttemptStart(StrictModel):
     count:int=Field(default=5,ge=1,le=50)
     minutes:int=Field(default=15,ge=1,le=180)
     blueprint_id:str|None=None
-    origin:Literal['all','original','textbook']='all'
+    origin:Literal['all','original','textbook','exam-bank']='all'
 
 def attempt_view(a):
     finished=a.submitted is not None
@@ -567,7 +588,7 @@ def start(body:AttemptStart,u=Depends(current_user),db=Depends(db_session)):
         query=select(Question).where(Question.status=="approved")
         for field,val in [(Question.subject,body.subject),(Question.domain,body.domain),(Question.difficulty,body.difficulty),(Question.skill,body.skill)]:
             if val: query=query.where(field==val)
-        available=[q for q in db.scalars(query) if len(q.content["options"])==body.options and (body.origin=='all' or ('textbook' if q.source.get('kind') in ('textbook-excerpt','adapted-textbook') else 'original')==body.origin)]
+        available=[q for q in db.scalars(query) if len(q.content["options"])==body.options and (body.origin=='all' or origin_of(q)==body.origin)]
         if len(available)<body.count: raise HTTPException(422,f"Only {len(available)} approved questions match. Reduce the count or broaden your filters.")
         qs=random.SystemRandom().sample(available,body.count); minutes=body.minutes; title="Focused practice" if body.mode=="practice" else "Exam practice"
     a=Attempt(id=uid(),user_id=u.id,mode=body.mode,title=title,snapshots=[snapshot(q) for q in qs],answers={},started=now(),deadline=now()+timedelta(minutes=minutes) if body.mode!="practice" else None)

@@ -340,8 +340,13 @@ def test_blueprint_rows_need_something_to_draw_from(clients):
 
 def test_publishing_a_paper_the_bank_cannot_fill_is_refused(clients):
     teacher,_=clients
+    # Narrowed to one sub-topic on purpose. Asking for 50 five-option questions
+    # from Physics as a whole used to be unfillable, but the seeder makes one
+    # five-option question per sub-topic and level, so every sub-topic added
+    # since moved the subject total past 50 and the row started succeeding --
+    # testing nothing. A single sub-topic can only ever offer four.
     body={'name':'Too big','minutes':90,'published':True,
-          'rows':[{'subject':'physics','count':50,'options':5}]}
+          'rows':[{'subject':'physics','domain':'rotation','count':50,'options':5}]}
     r=teacher.post('/api/blueprints',json=body)
     assert r.status_code==422
     # The message must say which section is short, or a teacher cannot act on it.
@@ -356,6 +361,117 @@ def test_physics_answers_are_recomputed_not_asserted(clients):
     # including the conceptual ones, which are checked against a reviewed table.
     assert all(q['validation']['method']=='deterministic' and q['validation']['passed'] for q in physics)
     assert {d['id'] for d in PHYSICS_DOMAINS}=={q['domain'] for q in physics}
+
+def test_every_physics_subtopic_has_a_template_behind_it():
+    # The seeder fills a sub-topic only when a template exists for it, and a
+    # missing branch raises rather than returning nothing, so a sub-topic added
+    # to the catalogue without one would break startup seeding instead of
+    # quietly sitting empty. Checks the pairing directly.
+    for domain in PHYSICS_DOMAINS:
+        for level in LEVELS:
+            content=generate(domain['id'],level,4,1)
+            assert validate(content)['passed'],(domain['id'],level)
+
+def test_formatting_keeps_whole_numbers_that_end_in_zero():
+    from app.mathgen import fmt
+    # Trailing zeros were stripped unconditionally, so a Reynolds number of
+    # 200000 was rendered "2" whenever digits was 0 -- the integer's own zeros
+    # were trailing characters too. Only zeros after a decimal point are noise.
+    assert fmt(200000,0)=='200000'
+    assert fmt(2500,0)=='2500'
+    assert fmt(200.0,2)=='200'
+    assert fmt(2.50,2)=='2.5'
+    assert fmt(0.0,0)=='0'
+
+def _bank_file(tmp_path,entries):
+    import json
+    path=tmp_path/'exam_bank.json'
+    path.write_text(json.dumps({'schema':1,'note':'test','questions':entries}),encoding='utf-8')
+    return path
+
+def _bank_entry(ref,correct='B',key_text='20 N'):
+    # One computable item, so the importer's recomputation has something to bite on.
+    texts=['10 N',key_text,'40 N','80 N']
+    return {'ref':ref,'subject':'physics','domain':'rotation','skill':'torque',
+            'difficulty':'Exam Level','stem':'A flywheel of moment of inertia 4 kg·m² is '
+            'given an angular acceleration of 5 rad/s². What net torque acts on it?',
+            'options':[{'text':t,'rationale':'Correct reasoning' if 'ABCD'[i]==correct else 'Does not follow.',
+                        'error':'correct' if 'ABCD'[i]==correct else 'miscalculation'}
+                       for i,t in enumerate(texts)],
+            'correct':correct,'explanation':'tau = I alpha = 4 x 5 = 20 N·m',
+            'validator':{'kind':'compute','expr':'i*al','vars':{'i':4,'al':5},'digits':2}}
+
+def _import_tool():
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0,str(_Path(__file__).resolve().parents[1]/'tools'))
+    import import_exam_bank
+    return import_exam_bank
+
+def test_import_refuses_a_bank_whose_key_disagrees_with_its_own_arithmetic(clients,tmp_path):
+    tool=_import_tool()
+    # The panel's key says B, and B is the value the stated numbers produce.
+    assert tool.check([_bank_entry('Q1')])==[]
+    # Point the key at a different option and the recomputation must catch it,
+    # rather than importing a question that marks the wrong answer correct.
+    problems=tool.check([_bank_entry('Q1',correct='C')])
+    assert problems and 'Q1' in problems[0]
+    # A sub-topic or skill that does not exist is refused by name, so a typo in
+    # the mapping is reported rather than stored.
+    broken={**_bank_entry('Q2'),'domain':'nope'}
+    assert any('nope' in p for p in tool.check([broken]))
+    wrong_skill={**_bank_entry('Q3'),'skill':'free-fall'}
+    assert any('free-fall' in p for p in tool.check([wrong_skill]))
+    # Two questions under one ref would make the update path ambiguous.
+    assert tool.check([_bank_entry('Q4'),_bank_entry('Q4')])
+
+def test_importing_the_bank_twice_updates_rather_than_duplicates(clients,tmp_path):
+    tool=_import_tool()
+    path=_bank_file(tmp_path,[_bank_entry('Q1'),_bank_entry('Q2')])
+    assert tool.run(apply=True,draft=False,path=path)==0
+    assert tool.run(apply=True,draft=False,path=path)==0
+    with SessionLocal() as db:
+        imported=[q for q in db.scalars(select(Question)) if q.source.get('kind')=='exam-bank']
+    assert len(imported)==2
+    assert {q.source['ref'] for q in imported}=={'Q1','Q2'}
+    # The second run is an update, so the version moves on rather than a copy
+    # appearing beside the original.
+    assert all(q.version==2 for q in imported)
+    assert all(q.status=='approved' for q in imported)
+
+def test_mock_exam_row_can_demand_the_examination_panels_own_questions(clients,tmp_path):
+    teacher,student=clients
+    tool=_import_tool()
+    refs=[f'Q{i}' for i in range(1,4)]
+    # Distinct keyed values, because a validator refuses a question whose
+    # distractor equals its answer, and identical stems would collide on seeding.
+    entries=[{**_bank_entry(ref),'stem':f'Flywheel {ref}: moment of inertia 4 kg·m², '
+              f'angular acceleration 5 rad/s². What net torque acts?'} for ref in refs]
+    assert tool.run(apply=True,draft=False,path=_bank_file(tmp_path,entries))==0
+
+    body={'name':'Panel physics','minutes':10,'published':True,
+          'rows':[{'subject':'physics','count':3,'options':4,'origin':'exam-bank'}]}
+    r=teacher.post('/api/blueprints',json=body)
+    assert r.status_code==200,r.text
+    attempt=student.post('/api/attempts',json={'mode':'mock','blueprint_id':r.json()['id']}).json()
+    assert len(attempt['questions'])==3
+    # Every drawn question is the panel's, not a generated one, even though the
+    # generated physics bank is far larger and the row names no sub-topic.
+    with SessionLocal() as db:
+        drawn=[db.get(Question,q['id']) for q in attempt['questions']]
+    assert all(q.source.get('kind')=='exam-bank' for q in drawn)
+    assert {q.source['ref'] for q in drawn}==set(refs)
+
+def test_a_row_asking_for_an_origin_the_bank_lacks_is_refused(clients):
+    teacher,_=clients
+    # Nothing is imported in this fixture, so a row wanting the panel's
+    # questions must fail loudly at publish time rather than at a student's
+    # first sitting.
+    body={'name':'No panel bank','minutes':10,'published':True,
+          'rows':[{'subject':'physics','count':3,'options':4,'origin':'exam-bank'}]}
+    r=teacher.post('/api/blueprints',json=body)
+    assert r.status_code==422
+    assert 'exam-bank' in r.json()['detail']
 
 @pytest.fixture
 def mail(monkeypatch):

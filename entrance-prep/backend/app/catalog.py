@@ -47,11 +47,31 @@ PHYSICS_MECHANICS_SOURCE = {
     "calibration": "Local four-level rubric, calibrated to the past paper rather than to the book.",
 }
 
-# The examination's Physics section covers mechanics, heat and electricity. The
-# electrical sub-topics follow the past paper; mechanics and heat follow the
-# book above. Ordered Foundation -> Challenge like the rest. "quantities"
-# rather than "units" because the Mathematics domain above already owns that
-# id, and ids are global.
+# The 2026 physics panel's own 100-question bank. Its six sections are what the
+# examination actually asks, and they reach well past the electrical scope the
+# earlier past paper suggested: 75% of it is mechanics, heat, fluids and waves.
+# The sub-topics below that cite this source follow its section structure; the
+# bank's own 100 items are a separate thing, loaded by tools/import_exam_bank.py
+# from a file that is deliberately not in this repository.
+PHYSICS_EXAM_BANK_SOURCE = {
+    "title": "Mechanical Engineering Entrance Examination, 100-question physics bank",
+    "edition": "2026", "publisher": "Royal University of Phnom Penh, Faculty of Engineering",
+    "year": 2026, "authors": "ME entrance examination physics panel",
+    "basis": (
+        "Section structure and question style of the panel's bank. Questions generated under "
+        "these sub-topics are written and solved independently; none is copied from the bank, "
+        "and none refers to a figure, because a generated question cannot supply one."
+    ),
+    "mapping_pages": "Sections I–VI, items 1–100",
+    "calibration": "Local four-level rubric, calibrated to the bank's own level.",
+}
+
+# The examination's Physics section covers mechanics, heat, fluids, waves and
+# electricity. The electrical sub-topics follow the past paper; mechanics and
+# heat follow the Mukherji structure; the sub-topics added for the panel's bank
+# follow its sections. Ordered Foundation -> Challenge like the rest.
+# "quantities" rather than "units" because the Mathematics domain above already
+# owns that id, and ids are global.
 PHYSICS_DOMAINS = [
     # Mechanics and heat follow the topic structure of Parts 1 and 2 of
     # Mukherji, which is an IIT-JEE book: its topics are the examination's,
@@ -71,6 +91,16 @@ PHYSICS_DOMAINS = [
     {"id": "work", "subject": "physics", "name": "Electrical Work & Potential", "sets": "Q10, Q14", "skills": ["work-from-charge", "charge-from-work", "potential-difference", "energy-delivered"], "description": "Connect work done, charge moved and potential difference."},
     {"id": "capacitance", "subject": "physics", "name": "Capacitance & Stored Energy", "sets": "Q15–16", "skills": ["capacitance-from-charge", "charge-stored", "energy-stored", "capacitors-combined"], "description": "Charge and energy held by a capacitor."},
     {"id": "quantities", "subject": "physics", "name": "Units, Instruments & Sources", "sets": "Q3–6, Q11, Q13", "skills": ["si-units", "instrument-choice", "source-behaviour", "rms-values"], "description": "Name the unit, pick the instrument, read an AC value."},
+    # Added from the 2026 panel's bank, which examines far more than the
+    # electrical scope above: 70 of its 100 items had no sub-topic to sit in.
+    # Ordered as the bank's own sections are.
+    {"id": "momentum", "subject": "physics", "name": "Momentum & Collisions", "sets": "Section I", "source": PHYSICS_EXAM_BANK_SOURCE, "skills": ["momentum", "impulse", "collision-conservation", "recoil-speed"], "description": "Mass in motion, and what survives a collision."},
+    {"id": "rotation", "subject": "physics", "name": "Rotation & Circular Motion", "sets": "Section I", "source": PHYSICS_EXAM_BANK_SOURCE, "skills": ["centripetal-acceleration", "angular-speed", "torque", "rotational-energy"], "description": "Turning, and what it takes to change a spin."},
+    {"id": "thermo", "subject": "physics", "name": "Thermodynamic Laws & Processes", "sets": "Section II", "source": PHYSICS_EXAM_BANK_SOURCE, "skills": ["process-identification", "first-law", "engine-efficiency", "carnot-efficiency"], "description": "What each process holds fixed, and the limit on an engine."},
+    {"id": "flow", "subject": "physics", "name": "Fluid Flow & Hydraulics", "sets": "Section III", "source": PHYSICS_EXAM_BANK_SOURCE, "skills": ["continuity", "hydraulic-force", "efflux-speed", "reynolds-number"], "description": "Moving fluid: continuity, pressure multiplied, and flow regime."},
+    {"id": "waves", "subject": "physics", "name": "Waves & Oscillations", "sets": "Section IV", "source": PHYSICS_EXAM_BANK_SOURCE, "skills": ["wave-equation", "pendulum-period", "harmonic-motion", "string-harmonics"], "description": "Period, wavelength and speed, and what resonates."},
+    {"id": "fields", "subject": "physics", "name": "Electric & Magnetic Fields", "sets": "Sections V–VI", "source": PHYSICS_EXAM_BANK_SOURCE, "skills": ["coulomb-force", "field-force", "magnetic-force", "induced-emf"], "description": "Force on a charge or a current, and emf from changing flux."},
+    {"id": "ac", "subject": "physics", "name": "AC Circuits & Reactance", "sets": "Section V", "source": PHYSICS_EXAM_BANK_SOURCE, "skills": ["rms-conversion", "inductive-reactance", "capacitive-reactance", "series-impedance"], "description": "What a coil and a capacitor do to alternating current."},
 ]
 
 DOMAINS = LOGIC_DOMAINS + MATH_DOMAINS + PHYSICS_DOMAINS
@@ -90,7 +120,9 @@ PHYSICS_SOURCE = {"title": "Past entrance examination paper, Physics section", "
 SUBJECTS = [
     {"id": "logic", "short": "Logic", "name": "Logic & Reasoning", "description": "Reasoning that needs no formula.", "domains": [d["id"] for d in LOGIC_DOMAINS], "source": LOGIC_SOURCE},
     {"id": "math", "short": "Mathematics", "name": "Mathematics", "description": "The mathematics an engineering course expects on day one.", "domains": [d["id"] for d in MATH_DOMAINS], "source": MATH_SOURCE},
-    {"id": "physics", "short": "Physics", "name": "Physics", "description": "The electrical principles the examination's physics section asks for.", "domains": [d["id"] for d in PHYSICS_DOMAINS], "source": PHYSICS_SOURCE},
+    # Was "the electrical principles the examination asks for", which the 2026
+    # panel's bank showed to be too narrow: only a quarter of it is electrical.
+    {"id": "physics", "short": "Physics", "name": "Physics", "description": "Mechanics, heat, fluids, waves and electricity, as the examination asks them.", "domains": [d["id"] for d in PHYSICS_DOMAINS], "source": PHYSICS_SOURCE},
 ]
 SOURCES = {"logic": LOGIC_SOURCE, "math": MATH_SOURCE, "physics": PHYSICS_SOURCE}
 

@@ -1617,6 +1617,12 @@ export default function App() {
                                     Adapted from textbook
                                   </Badge>
                                 )}
+                                {q.source.kind === "exam-bank" && (
+                                  <Badge color="gold">
+                                    Examination bank ·{" "}
+                                    {String(q.source.ref)}
+                                  </Badge>
+                                )}
                                 <Badge
                                   color={
                                     q.status === "approved"
@@ -1919,6 +1925,9 @@ export default function App() {
                             >
                               <option value="all">
                                 All approved questions
+                              </option>
+                              <option value="exam-bank">
+                                Entrance examination bank
                               </option>
                               <option value="textbook">
                                 Textbook selection

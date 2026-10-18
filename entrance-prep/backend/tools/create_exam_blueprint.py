@@ -7,9 +7,14 @@ per section, and the sections are sat in order.
     python tools/create_exam_blueprint.py                  # report only
     python tools/create_exam_blueprint.py --apply
     python tools/create_exam_blueprint.py --apply --draft  # not yet visible
+    python tools/create_exam_blueprint.py --apply --mixed-physics
 
 Running it again updates the paper it made before rather than adding a second
 one, so it is safe to re-run after approving more questions.
+
+The physics section draws on the examination panel's own bank, which
+tools/import_exam_bank.py loads; --mixed-physics widens it to the generated
+questions too.
 
 It refuses to publish a paper the bank cannot fill, and says which section is
 short. Three Logic sub-topics are awaiting editorial review, so Logic draws on
@@ -26,12 +31,32 @@ from sqlalchemy import select, func  # noqa: E402
 
 NAME = "Full entrance examination · 80 questions"
 MINUTES = 90
-# Order matters: the rows are sat in the order written here.
-ROWS = [
-    {"subject": "math", "count": 25, "options": 4},
-    {"subject": "logic", "count": 25, "options": 4},
-    {"subject": "physics", "count": 30, "options": 4},
-]
+
+
+def rows_for(physics_origin):
+    """The three sections, sat in the order written here.
+
+    The physics row asks for the examination panel's own bank by default. A
+    generated question is honest practice for a topic, but the panel's items are
+    the paper itself -- its phrasing, its spread and its level -- which is the
+    whole point of sitting a mock. Mathematics and Logic have no panel bank, so
+    they draw on the generated one.
+    """
+    physics = {"subject": "physics", "count": 30, "options": 4}
+    if physics_origin:
+        physics["origin"] = physics_origin
+    return [
+        {"subject": "math", "count": 25, "options": 4},
+        {"subject": "logic", "count": 25, "options": 4},
+        physics,
+    ]
+
+
+def origin_of(q):
+    kind = q.source.get("kind")
+    if kind in ("textbook-excerpt", "adapted-textbook"):
+        return "textbook"
+    return "exam-bank" if kind == "exam-bank" else "original"
 
 
 def available(db, row):
@@ -39,18 +64,22 @@ def available(db, row):
         select(Question).where(Question.status == "approved",
                                Question.subject == row["subject"])
     ).all()
-    return sum(1 for q in questions if len(q.content["options"]) == row["options"])
+    return sum(1 for q in questions
+               if len(q.content["options"]) == row["options"]
+               and (not row.get("origin") or origin_of(q) == row["origin"]))
 
 
-def run(apply, draft):
+def run(apply, draft, physics_origin):
+    ROWS = rows_for(physics_origin)
     with SessionLocal() as db:
         print(f"{NAME}  ·  {MINUTES} minutes  ·  {sum(r['count'] for r in ROWS)} questions\n")
         short = []
         for row in ROWS:
             have = available(db, row)
             flag = "" if have >= row["count"] else "   <-- NOT ENOUGH"
+            drawn = f" from the {row['origin']}" if row.get("origin") else ""
             print(f"  {row['subject']:>8}: {row['count']:>3} needed, {have:>3} approved with "
-                  f"{row['options']} options{flag}")
+                  f"{row['options']} options{drawn}{flag}")
             if have < row["count"]:
                 short.append(f"{row['subject']} (needs {row['count']}, has {have})")
 
@@ -60,6 +89,10 @@ def run(apply, draft):
         if short and not draft:
             print("\nCannot publish yet -- short in: " + ", ".join(short))
             print("Approve more questions first, or pass --draft to save it unpublished.")
+            if any(r.get("origin") == "exam-bank" for r in ROWS):
+                print("If the panel's bank is not loaded yet: "
+                      "python tools/import_exam_bank.py --apply")
+                print("To build the paper from generated physics instead: --mixed-physics")
             return 1
         if not apply:
             print("\nDry run. Pass --apply to create it.")
@@ -100,5 +133,9 @@ if __name__ == "__main__":
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--draft", action="store_true",
                         help="Save it unpublished, even if every section could be filled.")
+    parser.add_argument("--mixed-physics", action="store_true",
+                        help="Draw physics from the whole approved bank rather than only "
+                             "the examination panel's own questions.")
     args = parser.parse_args()
-    raise SystemExit(run(args.apply, args.draft))
+    raise SystemExit(run(args.apply, args.draft,
+                         None if args.mixed_physics else "exam-bank"))

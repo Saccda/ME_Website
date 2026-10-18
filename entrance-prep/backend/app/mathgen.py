@@ -11,7 +11,13 @@ import math
 
 
 def fmt(value, digits=2):
-    text = f"{round(value, digits):.{digits}f}".rstrip("0").rstrip(".")
+    # Only trailing zeros *after a decimal point* are noise. Stripping them
+    # unconditionally turned 200000 into "2" whenever digits was 0, because the
+    # integer's own zeros were trailing characters too. The existing digits=0
+    # caller escaped it only because no power of two ends in a zero.
+    text = f"{round(value, digits):.{digits}f}"
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
     return "0" if text in ("", "-0") else text
 
 
