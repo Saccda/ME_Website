@@ -84,7 +84,11 @@ def bootstrap(db):
     # after it already held its electrical questions, and a per-subject guard
     # would have skipped the whole subject and left the new sub-topics empty.
     teacher_user=db.scalar(select(User).where(User.role=="teacher"))
-    seeded={(q.content["stem"],len(q.content["options"])) for q in db.scalars(select(Question))}
+    # Keyed on the stem alone. It used to carry the option count too, so one
+    # stem could seed twice -- once with four options and once with five -- and
+    # five pairs of approved questions shared a stem as a result. With every
+    # question at four options the count adds nothing anyway.
+    seeded={q.content["stem"] for q in db.scalars(select(Question))}
     added=False
     for si,subject in enumerate(GENERATED_SUBJECTS):
         for di,d in enumerate([x for x in DOMAINS if x["subject"]==subject]):
@@ -92,8 +96,10 @@ def bootstrap(db):
             for li,l in enumerate(LEVELS):
                 for n in range(3):
                     for retry in range(40):
-                        q=make_question(d["id"],l,4 if n!=2 else 5,si*500000+10000+di*1000+li*100+n+retry*17000,"diagram" if d["id"]=="deduction" else "text")
-                        signature=(q.content['stem'],len(q.content['options']))
+                        # Four options, always: the entrance paper offers four,
+                        # and a student should practise the shape they will sit.
+                        q=make_question(d["id"],l,4,si*500000+10000+di*1000+li*100+n+retry*17000,"diagram" if d["id"]=="deduction" else "text")
+                        signature=q.content['stem']
                         if signature not in seeded: break
                     else: continue
                     seeded.add(signature)

@@ -14,7 +14,8 @@ This supersedes the proposal written on 2026-10-02.
 | **Physics** | 19 domains, 76 templates, 228 of 228 machine-provable. Seven electrical sub-topics follow the past paper; five covering motion, forces, mechanical work, fluids and heat follow the topic structure of Mukherji Parts 1–2; seven more — momentum, rotation, thermodynamic processes, fluid flow, waves, fields and AC reactance — follow the sections of the examination panel's own bank. The computational ones are proved by recomputation, the conceptual ones against a reviewed table. |
 | **The examination panel's bank** | The panel's 100 physics questions, loaded by `tools/import_exam_bank.py` from `private/exam_bank.json`, which is deliberately not in this public repository. All 100 keys were checked before import: the 29 computable ones are recomputed by the server on every import, the rest were verified by hand. 70 of the 100 had no sub-topic to sit in, which is why the seven above exist. The panel's own letter distribution was A 34 / B 57 / C 9 / **D 0**, so answering B blind scored 57/100; option order is redistributed on import so each letter is correct 25 times, with wording and keys untouched. |
 | **Exam shape** | The real paper is 80 questions in 90 minutes — 25 Mathematics, 25 Logic, 30 Physics. Practice offers that section length as one tap. |
-| **Mock exam** | A blueprint row may name a whole subject, so the real paper is three rows. `tools/create_exam_blueprint.py` builds and publishes it. Sections are sat in order rather than interleaved, and the result is reported per section as well as in total. A row may also name an **origin**, and the physics section uses it to draw only the panel's own questions: a generated question is honest practice for a topic, but the panel's items are the paper itself. `--mixed-physics` widens it to the generated bank. |
+| **Four choices, everywhere** | The paper offers four, so every question does: practising five rehearses a shape no student will sit and changes the odds of a guess. The seeder makes only four-option questions, `tools/to_four_options.py` converts any that already exist, and the choice is gone from the practice, generation and blueprint forms. This also removed the duplicate-stem defect listed here before: the seed signature carried the option count, so one stem could seed twice — once with four options, once with five — and five pairs of approved questions shared a stem. The signature is now the stem alone. |
+| **Mock exam** | A blueprint row may name a whole subject, so the real paper is three rows. `tools/create_exam_blueprint.py` builds and publishes it. Sections are sat in order rather than interleaved, and the result is reported per section as well as in total. A row may also name an **origin**, and the physics section uses it to draw only the panel's own questions: a generated question is honest practice for a topic, but the panel's items are the paper itself. `--mixed-physics` widens it to the generated bank. Every sitting draws afresh, so a student who sits it twice gets a different paper; how different depends on the pool. Measured over 12 sittings: 29 of the 80 questions repeat between any two, Mathematics drawing 25 from 84, Physics 30 from 100, and Logic 25 from only 48 — which makes Logic the bottleneck, and the 36 unreviewed Logic questions the best way to widen it. |
 | **LaTeX → Word and PDF maths** | `backend/app/mathtext.py` converts LaTeX to Office Math (OMML), so exported `.docx` equations are editable Word equations, and to Unicode for PDF. Dependency-free. This was the original reason for the project. |
 | **Deployment** | PostgreSQL 17, four API workers, advisory-locked startup seeding, `max_connections=300`, pinned Compose project name, Cloudflare Tunnel, and a button on the ME website's Admissions page that appears only when the URL is set in Wagtail. |
 | **Capacity, measured** | 250 students, 4,250 requests, 0 failures. See [`CAPACITY.md`](CAPACITY.md). |
@@ -83,15 +84,7 @@ Built in its place: the mock exam below. What it does not do is give two
 students the *same* paper — each sitting draws its own questions, so a cohort
 cannot be compared question by question. See item 2.
 
-### 6. De-duplicate practice sets by stem
-
-Five stems are each shared by two approved questions, because the seed signature
-is `(stem, option count)` and so the same stem seeds twice — once with four
-options, once with five. A mock exam draws by question id, which does not stop
-both twins appearing on one paper. De-duplicating by stem at assembly time fixes
-the student-facing symptom whatever the bank contains.
-
-### 7. One-press practice start
+### 6. One-press practice start
 
 Before answering anything a student faces seven decisions: question source,
 domain, difficulty, skill, option count, question count, and for exams a time

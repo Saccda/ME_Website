@@ -1321,18 +1321,6 @@ export default function App() {
                           </select>
                         </label>
                         <label>
-                          Options per question
-                          <select
-                            value={gen.options}
-                            onChange={(e) =>
-                              setGen({ ...gen, options: +e.target.value })
-                            }
-                          >
-                            <option value={4}>4 options · A–D</option>
-                            <option value={5}>5 options · A–E</option>
-                          </select>
-                        </label>
-                        <label>
                           Number of questions
                           <input
                             type="number"
@@ -1893,21 +1881,6 @@ export default function App() {
                             </select>
                           </label>
                           <label>
-                            Options per question
-                            <select
-                              value={practice.options}
-                              onChange={(e) =>
-                                setPractice({
-                                  ...practice,
-                                  options: +e.target.value,
-                                })
-                              }
-                            >
-                              <option value={4}>4 options</option>
-                              <option value={5}>5 options</option>
-                            </select>
-                          </label>
-                          <label>
                             Question source
                             <select
                               value={practice.origin}
@@ -2092,22 +2065,6 @@ export default function App() {
                               {catalog?.levels.map((l) => (
                                 <option key={l}>{l}</option>
                               ))}
-                            </select>
-                            <select
-                              aria-label={`Row ${i + 1} options`}
-                              value={r.options}
-                              onChange={(e) =>
-                                setBpRows(
-                                  bpRows.map((x, j) =>
-                                    i === j
-                                      ? { ...x, options: +e.target.value }
-                                      : x,
-                                  ),
-                                )
-                              }
-                            >
-                              <option value={4}>4 options</option>
-                              <option value={5}>5 options</option>
                             </select>
                             <input
                               aria-label={`Row ${i + 1} count`}

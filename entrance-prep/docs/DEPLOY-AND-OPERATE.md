@@ -212,6 +212,28 @@ unambiguous, the distractors plausible, or the difficulty label fair. Every
 approval is recorded in the audit trail as `approved_machine_proved` with that
 caveat.
 
+## 4a. Bring older questions down to four options
+
+The entrance paper offers four choices. New questions are seeded that way, but
+the seeder only fills a sub-topic that is empty, so an installation that was
+set up before this change still holds five-option questions — one per
+sub-topic and level, 132 of them on a full bank.
+
+```bash
+docker compose exec api python tools/to_four_options.py          # reports only
+docker compose exec api python tools/to_four_options.py --apply
+```
+
+It removes one wrong option, shuffles the four that remain, and re-letters them.
+The stem, the answer and the worked explanation are untouched, every converted
+question is re-validated before it is written, and anything that would no longer
+pass is left alone and reported. Attempts already sat keep their own snapshot,
+so a paper a student is part-way through is unaffected.
+
+The shuffle matters: keeping the order meant every question whose answer had
+been E came out with its answer at D, putting 39% of converted answers on one
+letter.
+
 ## 4b. Load the examination panel's physics bank
 
 The panel's own 100 physics questions are **not in this repository**, and must

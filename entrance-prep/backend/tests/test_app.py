@@ -27,9 +27,10 @@ def test_student_access_and_no_key_leakage(clients):
     teacher,student=clients
     assert student.get('/api/questions').status_code==403
     assert student.post('/api/questions/generate',json={"domain":"patterns","difficulty":"Foundation"}).status_code==403
-    a=student.post('/api/attempts',json={"mode":"exam","count":4,"options":5}).json()
+    # Four options, like the entrance paper: the bank no longer holds five.
+    a=student.post('/api/attempts',json={"mode":"exam","count":4,"options":4}).json()
     for q in a['questions']:
-        assert len(q['content']['options'])==5
+        assert len(q['content']['options'])==4
         assert not {'correct','explanation','validator','math','source'} & q['content'].keys()
         assert 'source' not in q
         assert all(set(o)=={'id','text'} for o in q['content']['options'])
@@ -88,7 +89,7 @@ def test_expiration_and_attempt_ownership(clients):
 
 def test_blueprint_exact_counts_and_capacity(clients):
     teacher,student=clients
-    body={"name":"Test mock","minutes":1,"published":True,"rows":[{"domain":"patterns","difficulty":"Practice","options":4,"count":1},{"domain":"deduction","difficulty":"Challenge","options":5,"count":1}]}
+    body={"name":"Test mock","minutes":1,"published":True,"rows":[{"domain":"patterns","difficulty":"Practice","options":4,"count":1},{"domain":"deduction","difficulty":"Challenge","options":4,"count":1}]}
     response=teacher.post('/api/blueprints',json=body);assert response.status_code==200
     a=student.post('/api/attempts',json={"mode":"mock","blueprint_id":response.json()['id']}).json()
     assert len(a['questions'])==2
@@ -245,11 +246,49 @@ def test_malformed_editor_and_bounded_spec(clients):
     c=generate('patterns','Foundation',4,3);c['validator']['terms']=[1]*100000
     assert not validate(c)['passed']
 
-def test_demo_seed_has_unique_stems_per_option_count(clients):
+def test_every_seeded_question_offers_four_choices_and_a_unique_stem(clients):
     teacher,_=clients
     questions=teacher.get('/api/questions').json()
-    keys=[(q['domain'],q['difficulty'],len(q['content']['options']),q['content']['stem']) for q in questions]
-    assert len(set(keys))==len(keys)==len(DOMAINS)*len(LEVELS)*3
+    assert len(questions)==len(DOMAINS)*len(LEVELS)*3
+    # The entrance paper offers four choices, so practising five rehearses a
+    # shape no student will sit and changes the odds of a lucky guess.
+    assert {len(q['content']['options']) for q in questions}=={4}
+    # Stems are unique across the whole bank, not merely within an option
+    # count. The seed signature used to carry the count, so one stem could seed
+    # twice -- once with four options, once with five -- and five pairs of
+    # approved questions shared a stem, which a mock exam drawing by id could
+    # put on the same paper.
+    stems=[q['content']['stem'] for q in questions]
+    assert len(set(stems))==len(stems)
+
+def test_reducing_to_four_options_keeps_the_answer_and_drops_a_wrong_one(clients):
+    teacher,_=clients
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0,str(_Path(__file__).resolve().parents[1]/'tools'))
+    import to_four_options
+    with SessionLocal() as db:
+        victim=db.scalar(select(Question))
+        before=victim.content
+        answer=next(o['text'] for o in before['options'] if o['id']==before['correct'])
+        # Give it a fifth option, the way the old seeder did.
+        extra=dict(before['options'][0]);extra['id']='E';extra['text']='A fifth choice'
+        extra['rationale']='Not the relationship that holds.';extra['error']='wrong-relationship'
+        victim.content={**before,'options':before['options']+[extra]}
+        qid=victim.id;db.commit()
+    assert to_four_options.run(apply=True)==0
+    with SessionLocal() as db:
+        after=db.get(Question,qid).content
+    assert len(after['options'])==4
+    assert [o['id'] for o in after['options']]==list('ABCD')
+    # The answer survives, by text, wherever the shuffle put it.
+    assert next(o['text'] for o in after['options'] if o['id']==after['correct'])==answer
+    assert 'A fifth choice' not in [o['text'] for o in after['options']]
+    assert validate(after)['passed']
+    # Running it again is a no-op rather than stripping a second option.
+    assert to_four_options.run(apply=True)==0
+    with SessionLocal() as db:
+        assert len(db.get(Question,qid).content['options'])==4
 
 def test_mathematics_answers_are_recomputed_not_asserted(clients):
     teacher,_=clients
