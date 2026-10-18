@@ -109,12 +109,15 @@ export default async function AdmissionsPage() {
 
         <section className="section navy admissions-exam-section">
           <div className="shell">
+            {/* The kicker already says "Entrance examination", so the heading
+                and the line under it say something new instead of repeating
+                it, and the three subject names are left to the cards. */}
             <header className="admissions-section-heading light">
               <p>02 · Entrance examination</p>
-              <h2>Entrance examination subjects</h2>
+              <h2>Examination subjects</h2>
               <span>
-                The ME entrance examination covers Mathematics, Physics, and
-                Logic.
+                All three subjects are examined by multiple-choice questions in
+                a single paper.
               </span>
             </header>
 
@@ -137,11 +140,11 @@ export default async function AdmissionsPage() {
                   <span className="admissions-practice-eyebrow">
                     ME Entrance Prep
                   </span>
-                  <strong>Practise all three subjects online, free</strong>
+                  <strong>Practise all three subjects online</strong>
                   <p>
                     Multiple-choice practice in Mathematics, Physics and Logic,
-                    with a worked explanation behind every answer. Create an
-                    account to keep your results.
+                    with a worked explanation behind every answer. Free to use;
+                    create an account to keep your results.
                   </p>
                 </div>
                 <a
@@ -155,31 +158,10 @@ export default async function AdmissionsPage() {
               </div>
             ) : null}
 
-            {admissionsContent.applicationForm.downloadUrl ? (
-              <p className="admissions-form-download">
-                <a
-                  className="button button-navy"
-                  href={admissionsContent.applicationForm.downloadUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  All four sheets as one PDF{" "}
-                  <span aria-hidden="true">&darr;</span>
-                </a>
-                <span>
-                  For reference while you fill in the paper forms. It is not a
-                  submission form &mdash; the university issues and accepts
-                  only the printed originals.
-                </span>
-              </p>
-            ) : null}
-
             <div className="admissions-past-exams">
               <div>
-                <strong>Prepare with previous examinations.</strong>
-                <span>
-                  Review the available papers before the entrance examination.
-                </span>
+                <strong>Previous examination papers</strong>
+                <span>Review the papers set in earlier years.</span>
               </div>
               <a
                 className="button button-gold"
@@ -187,7 +169,7 @@ export default async function AdmissionsPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                Open past exams <span aria-hidden="true">↗</span>
+                Open past papers <span aria-hidden="true">↗</span>
               </a>
             </div>
           </div>
@@ -229,6 +211,29 @@ export default async function AdmissionsPage() {
             </div>
 
             <FormSheets sheets={admissionsContent.applicationForm.sheets} />
+
+            {/* The sheets above, as one file. It sat in the examination
+                section until now, where it was both out of place and barely
+                legible: a navy button on a navy band, with muted grey caption
+                text on top of it. */}
+            {admissionsContent.applicationForm.downloadUrl ? (
+              <p className="admissions-form-download">
+                <a
+                  className="button button-navy"
+                  href={admissionsContent.applicationForm.downloadUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  All four sheets as one PDF{" "}
+                  <span aria-hidden="true">&darr;</span>
+                </a>
+                <span>
+                  For reference while you fill in the paper forms. It is not a
+                  submission form &mdash; the university issues and accepts
+                  only the printed originals.
+                </span>
+              </p>
+            ) : null}
           </div>
         </section>
 
