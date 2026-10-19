@@ -248,8 +248,8 @@ def test_malformed_editor_and_bounded_spec(clients):
 
 def test_every_seeded_question_offers_four_choices_and_a_unique_stem(clients):
     teacher,_=clients
+    from app.main import SEED_PER_SLOT,EDITORIAL_PER_SLOT
     questions=teacher.get('/api/questions').json()
-    assert len(questions)==len(DOMAINS)*len(LEVELS)*3
     # The entrance paper offers four choices, so practising five rehearses a
     # shape no student will sit and changes the odds of a lucky guess.
     assert {len(q['content']['options']) for q in questions}=={4}
@@ -260,6 +260,69 @@ def test_every_seeded_question_offers_four_choices_and_a_unique_stem(clients):
     # put on the same paper.
     stems=[q['content']['stem'] for q in questions]
     assert len(set(stems))==len(stems)
+    # Filled towards a per-slot target rather than a fixed three, and no slot
+    # left empty -- a sub-topic with no questions is one a student is offered
+    # and cannot use.
+    per={}
+    for q in questions: per.setdefault((q['domain'],q['difficulty']),[]).append(q)
+    assert len(per)==len(DOMAINS)*len(LEVELS)
+    for key,group in per.items():
+        proved=all(x['validation']['method']=='deterministic' for x in group)
+        assert 1<=len(group)<=(SEED_PER_SLOT if proved else EDITORIAL_PER_SLOT),(key,len(group))
+    # The families no validator can prove are deliberately held to the smaller
+    # number, because each one is a question a teacher must read before a
+    # student may see it.
+    editorial=[g for g in per.values() if any(x['validation']['method']!='deterministic' for x in g)]
+    assert editorial
+    assert all(len(g)<=EDITORIAL_PER_SLOT for g in editorial)
+
+def test_restarting_tops_up_without_duplicating(clients):
+    teacher,_=clients
+    from app.main import bootstrap,SEED_PER_SLOT
+    before=teacher.get('/api/questions').json()
+    with SessionLocal() as db:
+        bootstrap(db)
+    after=teacher.get('/api/questions').json()
+    # Every slot is already at its target, so a restart adds nothing. Without
+    # this the bank would grow on every boot.
+    assert len(after)==len(before)
+    # Emptying one slot and restarting refills just that slot, which is what
+    # makes raising the target top up a running installation rather than only
+    # affecting databases created afterwards.
+    with SessionLocal() as db:
+        victims=[q for q in db.scalars(select(Question))
+                 if q.domain=='algebra' and q.difficulty=='Practice']
+        assert len(victims)==SEED_PER_SLOT
+        for q in victims[3:]: db.delete(q)
+        db.commit()
+    with SessionLocal() as db:
+        bootstrap(db)
+    refilled=[q for q in teacher.get('/api/questions').json()
+              if q['domain']=='algebra' and q['difficulty']=='Practice']
+    assert len(refilled)==SEED_PER_SLOT
+    assert len(teacher.get('/api/questions').json())==len(before)
+
+def test_roster_counts_work_that_was_never_submitted(clients):
+    teacher,student=clients
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0,str(_Path(__file__).resolve().parents[1]/'tools'))
+    import roster
+    # A practice session has no deadline, so a student can answer and simply
+    # close the tab. Totals built from submitted attempts alone call that
+    # nothing, and a roster then reads as "nobody is practising".
+    a=student.post('/api/attempts',json={'mode':'practice','count':3,'options':4}).json()
+    qid=a['questions'][0]['id']
+    assert student.post(f"/api/attempts/{a['id']}/answer",json={'question_id':qid,'option_id':'A'}).status_code==200
+    with SessionLocal() as db:
+        rows=roster.gather(db,days=7)
+    mine=next(r for r in rows if r['email']=='student@demo.local')
+    assert mine['completed']==0
+    assert mine['in_progress']==1
+    assert mine['unsubmitted_answers']==1
+    # Still counted as active, because they plainly were.
+    assert mine['recent'] is True
+    assert mine['last_active'] is not None
 
 def test_reducing_to_four_options_keeps_the_answer_and_drops_a_wrong_one(clients):
     teacher,_=clients

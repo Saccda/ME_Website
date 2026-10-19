@@ -185,7 +185,7 @@ Confirm the workers actually started — `logs api` should show four
 
 ## 4. Approve something to practise — do not skip this
 
-A fresh installation seeds **396 questions, none approved**. That is the correct
+A fresh installation seeds **1,340 questions, none approved**. That is the correct
 default, since nothing should reach a student unreviewed, but on launch day a
 student would otherwise get
 
@@ -196,11 +196,18 @@ docker compose exec api python tools/approve_verified.py          # reports only
 docker compose exec api python tools/approve_verified.py --apply
 ```
 
-Measured result: **360 approved** (84 Mathematics, 228 Physics, 48 Logic), **36
-left as drafts**. Run it again after any release that adds sub-topics — the
-startup seeding fills new ones as drafts, so they need approving too, and the
-release that added seven Physics sub-topics is exactly why that count moved
-from 276. The 36 are the `editorial` ones — verbal and argument
+Measured result: **1,304 approved** (300 Mathematics, 812 Physics, 192 Logic),
+**36 left as drafts**.
+
+Run it again after any release that adds sub-topics **or raises how many
+questions each one holds** — both top up at startup as drafts, so they need
+approving too. That count has moved twice: from 276 when seven Physics
+sub-topics arrived, and from 360 when each (sub-topic, level) went from three
+questions to twelve. On an installation that is already running, the restart
+tops it up in place; expect roughly 944 new drafts the first time, all of them
+machine-proved, so one `--apply` clears them.
+
+The 36 are the `editorial` ones — verbal and argument
 reasoning, where no machine can prove an answer — and they are exactly the
 questions a teacher must read. They stay invisible to students until approved in
 Question bank, and until then those three Logic sub-topics show as "none
@@ -339,6 +346,31 @@ valid for an hour and usable once, then choose a new password. Requests are
 throttled to three per address per 15 minutes so the form cannot be used to
 flood somebody's inbox, a code is burned after five wrong attempts, and a
 successful reset signs out every existing session on that account.
+
+## 5c. Who has registered, and who is practising
+
+**Teacher studio → Students** shows the roster on screen, with a CSV download.
+From the command line:
+
+```bash
+docker compose exec api python tools/roster.py              # summary, then one line per student
+docker compose exec api python tools/roster.py --summary    # the counts only
+docker compose exec api python tools/roster.py --days 30     # change what "recently" means
+docker compose exec api python tools/roster.py --csv > roster.csv
+```
+
+Read-only, and safe to run while students are working.
+
+It reports unfinished sessions separately, which the Students screen does not
+count at all. Practice has no time limit, so a student can answer twenty
+questions and close the tab without ever submitting; any total built from
+submitted attempts alone calls that nothing. On a launch-week roster that reads
+as "nobody is practising" when the opposite may be true, so look at **sessions
+still open** and **answered but not yet submitted** before drawing a
+conclusion from a low completed count.
+
+Accounts ending in `.invalid` are excluded everywhere — those are the synthetic
+ones load testing and no-login workspaces create, not people.
 
 ## 6. Giving a colleague teacher access
 

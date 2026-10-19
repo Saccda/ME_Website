@@ -14,6 +14,21 @@ from .security import db_session, current_user, teacher, hash_password, verify, 
 from .generator import generate
 from .validation import validate
 
+# How many generated questions each (sub-topic, level) aims to hold.
+#
+# Twelve rather than the original three, because three put only 84 questions in
+# Mathematics and the same in Logic, and a 25-question mock section drawn from
+# 84 repeats about a third of itself between two sittings. A template that
+# cannot reach the target stops early instead: they are bounded, and range from
+# four distinct questions ("units") to several hundred ("algebra", "graphs").
+SEED_PER_SLOT=12
+# Families whose answers no validator can prove -- classification, verbal
+# reasoning, argument analysis -- stay at three. Each one is a question a
+# teacher has to read before a student may see it, and raising this would hand
+# them 69 more to review for no gain the machine-proved families do not already
+# give.
+EDITORIAL_PER_SLOT=3
+
 def uid(): return str(uuid.uuid4())
 
 def audit(db,user,entity,action,detail):
@@ -78,36 +93,57 @@ def bootstrap(db):
     if demo and not db.scalar(select(User).where(User.email=="student@demo.local")):
         db.add(User(id=uid(),email="student@demo.local",name="Student",password=hash_password("student-demo-2026"),role="student"))
     db.commit()
-    # Seeded one sub-topic at a time, so a sub-topic added after a database was
-    # first filled is seeded on the next start without touching what is there.
-    # Per sub-topic rather than per subject: Physics gained mechanics and heat
-    # after it already held its electrical questions, and a per-subject guard
-    # would have skipped the whole subject and left the new sub-topics empty.
+    # Seeded towards a target per (sub-topic, level) rather than skipping any
+    # sub-topic that already holds something. That keeps the property this
+    # replaced -- a sub-topic added after a database was first filled still
+    # gets seeded on the next start -- and adds the one it lacked: raising the
+    # target tops up an installation that is already running, instead of only
+    # affecting databases created afterwards. A slot at its target is a no-op,
+    # so an ordinary restart does nothing.
     teacher_user=db.scalar(select(User).where(User.role=="teacher"))
     # Keyed on the stem alone. It used to carry the option count too, so one
     # stem could seed twice -- once with four options and once with five -- and
     # five pairs of approved questions shared a stem as a result. With every
     # question at four options the count adds nothing anyway.
-    seeded={q.content["stem"] for q in db.scalars(select(Question))}
+    seeded=set(); have={}
+    for q in db.scalars(select(Question)):
+        seeded.add(q.content["stem"])
+        # Only what the seeder itself made counts towards a slot's target. An
+        # imported question carries a "kind", and the panel's physics bank is
+        # not a substitute for the generated practice this tops up.
+        if not q.source.get("kind"):
+            key=(q.domain,q.difficulty); have[key]=have.get(key,0)+1
     added=False
     for si,subject in enumerate(GENERATED_SUBJECTS):
         for di,d in enumerate([x for x in DOMAINS if x["subject"]==subject]):
-            if db.scalar(select(func.count()).select_from(Question).where(Question.domain==d["id"])): continue
             for li,l in enumerate(LEVELS):
-                for n in range(3):
+                made=have.get((d["id"],l),0)
+                target=SEED_PER_SLOT
+                while made<target:
                     for retry in range(40):
                         # Four options, always: the entrance paper offers four,
                         # and a student should practise the shape they will sit.
-                        q=make_question(d["id"],l,4,si*500000+10000+di*1000+li*100+n+retry*17000,"diagram" if d["id"]=="deduction" else "text")
-                        signature=q.content['stem']
-                        if signature not in seeded: break
-                    else: continue
-                    seeded.add(signature)
+                        q=make_question(d["id"],l,4,(si*100+di)*400000+li*100000+made*1000+retry,"diagram" if d["id"]=="deduction" else "text")
+                        if q.content['stem'] not in seeded: break
+                    else:
+                        # Templates draw from a bounded set of parameters, so a
+                        # family runs out of distinct questions -- "units" has
+                        # four, "algebra" has hundreds. Stop asking this slot
+                        # rather than burning 40 more draws on the next one.
+                        break
+                    if q.validation["method"]!="deterministic":
+                        # Nothing can prove this family's answers, so every
+                        # question in it is one more a teacher must read before
+                        # a student may see it. Those stay few on purpose.
+                        target=EDITORIAL_PER_SLOT
+                        if made>=target: break
+                    seeded.add(q.content['stem'])
                     # Sample bank is opt-in for demo. Real installations require local teacher review.
                     if demo and q.validation["passed"]:
                         q.status="approved"
                     db.add(q)
                     added=True
+                    made+=1
                     if teacher_user: audit(db,teacher_user,q.id,"demo_seed_approved" if demo else "seed_draft",{"version":1,"note":"Original starter content. Demo approval only; real deployment seeds remain drafts."})
     if added:
         if demo and teacher_user and not db.scalar(select(func.count()).select_from(Blueprint)):
