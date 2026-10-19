@@ -93,6 +93,14 @@ PHYSICS_DOMAINS = [
     {"id": "waves", "subject": "physics", "name": "Waves & Oscillations", "sets": "Section IV", "source": PHYSICS_EXAM_BANK_SOURCE, "skills": ["wave-equation", "pendulum-period", "harmonic-motion", "string-harmonics"], "description": "Period, wavelength and speed, and what resonates."},
     {"id": "fields", "subject": "physics", "name": "Electric & Magnetic Fields", "sets": "Sections V–VI", "source": PHYSICS_EXAM_BANK_SOURCE, "skills": ["coulomb-force", "field-force", "magnetic-force", "induced-emf"], "description": "Force on a charge or a current, and emf from changing flux."},
     {"id": "ac", "subject": "physics", "name": "AC Circuits & Reactance", "sets": "Section V", "source": PHYSICS_EXAM_BANK_SOURCE, "skills": ["rms-conversion", "inductive-reactance", "capacitive-reactance", "series-impedance"], "description": "What a coil and a capacitor do to alternating current."},
+    # Added from the real paper rather than from the bank. Its first page is
+    # eight unit questions -- which unit measures speed, which is the
+    # equivalent unit of force, what 1 kPa or 1 kWh is equal to -- where the
+    # panel's 100-question bank has two unit questions in total. The bank
+    # under-represents this, so the paper is the authority here.
+    # No "source" key, so it falls back to PHYSICS_SOURCE, the past paper --
+    # which is the right citation and is declared further down the file.
+    {"id": "conversion", "subject": "physics", "name": "Units & Conversions", "sets": "Paper page 1", "skills": ["unit-of-quantity", "derived-unit", "unit-equivalence", "prefix-conversion"], "description": "Which unit measures what, and what equals what."},
 ]
 
 DOMAINS = LOGIC_DOMAINS + MATH_DOMAINS + PHYSICS_DOMAINS
@@ -141,6 +149,13 @@ EXAM_WEIGHTS = {
     "current": 2, "ohm": 2, "networks": 2, "power": 2,
     "work": 1, "capacitance": 2, "quantities": 1, "ac": 1,
     "fields": 12,
+    # Provisional, and the one weight here not derived from a whole document.
+    # Page 1 of the real paper is eight unit questions; if the physics section
+    # is 30 questions and eight of them are units, this should be nearer 36
+    # than 8, which would make it the heaviest physics sub-topic by some way.
+    # Eight is what can be justified from what has actually been seen. Raise it
+    # once the paper's full unit count is known.
+    "conversion": 8,
 }
 assert set(EXAM_WEIGHTS) == {d["id"] for d in DOMAINS}, "every sub-topic needs a weight"
 

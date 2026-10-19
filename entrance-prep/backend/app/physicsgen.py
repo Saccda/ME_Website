@@ -1203,6 +1203,100 @@ def template(domain, depth, rng):
                 (r ** 2 + (xl - xc) ** 2, "Forgets the square root.", "missing-step"),
                 (math.sqrt(r ** 2 + xl ** 2 + xc ** 2), "Squares each reactance separately.", "wrong-rule")])
 
+    elif domain == "conversion":
+        if depth == 0:
+            quantity = rng.choice(list(FACTS["base_units"]["answers"]))
+            stem = f"Which one is the unit of {quantity}?"
+            spec = {"kind": "fact", "table": "base_units", "key": quantity}
+            correct, wrong = _fact_options("base_units", quantity, rng)
+            explain = (f"{quantity.capitalize()} is measured in {correct}. Reading a unit as the "
+                       f"formula it comes from is the quickest check: the others here belong to "
+                       f"neighbouring quantities.")
+            latex = None
+        elif depth == 1:
+            quantity = rng.choice(list(FACTS["derived_units"]["answers"]))
+            stem = f"Which one is the equivalent unit of {quantity}?"
+            spec = {"kind": "fact", "table": "derived_units", "key": quantity}
+            correct, wrong = _fact_options("derived_units", quantity, rng)
+            explain = (f"{quantity.capitalize()} can be written as {correct}. Every named unit can "
+                       f"be rebuilt from the definition it comes from, which is what tells a right "
+                       f"combination from a rearranged one.")
+            latex = None
+        elif depth == 2:
+            # The paper's "Which one is equal to 5 J?" is deliberately absent
+            # here. Its four options all carry the same number and differ only
+            # by unit, so a validator that recomputes the number finds every
+            # distractor equal to the answer and refuses the question -- as it
+            # should. That content is the derived-unit table at Practice above,
+            # which asks the same thing without a number to confuse the check.
+            kind = rng.choice(["kpa", "kwh"])
+            if kind == "kpa":
+                n = rng.choice([1, 2, 5, 20])
+                value = n * 1000
+                stem = f"How many newtons per square metre is {n} kPa?"
+                spec = {"kind": "compute", "vars": {"n": n}, "expr": "n*1000", "digits": 0}
+                explain = (f"A pascal is one newton per square metre, and the prefix k multiplies "
+                           f"by a thousand, so {n} kPa is ${n} \\times 1000 = {fmt(value, 0)}$ N/m².")
+                latex = rf"{n}\,\text{{kPa}} = {n} \times 10^3\,\text{{N/m}}^2"
+                correct, wrong = build(value, " N/m²", [
+                    (n, "Drops the prefix entirely.", "unit-error"),
+                    (n * 100, "Treats the prefix as a hundred.", "unit-error"),
+                    (n * 1e6, "Uses the prefix for mega instead of kilo.", "unit-error")], digits=0)
+            elif kind == "kwh":
+                n = rng.choice([1, 2, 3, 10])
+                value = n * 3600
+                stem = f"How many kilojoules is {n} kWh?"
+                spec = {"kind": "compute", "vars": {"n": n}, "expr": "n*3600", "digits": 0}
+                explain = (f"A watt is a joule per second, so a kilowatt-hour is "
+                           f"$1\\,\\text{{kW}} \\times 3600\\,\\text{{s}} = 3600$ kJ. "
+                           f"{n} kWh is therefore {fmt(value, 0)} kJ.")
+                latex = rf"{n}\,\text{{kWh}} = {n} \times 3600\,\text{{kJ}} = {fmt(value, 0)}"
+                correct, wrong = build(value, " kJ", [
+                    (n * 60, "Uses minutes instead of seconds in the hour.", "unit-error"),
+                    (n * 1000, "Converts the kilo and forgets the hour.", "missing-step"),
+                    (n * 3.6, "Gives megajoules rather than kilojoules.", "unit-error")], digits=0)
+        else:
+            kind = rng.choice(["density", "mpa", "mm2"])
+            if kind == "density":
+                n = rng.choice([2, 2.7, 7.8, 13.6])
+                value = n * 1000
+                stem = (f"A metal has a density of {n:g} g/cm³. What is that in kg/m³?")
+                spec = {"kind": "compute", "vars": {"n": n}, "expr": "n*1000", "digits": 0}
+                explain = (f"A gram is $10^{{-3}}$ kg and a cubic centimetre is $10^{{-6}}$ m³, so "
+                           f"the two prefixes give $10^{{-3}}/10^{{-6}} = 1000$. "
+                           f"{n:g} g/cm³ is {fmt(value, 0)} kg/m³.")
+                latex = rf"{n:g}\,\text{{g/cm}}^3 = {n:g} \times 10^3\,\text{{kg/m}}^3"
+                correct, wrong = build(value, " kg/m³", [
+                    (n / 1000, "Divides by the thousand instead of multiplying.", "inverted-operation"),
+                    (n * 100, "Uses the square of the centimetre rather than the cube.", "unit-error"),
+                    (n * 1e6, "Applies the volume prefix without the mass prefix.", "unit-error")], digits=0)
+            elif kind == "mpa":
+                n = rng.choice([2, 5, 20, 150])
+                value = n * 1e6
+                stem = f"A stress of {n} MPa is how many N/m²?"
+                spec = {"kind": "compute", "vars": {"n": n}, "expr": "n*1e6", "digits": 0}
+                explain = (f"A pascal is a newton per square metre and M multiplies by a million, "
+                           f"so {n} MPa is ${n} \\times 10^6 = {fmt(value, 0)}$ N/m².")
+                latex = rf"{n}\,\text{{MPa}} = {n} \times 10^6\,\text{{N/m}}^2"
+                correct, wrong = build(value, " N/m²", [
+                    (n * 1000, "Uses the prefix for kilo instead of mega.", "unit-error"),
+                    (n, "Drops the prefix entirely.", "unit-error"),
+                    (n * 1e9, "Uses the prefix for giga.", "unit-error")], digits=0)
+            else:
+                n = rng.choice([50, 120, 400, 2500])
+                value = n / 1e6
+                stem = (f"A bar has a cross-section of {n} mm². What is that in m², "
+                        f"in engineering notation?")
+                spec = {"kind": "compute", "vars": {"n": n}, "expr": "n/1e6", "digits": 6}
+                explain = (f"A millimetre is $10^{{-3}}$ m, and the area squares it, so a square "
+                           f"millimetre is $10^{{-6}}$ m². {n} mm² is {fmt(value, 6)} m². Squaring "
+                           f"the prefix is the step most often missed.")
+                latex = rf"{n}\,\text{{mm}}^2 = {n} \times 10^{{-6}}\,\text{{m}}^2"
+                correct, wrong = build(value, " m²", [
+                    (n / 1000, "Applies the prefix once instead of squaring it.", "unit-error"),
+                    (n / 1e9, "Cubes the prefix as though it were a volume.", "unit-error"),
+                    (n * 1e6, "Multiplies where it should divide.", "inverted-operation")], digits=6)
+
     return stem, correct, explain, wrong, spec, latex
 
 
@@ -1253,6 +1347,42 @@ FACTS = {
         "pool": ["direct current (DC)", "alternating current (AC)", "pulsating current",
                  "static charge", "no current at all"],
         "why": "That is not how this source behaves.",
+    },
+    # The paper asks "which one is the unit of speed?" with four dimensional
+    # expressions, not four unit names, so the pool is expressions. The
+    # existing si_units table above is electrical and names its units, which
+    # answers a different question.
+    "base_units": {
+        "answers": {
+            "speed": "m/s",
+            "acceleration": "m/s²",
+            "force": "kg·m/s²",
+            "momentum": "kg·m/s",
+            "energy": "kg·m²/s²",
+            "power": "kg·m²/s³",
+            "pressure": "kg/(m·s²)",
+            "frequency": "1/s",
+        },
+        "pool": ["m/s", "m/s²", "kg·m/s²", "kg·m/s", "kg·m²/s²", "kg·m²/s³",
+                 "kg/(m·s²)", "1/s", "m·s", "kg·m", "kg·s", "kg·m·s"],
+        "why": "That combination measures a different quantity.",
+    },
+    # "Which one is the equivalent unit of Power?" -- a named unit rebuilt from
+    # the definition it comes from.
+    "derived_units": {
+        "answers": {
+            "power": "J/s",
+            "force": "kg·m/s²",
+            "energy": "N·m",
+            "pressure": "N/m²",
+            "charge": "A·s",
+            "potential difference": "J/C",
+            "capacitance": "C/V",
+            "resistance": "V/A",
+        },
+        "pool": ["J/s", "J·s", "kg·m/s²", "N·m", "N/m²", "N/s", "N·m²",
+                 "A·s", "J/C", "C/V", "V/A", "kg·s"],
+        "why": "That is the rearrangement, not the definition.",
     },
     # Adiabatic is deliberately absent: it is defined by no heat crossing the
     # boundary rather than by a quantity staying constant, so it has no honest
