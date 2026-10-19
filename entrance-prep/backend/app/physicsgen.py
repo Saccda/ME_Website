@@ -1229,8 +1229,22 @@ def template(domain, depth, rng):
             # distractor equal to the answer and refuses the question -- as it
             # should. That content is the derived-unit table at Practice above,
             # which asks the same thing without a number to confuse the check.
-            kind = rng.choice(["kpa", "kwh"])
-            if kind == "kpa":
+            kind = rng.choice(["kpa", "kwh", "kelvin"])
+            if kind == "kelvin":
+                k = rng.choice([200, 250, 300, 350, 400])
+                value = k - 273.15
+                stem = f"A temperature of {k} K is how many degrees Celsius?"
+                spec = {"kind": "compute", "vars": {"k": k}, "expr": "k-273.15", "digits": 2}
+                explain = (f"The kelvin and Celsius scales rise in equal steps and differ only in "
+                           f"where they start, so ${k} - 273.15 = {fmt(value)}$ °C. Only the offset "
+                           f"changes; there is no factor to apply.")
+                latex = rf"{k}\,\text{{K}} - 273.15 = {fmt(value)}\,^\circ\text{{C}}"
+                correct, wrong = build(value, " °C", [
+                    (k + 273.15, "Adds the offset instead of subtracting it.", "sign-error"),
+                    (273.15 - k, "Subtracts the temperature from the offset.", "sign-error"),
+                    (k, "Leaves the offset out altogether.", "missing-step"),
+                    ((k - 273.15) * 9 / 5 + 32, "Carries on into Fahrenheit.", "wrong-rule")])
+            elif kind == "kpa":
                 n = rng.choice([1, 2, 5, 20])
                 value = n * 1000
                 stem = f"How many newtons per square metre is {n} kPa?"
@@ -1256,8 +1270,22 @@ def template(domain, depth, rng):
                     (n * 1000, "Converts the kilo and forgets the hour.", "missing-step"),
                     (n * 3.6, "Gives megajoules rather than kilojoules.", "unit-error")], digits=0)
         else:
-            kind = rng.choice(["density", "mpa", "mm2"])
-            if kind == "density":
+            kind = rng.choice(["density", "mpa", "mm2", "fahrenheit"])
+            if kind == "fahrenheit":
+                c = rng.choice([-10, 20, 25, 37, 100])
+                value = c * 9 / 5 + 32
+                stem = f"A temperature of {c} °C is how many degrees Fahrenheit?"
+                spec = {"kind": "compute", "vars": {"c": c}, "expr": "c*9/5+32", "digits": 2}
+                explain = (f"Fahrenheit degrees are smaller and the scale starts lower, so both a "
+                           f"factor and an offset apply: ${c} \\times 9/5 + 32 = {fmt(value)}$ °F. "
+                           f"Kelvin needs only the offset, which is why the two are easy to mix up.")
+                latex = rf"{c} \times \tfrac95 + 32 = {fmt(value)}\,^\circ\text{{F}}"
+                correct, wrong = build(value, " °F", [
+                    (c * 5 / 9 + 32, "Inverts the ratio.", "inverted-operation"),
+                    (c * 9 / 5, "Applies the factor but not the offset.", "missing-step"),
+                    ((c - 32) * 5 / 9, "Converts the other way, Fahrenheit to Celsius.", "inverted-operation"),
+                    (c + 32, "Adds the offset without the factor.", "missing-step")])
+            elif kind == "density":
                 n = rng.choice([2, 2.7, 7.8, 13.6])
                 value = n * 1000
                 stem = (f"A metal has a density of {n:g} g/cm³. What is that in kg/m³?")

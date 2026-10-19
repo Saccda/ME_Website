@@ -68,6 +68,20 @@ LOGIC_ROWS = [
 ]
 
 
+# How many of the paper's 30 physics questions are units.
+#
+# Page 1 of the real paper is eight unit questions and the panel's bank has two
+# in the whole document, so a physics section drawn entirely from the bank
+# cannot carry them. These are drawn from the generated Units & Conversions
+# sub-topic instead -- the only place in this paper where a generated question
+# stands in for the panel's own, and only because the panel's material does not
+# cover what its own paper asks.
+#
+# Eight is what page 1 shows. If the paper's real unit count differs, this is
+# the number to change.
+PHYSICS_UNIT_QUESTIONS = 8
+
+
 def rows_for(physics_origin):
     """The three sections, sat in the order written here.
 
@@ -85,10 +99,12 @@ def rows_for(physics_origin):
     20 Thermodynamics, 15 Fluids, 15 Waves, 13 Electricity, 12 Electromagnetism
     -- so a random 30 from it is already in proportion.
     """
-    physics = {"subject": "physics", "count": 30, "options": 4}
+    units = {"subject": "physics", "domain": "conversion",
+             "count": PHYSICS_UNIT_QUESTIONS, "options": 4}
+    rest = {"subject": "physics", "count": 30 - PHYSICS_UNIT_QUESTIONS, "options": 4}
     if physics_origin:
-        physics["origin"] = physics_origin
-    return MATH_ROWS + LOGIC_ROWS + [physics]
+        rest["origin"] = physics_origin
+    return MATH_ROWS + LOGIC_ROWS + [units, rest]
 
 
 def origin_of(q):
