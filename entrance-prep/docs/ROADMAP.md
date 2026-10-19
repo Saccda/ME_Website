@@ -10,8 +10,8 @@ This supersedes the proposal written on 2026-10-02.
 | **Student sign-up** | Name, email, password. No student ID — deliberately, so registration is one screen. `AUTH_MODE=site` gates Teacher studio by role. |
 | **Results on submission** | Score, percentage, and a correct / incorrect / not-answered breakdown; the question navigator colours green, red or grey with screen-reader labels. This was the reported bug: submitting an exam used to tell you nothing. |
 | **Subject dimension** | `Question.subject`, migration `0002`, `?subject=` filtering on questions, availability, attempts and analytics, a subject dropdown for students, and per-subject seeding so a new subject fills on the next start without touching what is there. |
-| **Mathematics** | 7 domains, 28 templates across four levels, following the topic structure of Bird & Ross Part One. 300 questions, all machine-provable, because the server recomputes every answer. |
-| **Bank size** | Each (sub-topic, level) is filled towards 12 questions rather than 3, which took Mathematics from 84 to 300 and Logic from 84 to 228. Templates are bounded and differ enormously — `units` can produce 4 distinct questions, `algebra` 478 — so a slot that cannot reach the target stops early instead of failing. The families no validator can prove stay at 3, because each is a question a teacher must read; that keeps the review queue at the same 36 it was. Seeding tops up towards the target on every start, so raising it fills an installation that is already running instead of only new ones; a slot at its target is a no-op. |
+| **Mathematics** | 7 domains, 28 templates across four levels, following the topic structure of Bird & Ross Part One. About 330 questions, all machine-provable, because the server recomputes every answer. |
+| **Bank size, weighted by the real paper** | `EXAM_WEIGHTS` in `catalog.py` records how many of the real paper's questions each sub-topic carries, from the panel's own control sheets for Logic and Mathematics and from the bank's section sizes for Physics. The seeder divides a per-subject budget of 300 by those weights, so Calculus — 14 of the 25 Mathematics marks — gets 48 questions a level while Units, which the sheet does not examine, gets the floor of 3. A flat target of 12 gave them the same and pushed Physics to 812. Templates are bounded and differ enormously (`units` yields 4 distinct questions, `algebra` 478), so a slot that cannot reach its target stops early. Unprovable families are held at 3 however heavily weighted, because each is a question a teacher must read. Seeding tops up towards the target on every start; `tools/prune_to_target.py` brings an over-full bank down, sparing anything a student has already been served. Landed at Logic 156, Mathematics about 330, Physics 341, plus the panel's untouched 100. |
 | **Physics** | 19 domains, 76 templates, 228 of 228 machine-provable. Seven electrical sub-topics follow the past paper; five covering motion, forces, mechanical work, fluids and heat follow the topic structure of Mukherji Parts 1–2; seven more — momentum, rotation, thermodynamic processes, fluid flow, waves, fields and AC reactance — follow the sections of the examination panel's own bank. The computational ones are proved by recomputation, the conceptual ones against a reviewed table. |
 | **The examination panel's bank** | The panel's 100 physics questions, loaded by `tools/import_exam_bank.py` from `private/exam_bank.json`, which is deliberately not in this public repository. All 100 keys were checked before import: the 29 computable ones are recomputed by the server on every import, the rest were verified by hand. 70 of the 100 had no sub-topic to sit in, which is why the seven above exist. The panel's own letter distribution was A 34 / B 57 / C 9 / **D 0**, so answering B blind scored 57/100; option order is redistributed on import so each letter is correct 25 times, with wording and keys untouched. |
 | **Exam shape** | The real paper is 80 questions in 90 minutes — 25 Mathematics, 25 Logic, 30 Physics. Practice offers that section length as one tap. |
@@ -26,7 +26,37 @@ This supersedes the proposal written on 2026-10-02.
 
 ## Next, in the order I would do them
 
-### 1. Email verification at sign-up
+### 1. The 10 Mathematics marks with no practice behind them
+
+The panel's control sheet names eight Mathematics topics over 25 questions.
+Four of them have no template, and together they are **10 of the 25 marks**:
+
+| Marks | Topic on the sheet | What exists |
+|---|---|---|
+| 3 | Linear Algebra / Determinants | nothing — no sub-topic at all |
+| 3 | Vector Algebra / Dot & Cross Product | `vectors` does components, magnitude, direction, addition |
+| 2 | Algebra and Function / Quadratic | `algebra` does brackets, indices, linear and simultaneous equations |
+| 2 | Calculus / Limit | `calculus` does differentiation, rates, integration, definite integrals |
+
+A student can practise 15 of the 25 marks and not the other 10. That is a
+larger gap than anything else on this list, and all four are computable, so
+every question would be machine-proved like the rest.
+
+Three existing sub-topics — Number & Proportion, Angles & Triangles, Units &
+Engineering Notation — are not on the sheet at all. They stay at the floor
+because they are the groundwork the examined topics stand on, but they should
+not grow.
+
+### 2. Classification carries 11 of 25 Logic marks and cannot be proved
+
+`relationships` — Verbal Classification, Essential Part and Analogies, sets
+7–17 — is the heaviest sub-topic in either control sheet, and the one with the
+least behind it: its template yields 8 distinct questions and no validator can
+check a meaning-based answer, so it is held to 12 questions that a teacher had
+to read by hand. Raising it to its ceiling of 32 would need 20 more reviewed.
+Widening the template matters more than raising the cap.
+
+### 3. Email verification at sign-up
 
 Built instead of the teacher-issued reset that was planned here: a student
 resets their own password with a six-digit code emailed to them, which needs
@@ -39,7 +69,7 @@ in the roster under the address they think they used. Verifying at registration
 — the same code mechanism, run at a different moment — fixes that and removes
 most of the need for a registration code at the same time.
 
-### 2. Frozen assignment, and a class results grid
+### 4. Frozen assignment, and a class results grid
 
 Today every student gets a freshly generated set, so no two students can be
 compared question by question — which was the point of the original plan to post
@@ -51,7 +81,7 @@ one grid — students down the side, questions across the top — which is the
 shared-sheet idea with the marking done for them, and it makes "question 7 was
 badly worded" visible immediately.
 
-### 3. Registration code
+### 5. Registration code
 
 Anyone with the link can register today, with any address and no limit.
 
@@ -66,7 +96,7 @@ student belongs to. A real cohort signing up together is indistinguishable from
 an attack, so a code admits the class and excludes everyone else — better than a
 rate limit that would block the class itself.
 
-### 4. A conditional-logic validator
+### 6. A conditional-logic validator
 
 Nine of the 36 unproven questions — `necessary-condition`, `must-be-true` and
 `multi-condition-judgment` — are formal conditional logic: universal
@@ -79,13 +109,13 @@ It would move nine questions from "trust the author" to "proved", and every
 future question in those families with them. The remaining 27 rest on meaning
 rather than form and will always need a teacher's eye.
 
-### 5. A frozen assignment, so students can be compared
+### 7. A frozen assignment, so students can be compared
 
 Built in its place: the mock exam below. What it does not do is give two
 students the *same* paper — each sitting draws its own questions, so a cohort
 cannot be compared question by question. See item 2.
 
-### 6. One-press practice start
+### 8. One-press practice start
 
 Before answering anything a student faces seven decisions: question source,
 domain, difficulty, skill, option count, question count, and for exams a time

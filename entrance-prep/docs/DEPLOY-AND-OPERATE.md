@@ -183,9 +183,35 @@ PostgreSQL advisory lock, so the four workers cannot seed the bank twice.
 Confirm the workers actually started — `logs api` should show four
 `Started server process` lines.
 
+## 3a. Bring an over-full bank back to the examination's shape
+
+Only needed on an installation seeded under the old flat target, which put 812
+questions in Physics spread evenly over sub-topics worth between 1 and 15 marks.
+Seeding only ever adds, so lowering a target stops growth without shrinking
+what is there.
+
+```bash
+docker compose exec api python tools/prune_to_target.py          # reports only
+docker compose exec api python tools/prune_to_target.py --apply
+```
+
+Run it after the restart, so the under-served sub-topics have already been
+topped up, and before the approval step below, so you are not approving
+questions you are about to remove. The two converge: running either again does
+nothing. Expect roughly 650 removed, leaving Logic 156, Mathematics 331 and
+Physics 341 beside the panel's untouched 100.
+
+It removes only questions **no student has ever been served**, newest first. A
+question that has appeared in somebody's attempt stays, even if that leaves its
+sub-topic over target, because the per-question report is built from those
+attempts. Imported questions are never touched.
+
 ## 4. Approve something to practise — do not skip this
 
-A fresh installation seeds **1,340 questions, none approved**. That is the correct
+A fresh installation seeds **about 826 questions, none approved**. The exact
+figure moves by a question or two between installations, because a template
+that is nearly exhausted may or may not find one more distinct stem within its
+allowed draws. That is the correct
 default, since nothing should reach a student unreviewed, but on launch day a
 student would otherwise get
 
@@ -196,16 +222,15 @@ docker compose exec api python tools/approve_verified.py          # reports only
 docker compose exec api python tools/approve_verified.py --apply
 ```
 
-Measured result: **1,304 approved** (300 Mathematics, 812 Physics, 192 Logic),
+Measured result: **790 approved** (329 Mathematics, 341 Physics, 120 Logic),
 **36 left as drafts**.
 
-Run it again after any release that adds sub-topics **or raises how many
-questions each one holds** — both top up at startup as drafts, so they need
-approving too. That count has moved twice: from 276 when seven Physics
-sub-topics arrived, and from 360 when each (sub-topic, level) went from three
-questions to twelve. On an installation that is already running, the restart
-tops it up in place; expect roughly 944 new drafts the first time, all of them
-machine-proved, so one `--apply` clears them.
+Run it again after any release that adds sub-topics **or changes how many
+questions each one holds** — both reshape the bank at startup as drafts, so
+they need approving too. That count has moved three times: from 276 when seven
+Physics sub-topics arrived, from 360 when each slot went from three questions
+to twelve, and again when the targets were weighted by the examination's own
+control sheets instead of being flat.
 
 The 36 are the `editorial` ones — verbal and argument
 reasoning, where no machine can prove an answer — and they are exactly the

@@ -248,7 +248,7 @@ def test_malformed_editor_and_bounded_spec(clients):
 
 def test_every_seeded_question_offers_four_choices_and_a_unique_stem(clients):
     teacher,_=clients
-    from app.main import SEED_PER_SLOT,EDITORIAL_PER_SLOT
+    from app.main import slot_target,EDITORIAL_PER_SLOT
     questions=teacher.get('/api/questions').json()
     # The entrance paper offers four choices, so practising five rehearses a
     # shape no student will sit and changes the odds of a lucky guess.
@@ -260,15 +260,20 @@ def test_every_seeded_question_offers_four_choices_and_a_unique_stem(clients):
     # put on the same paper.
     stems=[q['content']['stem'] for q in questions]
     assert len(set(stems))==len(stems)
-    # Filled towards a per-slot target rather than a fixed three, and no slot
-    # left empty -- a sub-topic with no questions is one a student is offered
-    # and cannot use.
+    # Filled towards a target weighted by the examination's own control sheets
+    # rather than a flat number, and no slot left empty -- a sub-topic with no
+    # questions is one a student is offered and cannot use.
     per={}
     for q in questions: per.setdefault((q['domain'],q['difficulty']),[]).append(q)
     assert len(per)==len(DOMAINS)*len(LEVELS)
-    for key,group in per.items():
+    for (domain,level),group in per.items():
         proved=all(x['validation']['method']=='deterministic' for x in group)
-        assert 1<=len(group)<=(SEED_PER_SLOT if proved else EDITORIAL_PER_SLOT),(key,len(group))
+        cap=slot_target(domain) if proved else min(slot_target(domain),EDITORIAL_PER_SLOT)
+        assert 1<=len(group)<=cap,(domain,level,len(group),cap)
+    # Calculus carries 14 of the 25 Mathematics marks and "units" none of them,
+    # so weighting means the first gets far more practice than the second. A
+    # flat target gave them the same, which is the thing this replaced.
+    assert slot_target('calculus')>slot_target('units')*4
     # The families no validator can prove are deliberately held to the smaller
     # number, because each one is a question a teacher must read before a
     # student may see it.
@@ -278,7 +283,7 @@ def test_every_seeded_question_offers_four_choices_and_a_unique_stem(clients):
 
 def test_restarting_tops_up_without_duplicating(clients):
     teacher,_=clients
-    from app.main import bootstrap,SEED_PER_SLOT
+    from app.main import bootstrap,slot_target
     before=teacher.get('/api/questions').json()
     with SessionLocal() as db:
         bootstrap(db)
@@ -287,20 +292,59 @@ def test_restarting_tops_up_without_duplicating(clients):
     # this the bank would grow on every boot.
     assert len(after)==len(before)
     # Emptying one slot and restarting refills just that slot, which is what
-    # makes raising the target top up a running installation rather than only
+    # makes changing a target reshape a running installation rather than only
     # affecting databases created afterwards.
+    target=slot_target('algebra')
     with SessionLocal() as db:
         victims=[q for q in db.scalars(select(Question))
                  if q.domain=='algebra' and q.difficulty=='Practice']
-        assert len(victims)==SEED_PER_SLOT
-        for q in victims[3:]: db.delete(q)
+        assert len(victims)==target
+        for q in victims[1:]: db.delete(q)
         db.commit()
     with SessionLocal() as db:
         bootstrap(db)
     refilled=[q for q in teacher.get('/api/questions').json()
               if q['domain']=='algebra' and q['difficulty']=='Practice']
-    assert len(refilled)==SEED_PER_SLOT
+    assert len(refilled)==target
     assert len(teacher.get('/api/questions').json())==len(before)
+
+def test_pruning_spares_questions_students_have_already_seen(clients):
+    teacher,student=clients
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0,str(_Path(__file__).resolve().parents[1]/'tools'))
+    import prune_to_target
+    from app.main import slot_target
+    # Over-fill one slot past its target, then serve one of the extras.
+    with SessionLocal() as db:
+        group=[q for q in db.scalars(select(Question))
+               if q.domain=='codes' and q.difficulty=='Foundation']
+        target=slot_target('codes')
+        assert len(group)==target
+        extras=[]
+        for i in range(3):
+            clone=Question(id=str(__import__('uuid').uuid4()),subject='logic',domain='codes',
+                           skill=group[0].skill,difficulty='Foundation',status='approved',
+                           content={**group[0].content,'stem':f'Spare stem {i}'},
+                           source=dict(group[0].source),validation=dict(group[0].validation),version=1)
+            db.add(clone); extras.append(clone.id)
+        db.commit()
+        # One of them goes into an attempt, so it counts as served.
+        served_id=extras[0]
+        q=db.get(Question,served_id)
+        from app.main import snapshot
+        db.add(Attempt(id=str(__import__('uuid').uuid4()),user_id=
+                       db.scalar(select(User).where(User.role=='student')).id,
+                       mode='practice',title='t',snapshots=[snapshot(q)],answers={},started=now()))
+        db.commit()
+    assert prune_to_target.run(apply=True,subject='logic')==0
+    with SessionLocal() as db:
+        left={q.id for q in db.scalars(select(Question))
+              if q.domain=='codes' and q.difficulty=='Foundation'}
+    # The served one survives even though the slot is still over target: it is
+    # in a student's attempt and in the per-question report built from it.
+    assert served_id in left
+    assert extras[1] not in left and extras[2] not in left
 
 def test_roster_counts_work_that_was_never_submitted(clients):
     teacher,student=clients

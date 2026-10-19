@@ -7,27 +7,42 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 from sqlalchemy import select, func, update, delete, text
 from sqlalchemy.exc import IntegrityError
-from .catalog import DOMAINS, LOGIC_DOMAINS, LEVELS, LEVEL_GUIDE, SOURCE, SOURCES, SUBJECTS, SUBJECT_OF, DOMAIN_BY_ID, GENERATED_SUBJECTS
+from .catalog import DOMAINS, LOGIC_DOMAINS, LEVELS, LEVEL_GUIDE, SOURCE, SOURCES, SUBJECTS, SUBJECT_OF, DOMAIN_BY_ID, GENERATED_SUBJECTS, EXAM_WEIGHTS
 from .models import Base, engine, SessionLocal, User, AuthSession, LoginFailure, PasswordReset, Question, Audit, Blueprint, Attempt, now, POOL_TOTAL
 from . import mailer
 from .security import db_session, current_user, teacher, hash_password, verify, new_session, utc, auth_mode
 from .generator import generate
 from .validation import validate
 
-# How many generated questions each (sub-topic, level) aims to hold.
+# Roughly how many generated questions a subject should hold.
 #
-# Twelve rather than the original three, because three put only 84 questions in
-# Mathematics and the same in Logic, and a 25-question mock section drawn from
-# 84 repeats about a third of itself between two sittings. A template that
-# cannot reach the target stops early instead: they are bounded, and range from
-# four distinct questions ("units") to several hundred ("algebra", "graphs").
-SEED_PER_SLOT=12
+# A flat twelve per (sub-topic, level) was the first attempt at fixing a bank
+# too small to vary a mock paper, and it overshot: Physics reached 812, spread
+# evenly over sub-topics that carry very different numbers of marks. Spending
+# the same effort on "Units & Engineering Notation", which the control sheet
+# does not examine at all, as on Calculus, which is 14 of the 25 Mathematics
+# marks, is the wrong shape whatever the total.
+#
+# So the budget is per subject and is divided by EXAM_WEIGHTS instead.
+SUBJECT_TARGET=300
+# No sub-topic drops below this, including the ones the sheets do not examine.
+# Number, triangles and units are the groundwork the examined topics stand on,
+# and a student who wants to revise them should find something there.
+MIN_PER_SLOT=3
 # Families whose answers no validator can prove -- classification, verbal
-# reasoning, argument analysis -- stay at three. Each one is a question a
-# teacher has to read before a student may see it, and raising this would hand
-# them 69 more to review for no gain the machine-proved families do not already
-# give.
+# reasoning, argument analysis -- are held here however heavily they are
+# weighted. Each one is a question a teacher must read before a student may see
+# it. Classification is the sharp case: it carries 11 of the 25 Logic marks,
+# the most of any sub-topic, and cannot be machine-proved, so weight alone
+# would hand over dozens to review.
 EDITORIAL_PER_SLOT=3
+
+def slot_target(domain_id):
+    """How many questions one (sub-topic, level) slot should hold."""
+    subject=SUBJECT_OF[domain_id]
+    total=sum(EXAM_WEIGHTS[d["id"]] for d in DOMAINS if d["subject"]==subject)
+    share=EXAM_WEIGHTS[domain_id]/total if total else 0
+    return max(MIN_PER_SLOT,round(share*SUBJECT_TARGET/len(LEVELS)))
 
 def uid(): return str(uuid.uuid4())
 
@@ -118,7 +133,7 @@ def bootstrap(db):
         for di,d in enumerate([x for x in DOMAINS if x["subject"]==subject]):
             for li,l in enumerate(LEVELS):
                 made=have.get((d["id"],l),0)
-                target=SEED_PER_SLOT
+                target=slot_target(d["id"])
                 while made<target:
                     for retry in range(40):
                         # Four options, always: the entrance paper offers four,

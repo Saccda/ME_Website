@@ -105,6 +105,53 @@ PHYSICS_DOMAINS = [
 
 DOMAINS = LOGIC_DOMAINS + MATH_DOMAINS + PHYSICS_DOMAINS
 
+# How many of the real paper's questions each sub-topic carries.
+#
+# Logic and Mathematics come from the panel's own control sheets, which set out
+# 25 questions per subject against named topics. Physics has no control sheet,
+# so it follows the section sizes of the panel's 100-question bank, divided
+# between the sub-topics that cover each section.
+#
+# The seeder reads these to decide how much practice to generate per sub-topic,
+# so practice is weighted the way the examination is rather than spread evenly
+# over topics that carry very different numbers of marks. A weight of 0 means
+# the sheet does not examine that sub-topic at all; it still gets a floor, so
+# the groundwork stays practisable, but it is not grown.
+EXAM_WEIGHTS = {
+    # --- Logic: control sheet, 25 questions. Our sub-topics follow the
+    # sheet's own set ranges exactly, so each weight is its ranges added up.
+    "patterns": 4,       # Sets 1-4, Number Series
+    "symbols": 3,        # Sets 5-6, Letter and Symbol Series
+    "relationships": 11,  # Sets 7-8 Verbal Classification 3, 9-11 Essential Part 4, 12-17 Analogies 4
+    "codes": 1,          # Sets 18-19, Artificial Language
+    "verbal": 3,         # Set 20 Matching Definitions, 21 Making Judgments, 22 Verbal Reasoning
+    "deduction": 2,      # Sets 23-27 Logic Problems, 28-31 Logic Games
+    "arguments": 1,      # Sets 32-37, Analyzing Arguments
+
+    # --- Mathematics: control sheet, 25 questions. Three sub-topics score 0
+    # because the sheet does not examine them, and 10 of its 25 marks have no
+    # sub-topic to sit in at all: Determinants (3), Dot & Cross Product (3),
+    # Quadratic (2) and Limit (2). See docs/ROADMAP.md.
+    "graphs": 3,         # Algebra and Function / Straight-line graph
+    "algebra": 2,        # Algebra and Function / Quadratic -- not yet a template
+    "calculus": 14,      # Limit 2, Differentiation 4, Indefinite Integral 4, Definite Integral 4
+    "vectors": 3,        # Vector Algebra / Dot & Cross Product -- not yet a template
+    "number": 0,         # Number & Proportion: groundwork, not examined
+    "triangles": 0,      # Angles & Triangles: groundwork, not examined
+    "units": 0,          # Units & Engineering Notation: groundwork, not examined
+
+    # --- Physics: the bank's six sections, shared between the sub-topics that
+    # cover each. Section I 25, II 20, III 15, IV 15, V 13, VI 12.
+    "kinematics": 5, "forces": 5, "energy": 5, "momentum": 5, "rotation": 5,
+    "thermal": 10, "thermo": 10,
+    "fluids": 7, "flow": 8,
+    "waves": 15,
+    "current": 2, "ohm": 2, "networks": 2, "power": 2,
+    "work": 1, "capacitance": 2, "quantities": 1, "ac": 1,
+    "fields": 12,
+}
+assert set(EXAM_WEIGHTS) == {d["id"] for d in DOMAINS}, "every sub-topic needs a weight"
+
 LEVELS = ["Foundation", "Practice", "Exam Level", "Challenge"]
 LEVEL_GUIDE = {
     "Foundation": "One explicit rule or relationship; short stem.",
