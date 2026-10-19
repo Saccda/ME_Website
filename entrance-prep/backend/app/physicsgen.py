@@ -39,6 +39,48 @@ def _a(n):
 G = 9.8
 
 
+# (what the stem asks, the one option equal to it, the distractors).
+#
+# Written out rather than generated, because a distractor here has to be wrong
+# for a stated reason a student can learn from -- a different quantity, or the
+# right quantity in a non-SI size. `unit_equal` proves each one really is
+# unequal, so a slip in this table is refused rather than published.
+EQUIVALENCES = [
+    ("J", "N·m", [("N", "A newton is a force, not an energy.", "wrong-rule"),
+                  ("W/s", "Power per second is not energy.", "wrong-rule"),
+                  ("cal", "A calorie is energy, but about 4.2 J, so the numbers cannot match.", "unit-error"),
+                  ("N/m", "Force per metre is a stiffness.", "wrong-rule")]),
+    ("W", "J/s", [("J·s", "Multiplies by time instead of dividing.", "inverted-operation"),
+                  ("N/s", "A newton per second is not a power.", "wrong-rule"),
+                  ("J", "An energy, not a rate of energy.", "missing-step"),
+                  ("kg·s", "No combination of these measures power.", "wrong-rule")]),
+    ("N", "kg·m/s²", [("kg·m/s", "That is a momentum.", "wrong-rule"),
+                      ("kg·m", "Neither a force nor anything standard.", "wrong-rule"),
+                      ("kg·m²/s²", "That is an energy.", "wrong-rule"),
+                      ("kg/s", "A mass flow rate.", "wrong-rule")]),
+    ("Pa", "N/m²", [("N·m", "That is an energy.", "wrong-rule"),
+                    ("N/m", "Force per length, not per area.", "unit-error"),
+                    ("N·m²", "Multiplies by area instead of dividing.", "inverted-operation"),
+                    ("kg/m", "No combination of these is a pressure.", "wrong-rule")]),
+    ("V", "J/C", [("C/J", "Inverts the definition.", "inverted-operation"),
+                  ("J·C", "Multiplies instead of dividing.", "inverted-operation"),
+                  ("W/s", "Power per second is not a potential.", "wrong-rule"),
+                  ("J/s", "That is a power.", "wrong-rule")]),
+    ("C", "A·s", [("A/s", "Divides by time instead of multiplying.", "inverted-operation"),
+                  ("A", "A current, not the charge it carries.", "missing-step"),
+                  ("J/A", "No combination of these is a charge.", "wrong-rule"),
+                  ("V·A", "That is a power.", "wrong-rule")]),
+    ("Ω", "V/A", [("A/V", "That is a conductance.", "inverted-operation"),
+                  ("V·A", "That is a power.", "wrong-rule"),
+                  ("V", "A potential difference, not a resistance.", "missing-step"),
+                  ("J/C", "That is a potential difference.", "wrong-rule")]),
+    ("Hz", "1/s", [("s", "A time, not a rate.", "inverted-operation"),
+                   ("m/s", "A speed.", "wrong-rule"),
+                   ("1/min", "Per minute, not per second.", "unit-error"),
+                   ("kg/s", "A mass flow rate.", "wrong-rule")]),
+]
+
+
 def template(domain, depth, rng):
     """Return stem, answer, explanation, distractors, validator spec and LaTeX."""
     if domain == "kinematics":
@@ -1223,14 +1265,23 @@ def template(domain, depth, rng):
                        f"combination from a rearranged one.")
             latex = None
         elif depth == 2:
-            # The paper's "Which one is equal to 5 J?" is deliberately absent
-            # here. Its four options all carry the same number and differ only
-            # by unit, so a validator that recomputes the number finds every
-            # distractor equal to the answer and refuses the question -- as it
-            # should. That content is the derived-unit table at Practice above,
-            # which asks the same thing without a number to confuse the check.
-            kind = rng.choice(["kpa", "kwh", "kelvin"])
-            if kind == "kelvin":
+            kind = rng.choice(["kpa", "kwh", "kelvin", "equal"])
+            if kind == "equal":
+                # The paper's own "Which one is equal to 5 J?". Every option
+                # carries the same number and differs only by unit, so there is
+                # no number to recompute: the `unit_equal` validator compares
+                # each option with the stem by dimension and SI value instead.
+                asked, answer, others = rng.choice(EQUIVALENCES)
+                n = rng.choice([2, 3, 5, 8, 12])
+                stem = f"Which one is equal to {n} {asked}?"
+                spec = {"kind": "unit_equal", "quantity": f"{n} {asked}"}
+                correct = f"{n} {answer}"
+                explain = (f"{n} {asked} is {correct}: the two are the same quantity written "
+                           f"differently. The others either measure something else or, in the "
+                           f"case of a non-SI unit, measure the right thing in the wrong size.")
+                latex = None
+                wrong = [(f"{n} {unit}", why, tag) for unit, why, tag in others]
+            elif kind == "kelvin":
                 k = rng.choice([200, 250, 300, 350, 400])
                 value = k - 273.15
                 stem = f"A temperature of {k} K is how many degrees Celsius?"

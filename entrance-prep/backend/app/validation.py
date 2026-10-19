@@ -52,6 +52,125 @@ def safe_number(expr, variables):
     if not isinstance(value, (int, float)) or value != value or abs(value) > 1e12: raise ValueError()
     return float(value)
 
+# --- Unit algebra -------------------------------------------------------
+#
+# "Which one is equal to 5 J?" cannot be checked by recomputing a number:
+# every option carries the same number and differs only by unit, so a numeric
+# check sees four identical answers. What has to be compared is the quantity --
+# the number together with what it measures.
+#
+# Each unit is (how many SI base units it is worth, its dimensions), with
+# dimensions as powers of kilogram, metre, second, ampere and kelvin. Two
+# quantities are equal when their dimensions match and their SI values do, so
+# 5 N·m equals 5 J, while 5 cal does not: a calorie is energy but is worth
+# 4.184 J, and 5 N is not even energy.
+#
+# A deliberately small table. An author writing a unit this does not know gets
+# a refused question rather than an unchecked one.
+_DIMS = {
+    "kg": (1.0, (1, 0, 0, 0, 0)), "g": (1e-3, (1, 0, 0, 0, 0)),
+    "m": (1.0, (0, 1, 0, 0, 0)), "s": (1.0, (0, 0, 1, 0, 0)),
+    "A": (1.0, (0, 0, 0, 1, 0)), "K": (1.0, (0, 0, 0, 0, 1)),
+    "N": (1.0, (1, 1, -2, 0, 0)), "J": (1.0, (1, 2, -2, 0, 0)),
+    "W": (1.0, (1, 2, -3, 0, 0)), "Pa": (1.0, (1, -1, -2, 0, 0)),
+    "C": (1.0, (0, 0, 1, 1, 0)), "V": (1.0, (1, 2, -3, -1, 0)),
+    "Ω": (1.0, (1, 2, -3, -2, 0)), "ohm": (1.0, (1, 2, -3, -2, 0)),
+    "S": (1.0, (-1, -2, 3, 2, 0)), "F": (1.0, (-1, -2, 4, 2, 0)),
+    "H": (1.0, (1, 2, -2, -2, 0)), "Hz": (1.0, (0, 0, -1, 0, 0)),
+    "T": (1.0, (1, 0, -2, -1, 0)), "Wb": (1.0, (1, 2, -2, -1, 0)),
+    # Not SI, and the point of several distractors: right dimensions, wrong size.
+    "cal": (4.184, (1, 2, -2, 0, 0)),
+    "min": (60.0, (0, 0, 1, 0, 0)), "h": (3600.0, (0, 0, 1, 0, 0)),
+    "L": (1e-3, (0, 3, 0, 0, 0)),
+    # One compound symbol, because it is written as one: kWh resolves as the
+    # prefix k on Wh, where splitting a run of symbols in general cannot be
+    # done safely -- "mm" is a millimetre, not a metre squared.
+    "Wh": (3600.0, (1, 2, -2, 0, 0)),
+}
+_PREFIX = {"G": 1e9, "M": 1e6, "k": 1e3, "d": 1e-1, "c": 1e-2,
+           "m": 1e-3, "μ": 1e-6, "u": 1e-6, "n": 1e-9}
+_SUPER = {"⁻": "-", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6"}
+
+
+def _unit_token(token):
+    """One symbol with an optional exponent, as (si_value, dimensions)."""
+    token = "".join(_SUPER.get(ch, ch) for ch in token).strip()
+    match = re.fullmatch(r"([A-Za-zΩμ]+)(?:\^?(-?\d))?", token)
+    if not match:
+        raise ValueError(f"unrecognised unit {token!r}")
+    symbol, power = match.group(1), int(match.group(2) or 1)
+    if abs(power) > 4:
+        raise ValueError("exponent out of range")
+    # The whole symbol first, so "m" is a metre rather than milli-nothing and
+    # "T" is a tesla rather than tera; only then try prefix plus unit, which is
+    # what makes "mm", "kg" and "cm" resolve.
+    if symbol in _DIMS:
+        scale, dims = _DIMS[symbol]
+    elif symbol[:1] in _PREFIX and symbol[1:] in _DIMS:
+        base_scale, dims = _DIMS[symbol[1:]]
+        scale = base_scale * _PREFIX[symbol[:1]]
+    else:
+        raise ValueError(f"unknown unit {symbol!r}")
+    return scale ** power, tuple(d * power for d in dims)
+
+
+def parse_quantity(text):
+    """"5 N·m" as (value in SI base units, dimensions).
+
+    Accepts a number followed by a product of units, with at most one solidus
+    separating numerator from denominator: m/s, kg·m/s², N/m², kg/(m·s²), 1/s.
+    """
+    if not isinstance(text, str) or len(text) > 60:
+        raise ValueError("quantity too long")
+    body = "".join(_SUPER.get(ch, ch) for ch in text).replace("·", "*").replace("×", "*")
+    lead = re.match(r"\s*(-?\d+(?:\.\d+)?)\s*(.*)$", body.replace(",", ""))
+    if not lead:
+        raise ValueError("quantity needs a number")
+    value, units = float(lead.group(1)), lead.group(2).strip()
+    parts = units.split("/")
+    if len(parts) > 2:
+        raise ValueError("at most one solidus")
+    scale, dims = 1.0, (0, 0, 0, 0, 0)
+    for side, sign in zip(parts, (1, -1)):
+        side = side.strip().strip("()")
+        if not side or side == "1":
+            continue
+        tokens = [t for t in side.split("*") if t.strip()]
+        if len(tokens) > 4:
+            raise ValueError("too many unit terms")
+        for token in tokens:
+            term_scale, term_dims = _unit_token(token)
+            scale *= term_scale ** sign
+            dims = tuple(a + sign * b for a, b in zip(dims, term_dims))
+    return value * scale, dims
+
+
+def same_quantity(left, right):
+    a_value, a_dims = parse_quantity(left)
+    b_value, b_dims = parse_quantity(right)
+    if a_dims != b_dims:
+        return False
+    return abs(a_value - b_value) <= max(abs(a_value), abs(b_value), 1.0) * 1e-9
+
+
+def _readable(text):
+    try:
+        parse_quantity(text)
+        return True
+    except (ValueError, KeyError, TypeError):
+        return False
+
+
+def _safe_same(asked, option):
+    """same_quantity, but an unreadable option is "not equal" rather than a
+    crash -- it is reported separately, so one bad distractor does not hide
+    the state of the other three."""
+    try:
+        return same_quantity(asked, option)
+    except (ValueError, KeyError, TypeError):
+        return False
+
+
 def leading_number(text):
     found = re.search(r"-?\d+(?:\.\d+)?(?:\s*(?:×|x|\*)\s*10\s*\^?\s*(-?\d+))?",
                       str(text).replace(",", "").replace("−", "-"))
@@ -175,6 +294,23 @@ def validate(content):
                         errors.append("A distractor equals the correct value.")
                         break
                 proof=f"Recomputed {spec['expr']} from the stated values; result {value:g}."
+            elif spec["kind"]=="unit_equal":
+                # The stem names a quantity -- "5 J" -- and exactly one option
+                # must be the same quantity written differently. Both halves
+                # are checked: that the key really equals it, and that no
+                # distractor does, which is the failure a numeric validator
+                # cannot see because every option shares the number.
+                asked=spec["quantity"]
+                parse_quantity(asked)
+                matches=[x["id"] for x in opts if _safe_same(asked,x["text"])]
+                if len(matches)!=1:
+                    errors.append(f"{len(matches)} of the options equal {asked}; exactly one must.")
+                elif matches[0]!=content.get("correct"):
+                    errors.append(f"The option equal to {asked} is {matches[0]}, not the key.")
+                unreadable=[x["text"] for x in opts if not _readable(x["text"])]
+                if unreadable:
+                    errors.append(f"Cannot read as a quantity: {unreadable[0]!r}")
+                proof=f"Compared every option with {asked} by dimension and SI value."
             elif spec["kind"]=="fact":
                 # A conceptual question -- which unit, which instrument -- has no
                 # arithmetic to recompute, so it declares a key into a reviewed

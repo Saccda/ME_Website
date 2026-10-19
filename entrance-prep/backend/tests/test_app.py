@@ -508,6 +508,49 @@ def test_physics_answers_are_recomputed_not_asserted(clients):
     assert all(q['validation']['method']=='deterministic' and q['validation']['passed'] for q in physics)
     assert {d['id'] for d in PHYSICS_DOMAINS}=={q['domain'] for q in physics}
 
+def test_units_are_compared_as_quantities_not_as_numbers():
+    from app.validation import same_quantity,parse_quantity
+    # The paper asks "which one is equal to 5 J?" with four options that all
+    # carry the number 5. Recomputing the number sees four identical answers,
+    # so the quantity is compared instead: dimensions first, then SI value.
+    assert same_quantity('5 J','5 N·m')
+    assert same_quantity('1 kPa','1000 N/m²')
+    assert same_quantity('1 kWh','3600 kJ')
+    assert same_quantity('1 T','1 Wb/m²')
+    assert same_quantity('2.7 g/cm³','2700 kg/m³')
+    # Wrong quantity entirely.
+    assert not same_quantity('5 J','5 N')
+    assert not same_quantity('1 W','1 J·s')
+    # Right quantity, wrong size -- the case dimensions alone would pass. A
+    # calorie is energy, but 4.184 J of it, so 5 cal is not 5 J.
+    assert not same_quantity('5 J','5 cal')
+    assert not same_quantity('8 Hz','8 1/min')
+    # Ambiguous or unknown notation is refused, not guessed: "Nm" could be a
+    # newton-metre, but "mm" is a millimetre and not a metre squared, so a run
+    # of symbols cannot be split safely.
+    for junk in ('5 Nm','5 widgets','N·m','5 J/s/m','5 m^9'):
+        with pytest.raises(ValueError): parse_quantity(junk)
+
+def test_a_unit_question_with_the_wrong_key_is_refused():
+    content=next(generate('conversion','Exam Level',4,s) for s in range(400)
+                 if 'equal to' in generate('conversion','Exam Level',4,s)['stem'])
+    assert validate(content)['passed']
+    assert validate(content)['method']=='deterministic'
+    # Point the key at a distractor.
+    other=next(o['id'] for o in content['options'] if o['id']!=content['correct'])
+    assert not validate({**content,'correct':other})['passed']
+    # Two options that mean the same thing leaves the question unanswerable.
+    dup=[dict(o) for o in content['options']]
+    keyed=next(o['text'] for o in content['options'] if o['id']==content['correct'])
+    next(o for o in dup if o['id']!=content['correct'])['text']=keyed
+    assert not validate({**content,'options':dup})['passed']
+    # An option nothing can read is reported rather than treated as unequal.
+    junk=[dict(o) for o in content['options']]
+    next(o for o in junk if o['id']!=content['correct'])['text']='5 widgets'
+    report=validate({**content,'options':junk})
+    assert not report['passed']
+    assert any('widgets' in e for e in report['errors'])
+
 def test_every_physics_subtopic_has_a_template_behind_it():
     # The seeder fills a sub-topic only when a template exists for it, and a
     # missing branch raises rather than returning nothing, so a sub-topic added
