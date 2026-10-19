@@ -100,7 +100,11 @@ def run(apply, draft, path):
     entries = payload["questions"]
 
     problems = check(entries)
-    print(f"{path.name}: {len(entries)} questions\n")
+    print(f"{path.name}: {len(entries)} questions")
+    # Which build of the file this is. It is carried to the lab by hand, so
+    # several copies exist and they look identical once saved; without this
+    # there is no way to tell a stale one from the current one.
+    print(f"  built: {payload.get('built', '(not recorded -- an older build)')}\n")
     if problems:
         print(f"Refusing to import. {len(problems)} problem(s):")
         for p in problems[:20]:
