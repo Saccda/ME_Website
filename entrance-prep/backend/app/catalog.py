@@ -31,22 +31,14 @@ MATH_DOMAINS = [
     {"id": "vectors", "subject": "math", "name": "Vectors", "sets": "2.10", "skills": ["vector-components", "resultant-magnitude", "vector-direction", "vector-addition"], "description": "Resolve and combine quantities that have direction."},
 ]
 
-# Defined before the domains that cite it, since a domain carries its own
-# source when it does not come from the past paper.
-PHYSICS_MECHANICS_SOURCE = {
-    "title": "Physics MCQ: Objective Multiple Choice Question Bank",
-    "edition": "—", "publisher": "Bharati Bhawan", "authors": "Deb Mukherji",
-    "isbn": "978-81-7709-857-0",
-    "basis": (
-        "Topic structure of Part 1 (Mechanics) and Part 2 (Heat and Thermodynamics) only. "
-        "The book is written for the IIT-JEE and AIEEE, whose difficulty is far above this "
-        "examination's, so no question is copied or adapted from it and none is pitched at its "
-        "level: each is generated and solved independently at the level of the past paper."
-    ),
-    "mapping_pages": "Part 1, Chapters 1–3; Part 2, Chapter 1",
-    "calibration": "Local four-level rubric, calibrated to the past paper rather than to the book.",
-}
-
+# Physics cites two sources and no longer a third. Motion, forces, mechanical
+# work, fluids and heat used to follow the topic structure of Mukherji's
+# IIT-JEE question bank, because when they were written nothing closer to this
+# examination covered those topics. The panel's own bank now does -- it
+# examines all five, across its Sections I to III -- so they cite that, and the
+# textbook is gone rather than kept as a second opinion on topics the
+# examiners have since described themselves.
+#
 # The 2026 physics panel's own 100-question bank. Its six sections are what the
 # examination actually asks, and they reach well past the electrical scope the
 # earlier past paper suggested: 75% of it is mechanics, heat, fluids and waves.
@@ -77,11 +69,11 @@ PHYSICS_DOMAINS = [
     # Mukherji, which is an IIT-JEE book: its topics are the examination's,
     # its difficulty is not, so these are written at the level of the past
     # paper above and carry their own source note saying so.
-    {"id": "kinematics", "subject": "physics", "name": "Motion in a Straight Line", "sets": "Part 1, Ch 1", "source": PHYSICS_MECHANICS_SOURCE, "skills": ["speed-distance-time", "acceleration", "equations-of-motion", "free-fall"], "description": "Speed, acceleration and how far a body travels."},
-    {"id": "forces", "subject": "physics", "name": "Forces & Newton's Laws", "sets": "Part 1, Ch 1", "source": PHYSICS_MECHANICS_SOURCE, "skills": ["newton-second-law", "weight", "friction", "resultant-force"], "description": "What a force does to a mass, and what resists it."},
-    {"id": "energy", "subject": "physics", "name": "Mechanical Work & Power", "sets": "Part 1, Ch 1–2", "source": PHYSICS_MECHANICS_SOURCE, "skills": ["work-done", "kinetic-energy", "potential-energy", "power-output"], "description": "Work done, energy stored and the rate of doing it."},
-    {"id": "fluids", "subject": "physics", "name": "Density, Pressure & Fluids", "sets": "Part 1, Ch 3", "source": PHYSICS_MECHANICS_SOURCE, "skills": ["density", "pressure", "pressure-at-depth", "upthrust"], "description": "Mass per volume, force per area, and what floats."},
-    {"id": "thermal", "subject": "physics", "name": "Heat & Thermodynamics", "sets": "Part 2", "source": PHYSICS_MECHANICS_SOURCE, "skills": ["temperature-scales", "specific-heat", "latent-heat", "gas-laws"], "description": "Temperature, the heat a change needs, and gases."},
+    {"id": "kinematics", "subject": "physics", "name": "Motion in a Straight Line", "sets": "Section I", "source": PHYSICS_EXAM_BANK_SOURCE, "skills": ["speed-distance-time", "acceleration", "equations-of-motion", "free-fall"], "description": "Speed, acceleration and how far a body travels."},
+    {"id": "forces", "subject": "physics", "name": "Forces & Newton's Laws", "sets": "Section I", "source": PHYSICS_EXAM_BANK_SOURCE, "skills": ["newton-second-law", "weight", "friction", "resultant-force"], "description": "What a force does to a mass, and what resists it."},
+    {"id": "energy", "subject": "physics", "name": "Mechanical Work & Power", "sets": "Section I", "source": PHYSICS_EXAM_BANK_SOURCE, "skills": ["work-done", "kinetic-energy", "potential-energy", "power-output"], "description": "Work done, energy stored and the rate of doing it."},
+    {"id": "fluids", "subject": "physics", "name": "Density, Pressure & Fluids", "sets": "Section III", "source": PHYSICS_EXAM_BANK_SOURCE, "skills": ["density", "pressure", "pressure-at-depth", "upthrust"], "description": "Mass per volume, force per area, and what floats."},
+    {"id": "thermal", "subject": "physics", "name": "Heat & Thermodynamics", "sets": "Section II", "source": PHYSICS_EXAM_BANK_SOURCE, "skills": ["temperature-scales", "specific-heat", "latent-heat", "gas-laws"], "description": "Temperature, the heat a change needs, and gases."},
     {"id": "current", "subject": "physics", "name": "Charge & Current", "sets": "Q7, Q17–18", "skills": ["charge-flow", "current-from-charge", "charge-rate", "charge-over-minutes"], "description": "Relate charge, current and time."},
     {"id": "ohm", "subject": "physics", "name": "Ohm's Law & Resistance", "sets": "Q1–2", "skills": ["ohms-current", "ohms-voltage", "ohms-resistance", "resistance-from-power"], "description": "Find any one of voltage, current and resistance from the other two."},
     {"id": "networks", "subject": "physics", "name": "Series & Parallel Circuits", "sets": "Q12, Q19–20", "skills": ["series-resistance", "parallel-resistance", "voltage-divider", "network-reduction"], "description": "Reduce a resistor network and divide a voltage."},

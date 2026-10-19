@@ -33,23 +33,62 @@ NAME = "Full entrance examination · 80 questions"
 MINUTES = 90
 
 
+# Mathematics, from the panel's control sheet. Straight-line graph 3, Quadratic
+# 2, Limit 2, Differentiation 4, Indefinite Integral 4, Definite Integral 4,
+# Determinants 3, Dot & Cross Product 3.
+#
+# Four of those topics have no template yet, so this cannot be exact. Calculus
+# carries the sheet's 14 marks for limits, differentiation and integration.
+# Quadratic and Dot & Cross are drawn from the nearest sub-topics we do have,
+# which examine the right area at the wrong skill. Determinants has nothing at
+# all, so its 3 marks are taken from Mathematics at large rather than shortening
+# the paper -- see ROADMAP item 1.
+MATH_ROWS = [
+    {"subject": "math", "domain": "graphs", "count": 3, "options": 4},
+    {"subject": "math", "domain": "algebra", "count": 2, "options": 4},
+    {"subject": "math", "domain": "calculus", "count": 14, "options": 4},
+    {"subject": "math", "domain": "vectors", "count": 3, "options": 4},
+    # Determinants, standing in. A second algebra row rather than a loose
+    # "3 from Mathematics", which drew from Number & Proportion, Angles &
+    # Triangles and Units -- three sub-topics the sheet does not examine, so
+    # every paper carried a question no candidate will be asked.
+    {"subject": "math", "domain": "algebra", "count": 3, "options": 4},
+]
+
+# Logic, from the control sheet, and this one is exact: our sub-topics follow
+# the sheet's own set ranges, so each row is a range and its mark count.
+LOGIC_ROWS = [
+    {"subject": "logic", "domain": "patterns", "count": 4, "options": 4},
+    {"subject": "logic", "domain": "symbols", "count": 3, "options": 4},
+    {"subject": "logic", "domain": "relationships", "count": 11, "options": 4},
+    {"subject": "logic", "domain": "codes", "count": 1, "options": 4},
+    {"subject": "logic", "domain": "verbal", "count": 3, "options": 4},
+    {"subject": "logic", "domain": "deduction", "count": 2, "options": 4},
+    {"subject": "logic", "domain": "arguments", "count": 1, "options": 4},
+]
+
+
 def rows_for(physics_origin):
     """The three sections, sat in the order written here.
 
-    The physics row asks for the examination panel's own bank by default. A
-    generated question is honest practice for a topic, but the panel's items are
-    the paper itself -- its phrasing, its spread and its level -- which is the
-    whole point of sitting a mock. Mathematics and Logic have no panel bank, so
-    they draw on the generated one.
+    Named sub-topic by sub-topic rather than "25 Mathematics, 25 Logic". A row
+    naming only a subject draws at random from everything approved in it, which
+    tracks the sheet only as closely as the bank happens to be shaped: measured,
+    that gave Logic 1.8 Classification questions against the sheet's 11, while
+    Number Series got 7.8 against its 4, and it put questions from three
+    Mathematics sub-topics the sheet does not examine at all into every paper.
+    A student sitting this should meet the topics they will actually be
+    examined on, in the proportions they will meet them.
+
+    Physics stays a single row because it draws on the panel's own bank, whose
+    100 questions already carry the examination's section mix -- 25 Mechanics,
+    20 Thermodynamics, 15 Fluids, 15 Waves, 13 Electricity, 12 Electromagnetism
+    -- so a random 30 from it is already in proportion.
     """
     physics = {"subject": "physics", "count": 30, "options": 4}
     if physics_origin:
         physics["origin"] = physics_origin
-    return [
-        {"subject": "math", "count": 25, "options": 4},
-        {"subject": "logic", "count": 25, "options": 4},
-        physics,
-    ]
+    return MATH_ROWS + LOGIC_ROWS + [physics]
 
 
 def origin_of(q):
@@ -66,7 +105,12 @@ def available(db, row):
     ).all()
     return sum(1 for q in questions
                if len(q.content["options"]) == row["options"]
+               and (not row.get("domain") or q.domain == row["domain"])
                and (not row.get("origin") or origin_of(q) == row["origin"]))
+
+
+def label(row):
+    return f"{row['subject']}/{row['domain']}" if row.get("domain") else row["subject"]
 
 
 def run(apply, draft, physics_origin):
@@ -78,10 +122,10 @@ def run(apply, draft, physics_origin):
             have = available(db, row)
             flag = "" if have >= row["count"] else "   <-- NOT ENOUGH"
             drawn = f" from the {row['origin']}" if row.get("origin") else ""
-            print(f"  {row['subject']:>8}: {row['count']:>3} needed, {have:>3} approved with "
+            print(f"  {label(row):>22}: {row['count']:>3} needed, {have:>4} approved with "
                   f"{row['options']} options{drawn}{flag}")
             if have < row["count"]:
-                short.append(f"{row['subject']} (needs {row['count']}, has {have})")
+                short.append(f"{label(row)} (needs {row['count']}, has {have})")
 
         existing = db.scalar(select(Blueprint).where(Blueprint.name == NAME))
         print(f"\nthis paper already exists: {'yes, it will be updated' if existing else 'no'}")
