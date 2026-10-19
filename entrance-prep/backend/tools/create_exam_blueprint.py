@@ -85,6 +85,21 @@ def run(apply, draft, physics_origin):
 
         existing = db.scalar(select(Blueprint).where(Blueprint.name == NAME))
         print(f"\nthis paper already exists: {'yes, it will be updated' if existing else 'no'}")
+        if existing:
+            # What the counts above describe is the paper this run *would*
+            # write, not the one students are being given. Without printing the
+            # stored rows a dry run looks identical whether or not they already
+            # match, which is no use to someone checking whether an earlier run
+            # landed.
+            print(f"  stored: published={existing.published}, {existing.minutes} minutes")
+            for row in existing.rows:
+                drawn = f", from the {row['origin']}" if row.get("origin") else ""
+                print(f"    {row.get('subject') or row.get('domain')}: "
+                      f"{row['count']} x {row['options']} options{drawn}")
+            if existing.rows == ROWS and existing.minutes == MINUTES:
+                print("  the stored paper already matches; --apply would change nothing")
+            else:
+                print("  this differs from what --apply would write, shown above")
 
         if short and not draft:
             print("\nCannot publish yet -- short in: " + ", ".join(short))
