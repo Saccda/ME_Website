@@ -143,7 +143,10 @@ def run(apply, draft, path):
                       "sets": DOMAIN_BY_ID[entry["domain"]]["sets"],
                       "basis": ("Question, options and answer key are the examination panel's "
                                 "own. Option order was redistributed so that each letter is "
-                                "correct equally often; wording and key are unchanged. "
+                                "correct equally often, and formula options were set as LaTeX so "
+                                "the browser typesets them -- the paper has no typesetting, so a "
+                                "radical reached a reader as a bare glyph with no bar over what "
+                                "it covers. The mathematics and the key are unchanged. "
                                 "Distractor rationales are newly authored.")}
             previous = known.get(entry["ref"])
             if previous:
