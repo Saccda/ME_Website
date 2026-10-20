@@ -140,15 +140,29 @@ EXAM_WEIGHTS = {
     "triangles": 0,      # Angles & Triangles: groundwork, not examined
     "units": 0,          # Units & Engineering Notation: groundwork, not examined
 
-    # --- Physics: the bank's six sections, shared between the sub-topics that
-    # cover each. Section I 25, II 20, III 15, IV 15, V 13, VI 12.
-    "kinematics": 5, "forces": 5, "energy": 5, "momentum": 5, "rotation": 5,
-    "thermal": 10, "thermo": 10,
-    "fluids": 7, "flow": 8,
-    "waves": 15,
-    "current": 2, "ohm": 2, "networks": 2, "power": 2,
-    "work": 1, "capacitance": 2, "quantities": 1, "ac": 1,
-    "fields": 12,
+    # --- Physics: the real paper, question by question. Its 30 questions are
+    # 50 of the 100 marks.
+    #
+    # These replace weights inferred from the panel's 100-question bank, which
+    # turned out not to describe the paper at all. The bank is a quarter waves
+    # and electromagnetism; the paper has none of either, nor thermodynamics,
+    # momentum or rotation. It is units and circuits, with a little kinematics,
+    # energy and fluid pressure -- so the four sub-topics the bank weighted
+    # most heavily are the four the paper never asks.
+    "conversion": 9,   # Q1-Q8 units and equivalences, Q16 powers of ten
+    "networks": 7,     # Q20, Q23-Q26, Q29, Q30 -- equivalent R, dividers, mesh and node
+    "kinematics": 3,   # Q9 deceleration, Q10 fall from a moving truck, Q11 a(t)
+    "energy": 2,       # Q12 energy wasted per second, Q13 kettle efficiency
+    "fluids": 2,       # Q14 hydrostatic head, Q15 closed tube
+    "ohm": 2,          # Q17 V from P and I, Q19 R from V and I
+    "power": 2,        # Q22 I^2Rt, Q27 AC active power
+    "quantities": 2,   # Q21 which is not electrical, Q28 unit of charge
+    "current": 1,      # Q18 I as dQ/dt
+    # Not on the paper. They keep the floor, so a student who wants them finds
+    # something and the panel's bank still has a home, but nothing grows here.
+    "forces": 0, "thermal": 0, "thermo": 0, "flow": 0, "waves": 0,
+    "momentum": 0, "rotation": 0, "fields": 0, "ac": 0,
+    "work": 0, "capacitance": 0,
     # Provisional, and the one weight here not derived from a whole document.
     # Page 1 of the real paper is eight unit questions; if the physics section
     # is 30 questions and eight of them are units, this should be nearer 36

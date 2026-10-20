@@ -7,14 +7,13 @@ per section, and the sections are sat in order.
     python tools/create_exam_blueprint.py                  # report only
     python tools/create_exam_blueprint.py --apply
     python tools/create_exam_blueprint.py --apply --draft  # not yet visible
-    python tools/create_exam_blueprint.py --apply --mixed-physics
 
 Running it again updates the paper it made before rather than adding a second
 one, so it is safe to re-run after approving more questions.
 
-The physics section draws on the examination panel's own bank, which
-tools/import_exam_bank.py loads; --mixed-physics widens it to the generated
-questions too.
+Every section is named sub-topic by sub-topic, from the panel's control sheets
+for Mathematics and Logic and from the real paper's own 30 questions for
+Physics. Each row draws on everything approved in its sub-topic.
 
 It refuses to publish a paper the bank cannot fill, and says which section is
 short. Three Logic sub-topics are awaiting editorial review, so Logic draws on
@@ -68,21 +67,30 @@ LOGIC_ROWS = [
 ]
 
 
-# How many of the paper's 30 physics questions are units.
+# Physics, from the real paper's own 30 questions rather than from the panel's
+# bank, which does not describe it: the bank is a quarter waves and
+# electromagnetism and the paper has neither, nor thermodynamics, momentum or
+# rotation. Drawing 22 at random from it put most of a student's physics
+# practice on topics they will not be asked about.
 #
-# Page 1 of the real paper is eight unit questions and the panel's bank has two
-# in the whole document, so a physics section drawn entirely from the bank
-# cannot carry them. These are drawn from the generated Units & Conversions
-# sub-topic instead -- the only place in this paper where a generated question
-# stands in for the panel's own, and only because the panel's material does not
-# cover what its own paper asks.
-#
-# Eight is what page 1 shows. If the paper's real unit count differs, this is
-# the number to change.
-PHYSICS_UNIT_QUESTIONS = 8
+# Named sub-topic by sub-topic, like Mathematics and Logic. Each row draws on
+# everything approved in that sub-topic, so the bank's questions that do sit in
+# an examined one -- its two resistor-network items, for instance -- are still
+# eligible. Nothing is withdrawn; it simply stops crowding out the rest.
+PHYSICS_ROWS = [
+    {"subject": "physics", "domain": "conversion", "count": 9, "options": 4},
+    {"subject": "physics", "domain": "networks", "count": 7, "options": 4},
+    {"subject": "physics", "domain": "kinematics", "count": 3, "options": 4},
+    {"subject": "physics", "domain": "energy", "count": 2, "options": 4},
+    {"subject": "physics", "domain": "fluids", "count": 2, "options": 4},
+    {"subject": "physics", "domain": "ohm", "count": 2, "options": 4},
+    {"subject": "physics", "domain": "power", "count": 2, "options": 4},
+    {"subject": "physics", "domain": "quantities", "count": 2, "options": 4},
+    {"subject": "physics", "domain": "current", "count": 1, "options": 4},
+]
 
 
-def rows_for(physics_origin):
+def rows_for():
     """The three sections, sat in the order written here.
 
     Named sub-topic by sub-topic rather than "25 Mathematics, 25 Logic". A row
@@ -99,12 +107,7 @@ def rows_for(physics_origin):
     20 Thermodynamics, 15 Fluids, 15 Waves, 13 Electricity, 12 Electromagnetism
     -- so a random 30 from it is already in proportion.
     """
-    units = {"subject": "physics", "domain": "conversion",
-             "count": PHYSICS_UNIT_QUESTIONS, "options": 4}
-    rest = {"subject": "physics", "count": 30 - PHYSICS_UNIT_QUESTIONS, "options": 4}
-    if physics_origin:
-        rest["origin"] = physics_origin
-    return MATH_ROWS + LOGIC_ROWS + [units, rest]
+    return MATH_ROWS + LOGIC_ROWS + [dict(r) for r in PHYSICS_ROWS]
 
 
 def origin_of(q):
@@ -129,8 +132,8 @@ def label(row):
     return f"{row['subject']}/{row['domain']}" if row.get("domain") else row["subject"]
 
 
-def run(apply, draft, physics_origin):
-    ROWS = rows_for(physics_origin)
+def run(apply, draft):
+    ROWS = rows_for()
     with SessionLocal() as db:
         print(f"{NAME}  ·  {MINUTES} minutes  ·  {sum(r['count'] for r in ROWS)} questions\n")
         short = []
@@ -164,10 +167,6 @@ def run(apply, draft, physics_origin):
         if short and not draft:
             print("\nCannot publish yet -- short in: " + ", ".join(short))
             print("Approve more questions first, or pass --draft to save it unpublished.")
-            if any(r.get("origin") == "exam-bank" for r in ROWS):
-                print("If the panel's bank is not loaded yet: "
-                      "python tools/import_exam_bank.py --apply")
-                print("To build the paper from generated physics instead: --mixed-physics")
             return 1
         if not apply:
             print("\nDry run. Pass --apply to create it.")
@@ -208,9 +207,5 @@ if __name__ == "__main__":
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--draft", action="store_true",
                         help="Save it unpublished, even if every section could be filled.")
-    parser.add_argument("--mixed-physics", action="store_true",
-                        help="Draw physics from the whole approved bank rather than only "
-                             "the examination panel's own questions.")
     args = parser.parse_args()
-    raise SystemExit(run(args.apply, args.draft,
-                         None if args.mixed_physics else "exam-bank"))
+    raise SystemExit(run(args.apply, args.draft))
