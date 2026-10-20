@@ -29,6 +29,14 @@ MATH_DOMAINS = [
     {"id": "graphs", "subject": "math", "name": "Graphs & Gradients", "sets": "2.3–2.5", "skills": ["straight-line-value", "gradient", "intercept", "practical-graph"], "description": "Read a straight line and state its equation."},
     {"id": "calculus", "subject": "math", "name": "Introductory Calculus", "sets": "2.6–2.9", "skills": ["differentiation", "rate-of-change", "integration", "definite-integral"], "description": "Differentiate and integrate simple polynomials."},
     {"id": "vectors", "subject": "math", "name": "Vectors", "sets": "2.10", "skills": ["vector-components", "resultant-magnitude", "vector-direction", "vector-addition"], "description": "Resolve and combine quantities that have direction."},
+    # The four topics the control sheet names that had nothing behind them --
+    # 10 of its 25 marks. Each gets its own sub-topic rather than hiding inside
+    # an existing one, so the sheet's mark counts can be weighted directly and
+    # a question's recorded skill says what it actually tests.
+    {"id": "limits", "subject": "math", "name": "Limits", "sets": "Paper Q31–32", "skills": ["direct-substitution", "rational-limit", "trig-limit", "indeterminate-form"], "description": "What a function approaches, including where it is undefined."},
+    {"id": "quadratic", "subject": "math", "name": "Quadratic Equations", "sets": "Paper Q44, Q47", "skills": ["roots", "discriminant", "height-at-time", "time-to-ground"], "description": "Solve by formula, and read the two times a height is reached."},
+    {"id": "matrices", "subject": "math", "name": "Determinants & Matrices", "sets": "Paper Q50–52", "skills": ["determinant-2x2", "determinant-3x3", "inverse-2x2", "conformability"], "description": "Evaluate a determinant, invert a small matrix, check shapes."},
+    {"id": "dotcross", "subject": "math", "name": "Dot & Cross Product", "sets": "Paper Q53–55", "skills": ["scalar-product", "vector-product", "angle-between", "closing-triangle"], "description": "Multiply vectors two ways, and get an angle from the result."},
 ]
 
 # Physics cites two sources and no longer a third. Motion, forces, mechanical
@@ -128,17 +136,18 @@ EXAM_WEIGHTS = {
     "deduction": 2,      # Sets 23-27 Logic Problems, 28-31 Logic Games
     "arguments": 1,      # Sets 32-37, Analyzing Arguments
 
-    # --- Mathematics: control sheet, 25 questions. Three sub-topics score 0
-    # because the sheet does not examine them, and 10 of its 25 marks have no
-    # sub-topic to sit in at all: Determinants (3), Dot & Cross Product (3),
-    # Quadratic (2) and Limit (2). See docs/ROADMAP.md.
+    # --- Mathematics: control sheet, 25 questions, and these now add to
+    # exactly 25. Every topic the sheet names has its own sub-topic.
     "graphs": 3,         # Algebra and Function / Straight-line graph
-    "algebra": 2,        # Algebra and Function / Quadratic -- not yet a template
-    "calculus": 14,      # Limit 2, Differentiation 4, Indefinite Integral 4, Definite Integral 4
-    "vectors": 3,        # Vector Algebra / Dot & Cross Product -- not yet a template
-    "number": 0,         # Number & Proportion: groundwork, not examined
-    "triangles": 0,      # Angles & Triangles: groundwork, not examined
-    "units": 0,          # Units & Engineering Notation: groundwork, not examined
+    "quadratic": 2,      # Algebra and Function / Quadratic
+    "limits": 2,         # Calculus / Limit
+    "calculus": 12,      # Calculus / Differentiation 4, Indefinite 4, Definite 4
+    "matrices": 3,       # Linear Algebra / Determinants
+    "dotcross": 3,       # Vector Algebra / Dot & Cross Product
+    # Groundwork the sheet does not examine. They keep the floor, because the
+    # examined topics stand on them -- a student cannot solve a quadratic
+    # without the algebra, or a dot product without components.
+    "algebra": 0, "vectors": 0, "number": 0, "triangles": 0, "units": 0,
 
     # --- Physics: the real paper, question by question. Its 30 questions are
     # 50 of the 100 marks.

@@ -32,26 +32,23 @@ NAME = "Full entrance examination · 80 questions"
 MINUTES = 90
 
 
-# Mathematics, from the panel's control sheet. Straight-line graph 3, Quadratic
-# 2, Limit 2, Differentiation 4, Indefinite Integral 4, Definite Integral 4,
-# Determinants 3, Dot & Cross Product 3.
+# Mathematics, from the panel's control sheet and now exact. Straight-line
+# graph 3, Quadratic 2, Limit 2, Differentiation 4, Indefinite Integral 4,
+# Definite Integral 4, Determinants 3, Dot & Cross Product 3 -- twenty-five.
 #
-# Four of those topics have no template yet, so this cannot be exact. Calculus
-# carries the sheet's 14 marks for limits, differentiation and integration.
-# Quadratic and Dot & Cross are drawn from the nearest sub-topics we do have,
-# which examine the right area at the wrong skill. Determinants has nothing at
-# all, so its 3 marks are taken from Mathematics at large rather than shortening
-# the paper -- see ROADMAP item 1.
+# Four of these had no template until the real paper arrived and showed exactly
+# what they look like, and their three marks for Determinants used to be a
+# second Algebra row standing in. Every topic the sheet names now has a
+# sub-topic of its own, so no row stands in for another.
 MATH_ROWS = [
     {"subject": "math", "domain": "graphs", "count": 3, "options": 4},
-    {"subject": "math", "domain": "algebra", "count": 2, "options": 4},
-    {"subject": "math", "domain": "calculus", "count": 14, "options": 4},
-    {"subject": "math", "domain": "vectors", "count": 3, "options": 4},
-    # Determinants, standing in. A second algebra row rather than a loose
-    # "3 from Mathematics", which drew from Number & Proportion, Angles &
-    # Triangles and Units -- three sub-topics the sheet does not examine, so
-    # every paper carried a question no candidate will be asked.
-    {"subject": "math", "domain": "algebra", "count": 3, "options": 4},
+    {"subject": "math", "domain": "quadratic", "count": 2, "options": 4},
+    {"subject": "math", "domain": "limits", "count": 2, "options": 4},
+    # Differentiation, indefinite and definite integration -- the sheet's 14
+    # calculus marks less the 2 for limits, which are their own row above.
+    {"subject": "math", "domain": "calculus", "count": 12, "options": 4},
+    {"subject": "math", "domain": "matrices", "count": 3, "options": 4},
+    {"subject": "math", "domain": "dotcross", "count": 3, "options": 4},
 ]
 
 # Logic, from the control sheet, and this one is exact: our sub-topics follow
