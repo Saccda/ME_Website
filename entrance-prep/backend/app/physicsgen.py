@@ -127,6 +127,29 @@ def template(domain, depth, rng):
                 (0.5 * a * t ** 2, "Ignores the starting speed.", "missing-step"),
                 (u * t + a * t ** 2, "Omits the factor of one half.", "missing-step"),
                 ((u + a * t) * t, "Multiplies the final speed by the time, which overstates the distance.", "wrong-rule")])
+        elif rng.random() < 0.45:
+            # The paper gives acceleration falling linearly to zero and asks
+            # for the top speed. Two steps: the speed is the integral of the
+            # acceleration, and the top of it is where the acceleration runs
+            # out -- after that the car is no longer gaining.
+            a0 = rng.choice([12, 15, 18, 24])
+            k = rng.choice([0.2, 0.25, 0.4, 0.5])
+            t_max = 1 / k
+            value = a0 / (2 * k)
+            stem = (f"A car starts from rest with an acceleration of $a = {a0}(1 - {k:g}t)$ m/s². "
+                    f"What is the greatest speed it reaches?")
+            spec = {"kind": "compute", "vars": {"a": a0, "k": k}, "expr": "a/(2*k)", "digits": 2}
+            explain = (f"Speed is the integral of acceleration: $v = {a0}t - "
+                       f"{fmt(a0 * k / 2)}t^2$. It stops rising when the acceleration reaches "
+                       f"zero, at $t = 1/{k:g} = {fmt(t_max)}$ s, and putting that back gives "
+                       f"$v = {fmt(value)}$ m/s. After that moment the acceleration is negative "
+                       f"and the car slows.")
+            latex = rf"v_{{max}} = \frac{{a_0}}{{2k}} = \frac{{{a0}}}{{2({k:g})}} = {fmt(value)}"
+            correct, wrong = build(value, " m/s", [
+                (a0 / k, "Uses the time the acceleration lasts without halving, which is the area of a rectangle rather than a triangle.", "missing-step"),
+                (a0, "Reports the starting acceleration as though it were a speed.", "wrong-rule"),
+                (a0 * k, "Multiplies by the decay rate instead of dividing.", "inverted-operation"),
+                (t_max, "Gives the time at which the top speed occurs.", "wrong-term")])
         else:
             h = rng.choice([20, 45, 80, 125])
             value = math.sqrt(2 * G * h)
@@ -425,6 +448,28 @@ def template(domain, depth, rng):
                 (b, "Reports the constant term instead of the rate.", "wrong-term"),
                 (a * b, "Multiplies the two coefficients.", "wrong-operation"),
                 (a / 2, "Halves the rate.", "arithmetic-slip")])
+        elif rng.random() < 0.5:
+            # The paper's only charge question is this one: current as the rate
+            # at which charge passes, with the charge given as a function of
+            # time. Q = It holds only while the current is steady, and here it
+            # is not, so the derivative is the whole point.
+            a, b, c = rng.choice([2, 3, 4, 5]), rng.choice([2, 5, 7]), rng.choice([3, 5, 8])
+            t = rng.choice([2, 3, 4])
+            value = 2 * a * t - b
+            stem = (f"The charge through a conductor varies as $Q(t) = {a}t^2 - {b}t + {c}$, with "
+                    f"$Q$ in coulombs and $t$ in seconds. What is the current at $t = {t}$ s?")
+            spec = {"kind": "compute", "vars": {"a": a, "b": b, "t": t},
+                    "expr": "2*a*t-b", "digits": 2}
+            explain = (f"Current is the rate at which charge passes, so $I = \\frac{{dQ}}{{dt}} = "
+                       f"{2 * a}t - {b}$. At $t = {t}$ that is ${2 * a}({t}) - {b} = {fmt(value)}$ "
+                       f"A. Dividing $Q$ by $t$ would give the average current up to that moment, "
+                       f"not the current at it.")
+            latex = rf"I = \frac{{dQ}}{{dt}} = {2 * a}t - {b} \Rightarrow {2 * a}({t}) - {b} = {fmt(value)}"
+            correct, wrong = build(value, " A", [
+                ((a * t ** 2 - b * t + c) / t, "Divides the charge by the time, which averages it instead.", "wrong-rule"),
+                (a * t ** 2 - b * t + c, "Reports the charge rather than its rate.", "wrong-rule"),
+                (2 * a * t + b, "Differentiates the middle term with the wrong sign.", "sign-error"),
+                (2 * a * t - b + c, "Differentiates the constant to itself rather than to zero.", "missing-step")])
         else:
             i, minutes = rng.choice([0.25, 0.4, 0.75, 1.2]), rng.choice([3, 5, 10, 15])
             value = i * minutes * 60
