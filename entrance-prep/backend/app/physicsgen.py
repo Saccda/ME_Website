@@ -524,6 +524,30 @@ def template(domain, depth, rng):
                 (1 / a + 1 / b, "Stops at the sum of reciprocals without inverting.", "missing-step"),
                 ((a + b) / (a * b), "Inverts the formula.", "inverted-operation"),
                 ((a + b) / 2, "Averages the resistances.", "wrong-operation")])
+        elif depth == 2 and rng.random() < 0.4:
+            # The paper's Q20 shape, read backwards: the equivalent resistance
+            # is given and one resistor is the unknown. Stated in words, so no
+            # circuit diagram is needed -- the paper draws one, and a generated
+            # question cannot.
+            known, want = rng.choice([(18, 27), (12, 24), (20, 30), (6, 12), (15, 10)])
+            value = want
+            req = known * want / (known + want)
+            stem = (f"Two resistors are connected in parallel. One of them is {known} Ω and the "
+                    f"pair has an equivalent resistance of {fmt(req)} Ω. What is the other "
+                    f"resistor?")
+            spec = {"kind": "compute", "vars": {"k": known, "e": req},
+                    "expr": "k*e/(k-e)", "digits": 2}
+            explain = (f"Rearranging $R_{{eq}} = \\frac{{R_1R_2}}{{R_1+R_2}}$ for the unknown "
+                       f"gives $R_2 = \\frac{{R_1R_{{eq}}}}{{R_1-R_{{eq}}}} = "
+                       f"\\frac{{{known} \\times {fmt(req)}}}{{{known} - {fmt(req)}}} = "
+                       f"{fmt(value)}$ Ω. The equivalent resistance is always below the smaller "
+                       f"resistor, which is the quickest check on an answer here.")
+            latex = rf"R_2 = \frac{{R_1R_{{eq}}}}{{R_1-R_{{eq}}}} = {fmt(value)}"
+            correct, wrong = build(value, " Ω", [
+                (known - req, "Subtracts as though resistances in parallel simply took away.", "wrong-rule"),
+                (known + req, "Adds as though the pair were in series.", "wrong-rule"),
+                (req * 2 - known, "Assumes the two resistors average to the equivalent.", "wrong-rule"),
+                (known * req / (known + req), "Applies the parallel formula again instead of inverting it.", "inverted-operation")])
         elif depth == 2:
             r1, r2, v = rng.choice([1, 2, 4]), rng.choice([3, 5, 8]), rng.choice([9, 12, 24])
             value = v * r2 / (r1 + r2)
@@ -541,6 +565,34 @@ def template(domain, depth, rng):
                 (v / (r1 + r2), "Reports the current, not the voltage.", "partial-answer"),
                 (v / r2, "Divides the supply by the resistance.", "wrong-rule"),
                 (v / 2, "Splits the supply equally, which only holds for equal resistors.", "wrong-rule")])
+        elif rng.random() < 0.4:
+            # The paper asks for a current inside a drawn network several times
+            # over. The topology that carries most of those -- a resistor in
+            # series with a parallel pair -- can be said in a sentence, so the
+            # same work is set without a diagram.
+            v, a = rng.choice([12, 24, 36]), rng.choice([2, 4, 6])
+            # The two branches must differ, or "the 6 Ω resistor" names both of
+            # them and the question has no single subject.
+            b, c = rng.choice([(6, 3), (6, 12), (12, 4), (12, 6), (8, 24)])
+            total = a + b * c / (b + c)
+            supply_current = v / total
+            value = supply_current * c / (b + c)
+            stem = (f"{_a(v).capitalize()} {v} V supply drives {_a(a)} {a} Ω resistor in series "
+                    f"with a parallel pair of {b} Ω and {c} Ω. What current flows in the {b} Ω "
+                    f"resistor, to 2 decimal places?")
+            spec = {"kind": "compute", "vars": {"v": v, "a": a, "b": b, "c": c},
+                    "expr": "(v/(a+b*c/(b+c)))*c/(b+c)", "digits": 2}
+            explain = (f"The pair reduces to {fmt(b * c / (b + c))} Ω, so the total is "
+                       f"{fmt(total)} Ω and the supply delivers {fmt(supply_current)} A. That "
+                       f"current splits between the pair in inverse proportion to their "
+                       f"resistances, so the {b} Ω branch takes "
+                       f"$\\frac{{{c}}}{{{b}+{c}}}$ of it, giving {fmt(value)} A.")
+            latex = rf"I_{{{b}}} = \frac{{V}}{{R_T}} \times \frac{{R_2}}{{R_1+R_2}} = {fmt(value)}"
+            correct, wrong = build(value, " A", [
+                (supply_current, "Reports the supply current without splitting it.", "missing-step"),
+                (supply_current * b / (b + c), "Splits the current the wrong way round -- the larger branch takes less.", "inverted-operation"),
+                (v / b, "Puts the whole supply across the branch.", "wrong-rule"),
+                (v / total / 2, "Halves the current, which only holds for equal branches.", "wrong-rule")])
         else:
             a, b, c = rng.choice([6, 10, 12]), rng.choice([3, 6, 12]), rng.choice([4, 8, 16])
             value = a * b / (a + b) + c

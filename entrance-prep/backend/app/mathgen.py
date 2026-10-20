@@ -316,6 +316,38 @@ def template(domain, depth, rng):
                 (m * x1 - y1, "Reverses the subtraction.", "sign-error"),
                 (y1 / m - x1, "Divides by the gradient.", "wrong-operation"),
                 (y1 - x1, "Omits the gradient.", "missing-step")])
+        elif rng.random() < 0.45:
+            # The paper plots resistance against voltage and asks for the line's
+            # equation, and elsewhere draws four lines and asks which one a given
+            # equation belongs to. Both are the same work -- gradient and
+            # intercept -- and both can be set from two readings instead of a
+            # drawing, which a generated question cannot supply.
+            x1, y1 = rng.randint(0, 3), rng.choice([10, 20, 40])
+            x2 = x1 + rng.choice([4, 5, 8, 10])
+            slope = rng.choice([0.8, 1.25, 1.45, 2.5])
+            y2 = y1 + slope * (x2 - x1)
+            # Asked at a third point, so the answer is a number the server can
+            # recompute rather than an equation it would have to parse.
+            x = x2 + rng.choice([2, 4, 6])
+            value = slope * x + y1 - slope * x1
+            stem = (f"A resistance-against-voltage plot is a straight line through "
+                    f"$({x1}, {y1})$ and $({x2}, {fmt(y2)})$, with resistance in ohms and "
+                    f"voltage in volts. What resistance does it give at ${x}$ V, to 2 decimal "
+                    f"places?")
+            spec = {"kind": "compute",
+                    "vars": {"x1": x1, "y1": y1, "x2": x2, "y2": y2, "x": x},
+                    "expr": "(y2-y1)/(x2-x1)*(x-x1)+y1", "digits": 2}
+            intercept = y1 - slope * x1
+            explain = (f"The gradient is $\\frac{{{fmt(y2)} - {y1}}}{{{x2} - {x1}}} = "
+                       f"{fmt(slope)}$ Ω per volt and the intercept is {fmt(intercept)} Ω, so the "
+                       f"line is $R = {fmt(slope)}V + {fmt(intercept)}$. At {x} V that gives "
+                       f"{fmt(value)} Ω.")
+            latex = rf"R = {fmt(slope)}V + {fmt(intercept)} = {fmt(value)}"
+            correct, wrong = build(value, " Ω", [
+                (slope * x, "Uses the gradient but drops the intercept.", "missing-step"),
+                (intercept, "Reports the intercept, which is the value at zero volts.", "partial-answer"),
+                (slope * (x - x1) + y1 + slope, "Reads one step too far along the line.", "extra-step"),
+                (y2, "Repeats the second reading.", "partial-answer")])
         else:
             x1, y1 = rng.randint(1, 4), rng.randint(2, 8)
             x2, y2 = x1 + rng.randint(3, 6), y1 + rng.randint(6, 18)
