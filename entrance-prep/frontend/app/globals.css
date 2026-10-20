@@ -718,6 +718,26 @@ main {
     margin-left: 0;
   }
 }
+/* The net mark under the paper's own rules, where a wrong answer costs one and
+   a blank costs nothing. Shown only after a mock, with the arithmetic spelled
+   out, because the number alone does not teach anything. */
+.result-marks {
+  margin: 14px 0 0;
+  padding: 12px 13px;
+  border-left: 3px solid var(--blue);
+  background: var(--light);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.result-marks strong {
+  font-size: 15px;
+}
+.result-marks span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+
 /* Section scores after a paper that spans more than one subject, which is how
    the real examination is marked. */
 .result-sections {

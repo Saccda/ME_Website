@@ -87,6 +87,16 @@ export type Attempt = {
   deadline: string | null;
   submitted: string | null;
   score: number | null;
+  // The real paper takes a mark off for a wrong answer and gives nothing for a
+  // blank, so a mock reports the net mark beside the number right.
+  marking: {
+    correct: number;
+    wrong: number;
+    unanswered: number;
+    marks: number;
+    penalty_per_wrong: number;
+  } | null;
+  penalty_per_wrong: number;
   server_time: string;
 };
 export type QuestionStat = {

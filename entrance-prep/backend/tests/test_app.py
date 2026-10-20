@@ -508,6 +508,41 @@ def test_physics_answers_are_recomputed_not_asserted(clients):
     assert all(q['validation']['method']=='deterministic' and q['validation']['passed'] for q in physics)
     assert {d['id'] for d in PHYSICS_DOMAINS}=={q['domain'] for q in physics}
 
+def test_a_mock_is_marked_like_the_paper_and_practice_is_not(clients):
+    teacher,student=clients
+    body={'name':'Marking','minutes':20,'published':True,
+          'rows':[{'subject':'logic','domain':'patterns','count':4,'options':4}]}
+    bid=teacher.post('/api/blueprints',json=body).json()['id']
+    a=student.post('/api/attempts',json={'mode':'mock','blueprint_id':bid}).json()
+    # Two right, one wrong, one left blank.
+    with SessionLocal() as db:
+        keys={q['id']:db.get(Question,q['id']).content['correct'] for q in a['questions']}
+    qs=a['questions']
+    for q in qs[:2]:
+        student.post(f"/api/attempts/{a['id']}/answer",json={'question_id':q['id'],'option_id':keys[q['id']]})
+    wrong=next(o for o in 'ABCD' if o!=keys[qs[2]['id']])
+    student.post(f"/api/attempts/{a['id']}/answer",json={'question_id':qs[2]['id'],'option_id':wrong})
+    done=student.post(f"/api/attempts/{a['id']}/submit").json()
+    m=done['marking']
+    assert (m['correct'],m['wrong'],m['unanswered'])==(2,1,1)
+    # The paper takes a mark off for a wrong answer and nothing for a blank, so
+    # guessing costs. Two right less one wrong is one mark, not two.
+    assert m['penalty_per_wrong']==1 and m['marks']==1
+    # "score" still means the number right, which every existing caller assumes.
+    assert done['score']==2
+
+    # Practice is marked plainly: penalising a wrong answer while someone is
+    # still learning the topic teaches silence rather than physics.
+    p=student.post('/api/attempts',json={'mode':'practice','count':3,'options':4}).json()
+    with SessionLocal() as db:
+        pk={q['id']:db.get(Question,q['id']).content['correct'] for q in p['questions']}
+    first=p['questions'][0]
+    bad=next(o for o in 'ABCD' if o!=pk[first['id']])
+    student.post(f"/api/attempts/{p['id']}/answer",json={'question_id':first['id'],'option_id':bad})
+    fin=student.post(f"/api/attempts/{p['id']}/submit").json()
+    assert fin['marking']['penalty_per_wrong']==0
+    assert fin['marking']['marks']==fin['marking']['correct']
+
 def test_units_are_compared_as_quantities_not_as_numbers():
     from app.validation import same_quantity,parse_quantity
     # The paper asks "which one is equal to 5 J?" with four options that all

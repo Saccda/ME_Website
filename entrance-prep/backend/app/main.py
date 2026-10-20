@@ -622,6 +622,21 @@ class AttemptStart(StrictModel):
     blueprint_id:str|None=None
     origin:Literal['all','original','textbook','exam-bank']='all'
 
+# The real paper deducts a mark for a wrong answer and gives nothing for a
+# blank, so a guess is not free. Only a mock is marked that way: practice and
+# timed practice are there to learn a topic, and penalising a wrong answer
+# while someone is still learning it teaches silence rather than physics.
+WRONG_ANSWER_PENALTY=1
+
+def marking(a):
+    """Correct, wrong, unanswered and the net marks under the paper's rules."""
+    correct=sum(a.answers.get(q["id"])==q["content"]["correct"] for q in a.snapshots)
+    answered=sum(1 for q in a.snapshots if a.answers.get(q["id"]))
+    wrong=answered-correct
+    penalty=WRONG_ANSWER_PENALTY if a.mode=="mock" else 0
+    return {"correct":correct,"wrong":wrong,"unanswered":len(a.snapshots)-answered,
+            "marks":correct-wrong*penalty,"penalty_per_wrong":penalty}
+
 def attempt_view(a):
     finished=a.submitted is not None
     questions=[]
@@ -633,7 +648,11 @@ def attempt_view(a):
         if feedback:
             public["feedback"]={"correct":c["correct"],"explanation":c["explanation"],"math":c.get("math"),"options":c["options"],"is_correct":answer==c["correct"]}
         questions.append(public)
-    return {"id":a.id,"mode":a.mode,"title":a.title,"started":utc(a.started).isoformat(),"deadline":utc(a.deadline).isoformat() if a.deadline else None,"submitted":utc(a.submitted).isoformat() if finished else None,"answers":a.answers,"questions":questions,"score":sum(a.answers.get(q["id"])==q["content"]["correct"] for q in a.snapshots) if finished else None,"server_time":now().isoformat()}
+    marks=marking(a)
+    # "score" stays the number right, which is what every existing caller means
+    # by it. The paper's net mark is reported beside it rather than in place of
+    # it, so a student sees both what they knew and what the guessing cost.
+    return {"id":a.id,"mode":a.mode,"title":a.title,"started":utc(a.started).isoformat(),"deadline":utc(a.deadline).isoformat() if a.deadline else None,"submitted":utc(a.submitted).isoformat() if finished else None,"answers":a.answers,"questions":questions,"score":marks["correct"] if finished else None,"marking":marks if finished else None,"penalty_per_wrong":marks["penalty_per_wrong"],"server_time":now().isoformat()}
 
 @app.post("/api/attempts")
 def start(body:AttemptStart,u=Depends(current_user),db=Depends(db_session)):

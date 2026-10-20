@@ -3220,7 +3220,9 @@ function AttemptPlayer({
               ? `${a.score} / ${a.questions.length} correct${missedCount ? ` · ${missedCount} not answered` : ""} · Review the working below.`
               : a.mode === "practice"
                 ? "Check your answer to see the working."
-                : "Explanations are available after you submit."}
+                : a.penalty_per_wrong > 0
+                  ? "Marked like the real paper: a wrong answer costs a mark, a blank costs nothing. Leave it rather than guess."
+                  : "Explanations are available after you submit."}
           </p>
         </div>
         {a.deadline && !done && (
@@ -3357,6 +3359,24 @@ function AttemptPlayer({
                   </li>
                 )}
               </ul>
+              {/* Only a mock is marked the paper's way. Showing the arithmetic
+                  rather than just the net mark is the point: a student who
+                  guessed eight times can see exactly what it cost them. */}
+              {a.marking && a.marking.penalty_per_wrong > 0 && (
+                <p className="result-marks">
+                  <strong>{a.marking.marks} marks</strong> under the real
+                  paper&rsquo;s rules
+                  <span>
+                    {a.marking.correct} correct
+                    {a.marking.wrong > 0
+                      ? `, less ${a.marking.wrong} for wrong answers`
+                      : ", nothing lost to wrong answers"}
+                    {a.marking.unanswered > 0
+                      ? `. ${a.marking.unanswered} left blank cost nothing.`
+                      : "."}
+                  </span>
+                </p>
+              )}
               {sectionRows && (
                 <ul className="result-sections">
                   {Object.entries(sectionRows).map(([id, s]) => (
