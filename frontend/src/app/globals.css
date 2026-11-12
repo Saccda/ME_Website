@@ -6396,6 +6396,48 @@ a.partner-logo:focus-visible {
   color: var(--muted);
 }
 
+/* Ten outcomes, so these are deliberately not the tall cards of .outcome-grid
+   above: at 260px each that would be five screens of page, and the numbering
+   matters more than the picture-frame. An ordered list, because they are
+   numbered statements in an approved document and read as one. */
+.plo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(330px, 100%), 1fr));
+  gap: 20px 26px;
+  margin: clamp(26px, 3vw, 38px) 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: plo;
+}
+
+.plo-grid li {
+  padding: 20px 22px;
+  background: var(--white);
+  border-top: 3px solid var(--brand-gold);
+}
+
+.plo-grid .plo-code {
+  margin: 0;
+  color: var(--brand-navy);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.plo-grid h3 {
+  margin: 6px 0 9px;
+  font-size: 1.04rem;
+  line-height: 1.3;
+}
+
+.plo-grid li > p:last-child {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
 .detail-section-heading {
   width: 100%;
   max-width: 1180px;

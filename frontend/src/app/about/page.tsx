@@ -3,6 +3,7 @@ import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import VisionMark from "@/components/VisionMark";
 import { getHomeData } from "@/lib/api";
+import { programLearningOutcomes } from "@/lib/programOutcomes";
 
 export const dynamic = "force-dynamic";
 
@@ -87,10 +88,20 @@ export default async function AboutPage() {
                 <h2>What every graduate will know and be able to do</h2>
               </div>
               <p>
-                The approved PLO statements from the Mechanical Engineering
-                program development document will be published here.
+                Ten outcomes every graduate of the program is expected to
+                demonstrate, as approved in the Mechanical Engineering program
+                development document.
               </p>
             </div>
+            <ol className="plo-grid">
+              {programLearningOutcomes.map((outcome) => (
+                <li key={outcome.code}>
+                  <p className="plo-code">{outcome.code}</p>
+                  <h3>{outcome.title}</h3>
+                  <p>{outcome.statement}</p>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
       </main>
