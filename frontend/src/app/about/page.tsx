@@ -3,7 +3,10 @@ import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import VisionMark from "@/components/VisionMark";
 import { getHomeData } from "@/lib/api";
-import { programLearningOutcomes } from "@/lib/programOutcomes";
+import {
+  programEducationalObjectives,
+  programLearningOutcomes,
+} from "@/lib/programOutcomes";
 
 export const dynamic = "force-dynamic";
 
@@ -73,10 +76,21 @@ export default async function AboutPage() {
                 <h2>What graduates are prepared to achieve</h2>
               </div>
               <p>
-                The approved PEO statements from the Mechanical Engineering
-                program development document will be published here.
+                What the program sets out to equip its graduates for, as
+                approved in the Mechanical Engineering program development
+                document.
               </p>
             </div>
+            <ol className="outcome-list">
+              {programEducationalObjectives.map((objective) => (
+                <li key={objective.code}>
+                  <div>
+                    <p className="outcome-code">{objective.code}</p>
+                  </div>
+                  <p>{objective.statement}</p>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
 
@@ -93,11 +107,13 @@ export default async function AboutPage() {
                 development document.
               </p>
             </div>
-            <ol className="plo-grid">
+            <ol className="outcome-list">
               {programLearningOutcomes.map((outcome) => (
                 <li key={outcome.code}>
-                  <p className="plo-code">{outcome.code}</p>
-                  <h3>{outcome.title}</h3>
+                  <div>
+                    <p className="outcome-code">{outcome.code}</p>
+                    <h3>{outcome.title}</h3>
+                  </div>
                   <p>{outcome.statement}</p>
                 </li>
               ))}

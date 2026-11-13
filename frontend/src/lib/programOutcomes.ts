@@ -4,6 +4,37 @@ export type ProgramLearningOutcome = {
   statement: string;
 };
 
+export type ProgramEducationalObjective = {
+  code: string;
+  statement: string;
+};
+
+/**
+ * The three approved Program Educational Objectives.
+ *
+ * From the same document as the outcomes below, and carried across under the
+ * same rule: the wording is the document's. Unlike the PLOs these carry no
+ * short name of their own, only a numbered statement, so none is invented for
+ * them here.
+ */
+export const programEducationalObjectives: ProgramEducationalObjective[] = [
+  {
+    code: "PEO1",
+    statement:
+      "To prepare graduates with mechanical engineering competencies to solve workplace problems while upholding professional ethics.",
+  },
+  {
+    code: "PEO2",
+    statement:
+      "To prepare graduates to protect human well-being and the environment, contributing to sustainable development.",
+  },
+  {
+    code: "PEO3",
+    statement:
+      "To prepare graduates to continuously develop their competencies in order to keep pace with rapid technological advancement and globalization.",
+  },
+];
+
 /**
  * The ten approved Program Learning Outcomes.
  *

@@ -6396,27 +6396,33 @@ a.partner-logo:focus-visible {
   color: var(--muted);
 }
 
-/* Ten outcomes, so these are deliberately not the tall cards of .outcome-grid
-   above: at 260px each that would be five screens of page, and the numbering
-   matters more than the picture-frame. An ordered list, because they are
-   numbered statements in an approved document and read as one. */
-.plo-grid {
+/* Objectives and outcomes: one card per statement, stacked. Not the tall cards
+   of .outcome-grid above, which are built for four career paths and depend on
+   a focus accent these pages do not set, and not a multi-column grid either --
+   a reader goes down a numbered list in order, and columns make them hunt.
+   An ordered list, because that is what they are in the document.
+
+   Each card is two columns: the number and its short name on the left, the
+   statement on the right. The left column is fixed so every number lines up
+   down the page, which is what makes the set scannable. */
+.outcome-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(330px, 100%), 1fr));
-  gap: 20px 26px;
+  gap: 12px;
   margin: clamp(26px, 3vw, 38px) 0 0;
   padding: 0;
   list-style: none;
-  counter-reset: plo;
 }
 
-.plo-grid li {
-  padding: 20px 22px;
+.outcome-list li {
+  display: grid;
+  grid-template-columns: minmax(170px, 250px) 1fr;
+  gap: 6px 32px;
+  padding: 20px 24px;
   background: var(--white);
-  border-top: 3px solid var(--brand-gold);
+  border-left: 3px solid var(--brand-gold);
 }
 
-.plo-grid .plo-code {
+.outcome-list .outcome-code {
   margin: 0;
   color: var(--brand-navy);
   font-size: 0.72rem;
@@ -6425,17 +6431,26 @@ a.partner-logo:focus-visible {
   text-transform: uppercase;
 }
 
-.plo-grid h3 {
-  margin: 6px 0 9px;
-  font-size: 1.04rem;
-  line-height: 1.3;
+.outcome-list h3 {
+  margin: 5px 0 0;
+  font-size: 1.01rem;
+  line-height: 1.32;
 }
 
-.plo-grid li > p:last-child {
+.outcome-list li > p {
   margin: 0;
   color: var(--muted);
-  font-size: 0.92rem;
-  line-height: 1.6;
+  font-size: 0.94rem;
+  line-height: 1.65;
+}
+
+/* On a phone the two columns become one, so the number sits above its
+   statement rather than squeezing it into half a screen. */
+@media (max-width: 720px) {
+  .outcome-list li {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 }
 
 .detail-section-heading {
