@@ -4,6 +4,22 @@ export type ProgramLearningOutcome = {
   statement: string;
 };
 
+/**
+ * "PLO7" as its scheme and a two-digit number, for display.
+ *
+ * Read off the code rather than the array position, so the page cannot drift
+ * out of step with the document if an entry is ever added or re-ordered: the
+ * number a reader cites is the one written here, not where it happens to sit.
+ */
+export function splitOutcomeCode(code: string): {
+  scheme: string;
+  number: string;
+} {
+  const parts = /^([A-Za-z]+)(\d+)$/.exec(code);
+  if (!parts) return { scheme: code, number: "" };
+  return { scheme: parts[1], number: parts[2].padStart(2, "0") };
+}
+
 export type ProgramEducationalObjective = {
   code: string;
   statement: string;

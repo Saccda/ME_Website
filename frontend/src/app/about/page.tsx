@@ -6,6 +6,7 @@ import { getHomeData } from "@/lib/api";
 import {
   programEducationalObjectives,
   programLearningOutcomes,
+  splitOutcomeCode,
 } from "@/lib/programOutcomes";
 
 export const dynamic = "force-dynamic";
@@ -81,15 +82,19 @@ export default async function AboutPage() {
                 document.
               </p>
             </div>
-            <ol className="outcome-list">
-              {programEducationalObjectives.map((objective) => (
-                <li key={objective.code}>
-                  <div>
-                    <p className="outcome-code">{objective.code}</p>
-                  </div>
-                  <p>{objective.statement}</p>
-                </li>
-              ))}
+            <ol className="objective-grid">
+              {programEducationalObjectives.map((objective) => {
+                const { scheme, number } = splitOutcomeCode(objective.code);
+                return (
+                  <li key={objective.code}>
+                    <p className="outcome-index">
+                      <span>{scheme}</span>
+                      <strong>{number}</strong>
+                    </p>
+                    <p>{objective.statement}</p>
+                  </li>
+                );
+              })}
             </ol>
           </div>
         </section>
@@ -108,15 +113,21 @@ export default async function AboutPage() {
               </p>
             </div>
             <ol className="outcome-list">
-              {programLearningOutcomes.map((outcome) => (
-                <li key={outcome.code}>
-                  <div>
-                    <p className="outcome-code">{outcome.code}</p>
-                    <h3>{outcome.title}</h3>
-                  </div>
-                  <p>{outcome.statement}</p>
-                </li>
-              ))}
+              {programLearningOutcomes.map((outcome) => {
+                const { scheme, number } = splitOutcomeCode(outcome.code);
+                return (
+                  <li key={outcome.code}>
+                    <p className="outcome-index">
+                      <span>{scheme}</span>
+                      <strong>{number}</strong>
+                    </p>
+                    <div>
+                      <h3>{outcome.title}</h3>
+                      <p>{outcome.statement}</p>
+                    </div>
+                  </li>
+                );
+              })}
             </ol>
           </div>
         </section>

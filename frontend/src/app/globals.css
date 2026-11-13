@@ -6396,60 +6396,148 @@ a.partner-logo:focus-visible {
   color: var(--muted);
 }
 
-/* Objectives and outcomes: one card per statement, stacked. Not the tall cards
-   of .outcome-grid above, which are built for four career paths and depend on
-   a focus accent these pages do not set, and not a multi-column grid either --
-   a reader goes down a numbered list in order, and columns make them hunt.
-   An ordered list, because that is what they are in the document.
+/* Program objectives and outcomes.
+   -------------------------------------------------------------------------
+   Both use the card language the mission and focus sections already use --
+   a hairline border, a serif numeral in gold, a lift on hover -- rather than
+   a flat bar, which read as unstyled content next to the rest of the page.
 
-   Each card is two columns: the number and its short name on the left, the
-   statement on the right. The left column is fixed so every number lines up
-   down the page, which is what makes the set scannable. */
-.outcome-list {
+   The numeral is the anchor. It is what a reader cites and what they scan
+   for, so it gets the serif face and the gold, with the scheme above it in
+   small caps: "PLO" over "07" is unambiguous without repeating itself. */
+.outcome-index {
+  margin: 0;
   display: grid;
-  gap: 12px;
+  gap: 1px;
+  align-content: start;
+}
+
+.outcome-index span {
+  color: var(--muted);
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.outcome-index strong {
+  color: var(--brand-gold);
+  font-family: var(--font-serif);
+  font-size: 2.05rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.objective-grid,
+.outcome-list {
   margin: clamp(26px, 3vw, 38px) 0 0;
   padding: 0;
   list-style: none;
+  display: grid;
+}
+
+/* Three objectives, so they sit across the page as equals rather than as
+   three wide bands with most of their width empty. The statement carries the
+   serif face: these are the program's claims about its graduates, and they
+   are short enough to be read as statements rather than as body copy. */
+.objective-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(270px, 100%), 1fr));
+  gap: 16px;
+}
+
+.objective-grid li {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+  padding: 28px 26px 30px;
+}
+
+.objective-grid li > p:last-child {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  line-height: 1.55;
+}
+
+/* Ten outcomes, one card to a row: a reader goes down a numbered set in
+   order, and columns make them hunt for the seventh instead of finding it
+   where the seventh thing should be. */
+.outcome-list {
+  gap: 11px;
 }
 
 .outcome-list li {
   display: grid;
-  grid-template-columns: minmax(170px, 250px) 1fr;
-  gap: 6px 32px;
-  padding: 20px 24px;
-  background: var(--white);
-  border-left: 3px solid var(--brand-gold);
-}
-
-.outcome-list .outcome-code {
-  margin: 0;
-  color: var(--brand-navy);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  grid-template-columns: 72px 1fr;
+  gap: 0 26px;
+  align-items: start;
+  padding: 22px 26px;
 }
 
 .outcome-list h3 {
-  margin: 5px 0 0;
-  font-size: 1.01rem;
-  line-height: 1.32;
+  margin: 0 0 7px;
+  color: var(--brand-navy);
+  font-size: 1.05rem;
+  line-height: 1.3;
 }
 
-.outcome-list li > p {
+.outcome-list li p:last-child {
   margin: 0;
   color: var(--muted);
   font-size: 0.94rem;
   line-height: 1.65;
+  max-width: 78ch;
 }
 
-/* On a phone the two columns become one, so the number sits above its
-   statement rather than squeezing it into half a screen. */
+.objective-grid li,
+.outcome-list li {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+/* A white card on the white band is no card at all, which is what the first
+   attempt did to the objectives. Each takes the other band's colour, so both
+   read as cards wherever the section alternation puts them. */
+.section.white .objective-grid li,
+.section.white .outcome-list li {
+  background: var(--cream);
+}
+
+.section.cream .objective-grid li,
+.section.cream .outcome-list li {
+  background: var(--white);
+}
+
+.objective-grid li:hover,
+.outcome-list li:hover {
+  transform: translateY(-3px);
+  border-color: var(--brand-gold);
+  box-shadow: 0 14px 30px rgba(7, 29, 46, 0.11);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .objective-grid li,
+  .outcome-list li {
+    transition: none;
+  }
+
+  .objective-grid li:hover,
+  .outcome-list li:hover {
+    transform: none;
+  }
+}
+
+/* On a phone the numeral sits above its statement rather than taking a
+   column out of an already narrow screen. */
 @media (max-width: 720px) {
   .outcome-list li {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 12px;
   }
 }
 
