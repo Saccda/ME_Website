@@ -748,9 +748,48 @@ img {
 }
 
 /* The hero already separates this band from the header, so it does not need a
-   full section's padding on top of it as well. */
-.archive-section {
+   full section's padding on top of it as well.
+
+   Qualified with .section deliberately: `.section` sets padding as a shorthand
+   further down this file, so at equal specificity it won in the cascade and
+   this rule did nothing -- the band kept all 130px of it. */
+.section.archive-section {
   padding-top: clamp(30px, 3.4vw, 48px);
+}
+
+/* Same reasoning as the archive band below it: the hero already separates this
+   from the header, and what a reader came for is the events, not the gap above
+   them. */
+.section.upcoming-section {
+  padding-top: clamp(30px, 3.4vw, 48px);
+}
+
+/* The upcoming strip with nothing in it. As a full band it spent 420px of the
+   first screen on one sentence and pushed the first article below the fold, so
+   with nothing to list it reads as a slim notice instead. The anchor stays
+   either way; see the comment in news-events/page.tsx. */
+.upcoming-note {
+  padding: 20px 0 22px;
+  background: var(--cream);
+  border-bottom: 1px solid var(--line);
+}
+
+.upcoming-note .shell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px clamp(16px, 2vw, 28px);
+}
+
+.upcoming-note .eyebrow {
+  margin: 0;
+}
+
+.upcoming-note p:last-child {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .archive-head {

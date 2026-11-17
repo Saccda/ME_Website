@@ -78,37 +78,41 @@ export default async function NewsEventsPage() {
           </div>
         </section>
 
-        {/* Always rendered, empty state and all: the header links to
-            #upcoming, and an anchor that exists only when there happens to be
-            an event is an anchor that breaks. */}
-        <section className="section cream" id="upcoming">
+        {/* The #upcoming anchor the header links to exists in both branches:
+            an anchor that is there only when there happens to be an event is
+            an anchor that breaks. What changes is how much of the first screen
+            it is worth -- a full band for events, a slim line for none. */}
+        {upcoming.length > 0 ? (
+          <section className="section cream upcoming-section" id="upcoming">
             <div className="shell">
               <div className="detail-section-heading">
                 <div>
                   <p className="eyebrow">Upcoming</p>
                   <h2>
-                    {upcoming.length === 0
-                      ? "Events and open houses"
-                      : upcoming.length === 1
-                        ? "One event coming up"
-                        : `${upcoming.length} events coming up`}
+                    {upcoming.length === 1
+                      ? "One event coming up"
+                      : `${upcoming.length} events coming up`}
                   </h2>
                 </div>
               </div>
-              {upcoming.length > 0 ? (
-                <div className="upcoming-grid">
-                  {upcoming.map((item) => (
-                    <UpcomingCard item={item} key={item.id} />
-                  ))}
-                </div>
-              ) : (
-                <p className="section-empty-copy">
-                  Nothing is scheduled at the moment. Past events are in the
-                  archive below.
-                </p>
-              )}
+              <div className="upcoming-grid">
+                {upcoming.map((item) => (
+                  <UpcomingCard item={item} key={item.id} />
+                ))}
+              </div>
             </div>
           </section>
+        ) : (
+          <section className="upcoming-note" id="upcoming">
+            <div className="shell">
+              <p className="eyebrow">Upcoming</p>
+              <p>
+                Nothing is scheduled at the moment. Past events are in the
+                archive below.
+              </p>
+            </div>
+          </section>
+        )}
 
         <section className="section white archive-section" id="latest">
           <div className="shell">
