@@ -1761,12 +1761,12 @@ class MissionAlignmentTests(TestCase):
     def test_the_alignment_is_published_with_the_story(self):
         self.story("students-on-the-machines", mission="teaching")
         self.story("a-field-trial", mission="research")
-        self.story("an-open-week", mission="both")
+        self.story("an-open-week", mission="society")
 
         stories = self.payload()
         self.assertEqual(stories["students-on-the-machines"]["mission"], "teaching")
         self.assertEqual(stories["a-field-trial"]["mission"], "research")
-        self.assertEqual(stories["an-open-week"]["mission"], "both")
+        self.assertEqual(stories["an-open-week"]["mission"], "society")
 
     def test_an_unfiled_story_says_so_rather_than_guessing(self):
         """Blank is a real answer: a notice that records no activity.
@@ -1777,9 +1777,20 @@ class MissionAlignmentTests(TestCase):
         self.story("a-notice")
         self.assertEqual(self.payload()["a-notice"]["mission"], "")
 
-    def test_the_choices_are_the_two_missions_and_both(self):
+    def test_the_choices_are_the_three_missions(self):
         field = NewsEvent._meta.get_field("mission")
         self.assertEqual(
             [value for value, _ in field.choices],
-            ["teaching", "research", "both"],
+            ["teaching", "research", "society"],
         )
+
+    def test_all_three_mission_statements_are_published(self):
+        """The site has a page per mission, so a missing third statement
+        would leave one of them headed but empty."""
+        ProgramSettings.objects.get_or_create(
+            site=Site.objects.filter(is_default_site=True).first()
+        )
+        settings = self.client.get(reverse("home-data")).json()["settings"]
+        self.assertIn("mission_three", settings)
+        for field in ("mission_one", "mission_two", "mission_three"):
+            self.assertTrue(settings[field].strip(), field)

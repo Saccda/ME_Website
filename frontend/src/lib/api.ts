@@ -48,6 +48,8 @@ export type ProgramSettings = {
   vision: string;
   mission_one: string;
   mission_two: string;
+  /** Empty on a backend that predates the program's third mission. */
+  mission_three: string;
   program_years: number;
   credit_hours: number;
   address: string;
@@ -328,7 +330,7 @@ export type NewsEvent = {
    * Empty for a story that records no activity, and on a backend that
    * predates the field -- `lib/missions.ts` covers that second case.
    */
-  mission: "teaching" | "research" | "both" | "";
+  mission: "teaching" | "research" | "society" | "";
   category: string;
   title: string;
   slug: string;
@@ -638,9 +640,11 @@ const fallbackData: HomeData = {
     vision:
       "To become a leader in Mechanical Engineering Education by infusing technology and social engagement into teaching and learning, research, and innovation for the advancement of society",
     mission_one:
-      "To provide a modern mechanical engineering education by infusing social engagement and technology into educational activity for an effective educational program.",
+      "Equipping students with rigorous engineering fundamentals, practical hands-on competence, ethical values, and lifelong learning attitudes across all ME primary focuses.",
     mission_two:
-      "To collaborate with university partners on mechanical engineering to enforce proactive research activities that lead to an advancement of research and innovation.",
+      "Conducting high-quality, industry-relevant research and technological innovation to advance sustainable industrial productivity and engineering practices.",
+    mission_three:
+      "Collaborating actively with industry, government, and local communities to develop practical, resilient engineering solutions.",
     program_years: 4,
     credit_hours: 120,
     address:

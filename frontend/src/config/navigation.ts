@@ -23,8 +23,18 @@ export const navigationItems: readonly NavigationSection[] = [
         label: "Mission",
         href: "/about#mission",
         children: [
-          { label: "M1 — Teaching & Learning", href: "/mission/teaching-and-learning" },
-          { label: "M2 — Research & Innovation", href: "/mission/research-and-innovation" },
+          {
+            label: "M1 — Teaching & Learning",
+            href: "/mission/teaching-and-learning",
+          },
+          {
+            label: "M2 — Applied Research & Innovation",
+            href: "/mission/research-and-innovation",
+          },
+          {
+            label: "M3 — Societal Engagement",
+            href: "/mission/societal-engagement",
+          },
         ],
       },
       {

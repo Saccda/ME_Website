@@ -9,9 +9,22 @@
  * and U+25CE, and the Segoe stack has no glyph for the first: M1 carried a
  * 4px speck where an icon was meant to be.
  */
-export type MissionIconKey = "teaching" | "research";
+export type MissionIconKey = "teaching" | "research" | "society";
 
 function Glyph({ name }: { name: MissionIconKey }) {
+  if (name === "society") {
+    // Three parties joined, none of them the centre: industry, government
+    // and community, with the program as one node among them.
+    return (
+      <>
+        <path d="M16 7.4 7.2 23.2h17.6Z" />
+        <circle cx="16" cy="5.2" r="3.1" />
+        <circle cx="25.6" cy="24.8" r="3.1" />
+        <circle className="mission-icon-accent" cx="6.4" cy="24.8" r="3.1" />
+      </>
+    );
+  }
+
   if (name === "teaching") {
     // A mortarboard over the head it sits on: education, conferred.
     return (

@@ -59,9 +59,10 @@ export default async function AboutPage() {
                 <h2>How we deliver the vision</h2>
               </div>
               <p>
-                The work of the program falls into two halves. Each one has a
-                page of its own recording what has actually been done against
-                it.
+                The Bachelor of Engineering in Mechanical Engineering program
+                at the Royal University of Phnom Penh is dedicated to three
+                missions. Each one has a page of its own, recording what has
+                actually been done against it.
               </p>
             </div>
             <div className="mission-grid">
@@ -109,7 +110,11 @@ export default async function AboutPage() {
                 document.
               </p>
             </div>
-            <ol className="objective-grid">
+            {/* The same rows as the outcomes below. They are the same kind of
+                thing from the same document, and three objectives across the
+                page while ten outcomes run down it made them look like two
+                unrelated components. */}
+            <ol className="outcome-list is-objectives">
               {programEducationalObjectives.map((objective) => {
                 const { scheme, number } = splitOutcomeCode(objective.code);
                 return (

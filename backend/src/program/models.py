@@ -211,19 +211,31 @@ class ProgramSettings(BaseSiteSetting):
             "and innovation for the advancement of society"
         )
     )
+    # The three approved missions. Revised in November 2026 from two to three;
+    # the wording is the program development document's, and the site has a
+    # page for each one.
     mission_one = models.TextField(
+        verbose_name="Mission 1 - Teaching & Learning",
         default=(
-            "To provide a modern mechanical engineering education by infusing social "
-            "engagement and technology into educational activity for an effective "
-            "educational program."
-        )
+            "Equipping students with rigorous engineering fundamentals, practical "
+            "hands-on competence, ethical values, and lifelong learning attitudes "
+            "across all ME primary focuses."
+        ),
     )
     mission_two = models.TextField(
+        verbose_name="Mission 2 - Applied Research & Innovation",
         default=(
-            "To collaborate with university partners on mechanical engineering to "
-            "enforce proactive research activities that lead to an advancement of "
-            "research and innovation."
-        )
+            "Conducting high-quality, industry-relevant research and technological "
+            "innovation to advance sustainable industrial productivity and "
+            "engineering practices."
+        ),
+    )
+    mission_three = models.TextField(
+        verbose_name="Mission 3 - Societal Engagement",
+        default=(
+            "Collaborating actively with industry, government, and local "
+            "communities to develop practical, resilient engineering solutions."
+        ),
     )
     program_years = models.PositiveSmallIntegerField(default=4)
     credit_hours = models.PositiveSmallIntegerField(default=140)
@@ -342,6 +354,7 @@ class ProgramSettings(BaseSiteSetting):
                 FieldPanel("vision"),
                 FieldPanel("mission_one"),
                 FieldPanel("mission_two"),
+                FieldPanel("mission_three"),
             ],
             heading="Vision and mission",
         ),
@@ -1220,8 +1233,8 @@ class NewsEvent(ClusterableModel, OrderedModel):
     # story rather than to the site's code.
     MISSIONS = (
         ("teaching", "M1 - Teaching & Learning"),
-        ("research", "M2 - Research & Innovation"),
-        ("both", "Both missions"),
+        ("research", "M2 - Applied Research & Innovation"),
+        ("society", "M3 - Societal Engagement"),
     )
 
     content_type = models.CharField(max_length=10, choices=CONTENT_TYPES, default="news")
@@ -1232,7 +1245,7 @@ class NewsEvent(ClusterableModel, OrderedModel):
         verbose_name="Mission alignment",
         help_text=(
             "Which mission page lists this activity. Leave empty and it is "
-            "listed on neither, which is the right answer for an "
+            "listed on none of them, which is the right answer for an "
             "announcement that records no activity."
         ),
     )

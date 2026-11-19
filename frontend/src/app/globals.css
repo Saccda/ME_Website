@@ -1485,21 +1485,33 @@ img {
   grid-template-columns: 1fr;
 }
 
+/* The label that names a section. At 0.87rem it was 14px of small caps
+   introducing a 51px heading, so it read as a caption on the heading rather
+   than as the name of the section. */
 .eyebrow {
   margin: 0 0 18px;
   color: #315269;
-  font-size: 0.87rem;
+  font-size: 0.98rem;
   font-weight: 850;
   letter-spacing: 0.025em;
 }
 
 .eyebrow::before {
   display: inline-block;
-  width: 36px;
+  width: 40px;
   height: 2px;
-  margin: 0 12px 3px 0;
+  margin: 0 12px 4px 0;
   content: "";
   background: var(--gold);
+}
+
+/* The full section headings carry it a step larger again: these are the
+   ones a reader navigates a long page by. */
+.detail-section-heading .eyebrow,
+.section-intro .eyebrow,
+.section-masthead .eyebrow {
+  font-size: 1.08rem;
+  letter-spacing: 0.03em;
 }
 
 .eyebrow.light {
@@ -2092,9 +2104,12 @@ img {
    program uses for that half of its work, the approved statement at reading
    size, and how much has been filed under it, which is the part that makes
    the card worth opening. */
+/* Three across on a wide screen, and it folds to two then one on its own:
+   a fixed three-column track would put the third card's title on four lines
+   on a tablet. */
 .mission-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr));
   gap: clamp(16px, 1.6vw, 22px);
 }
 
@@ -2112,7 +2127,7 @@ img {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: clamp(26px, 2.6vw, 38px);
+  padding: clamp(22px, 2.2vw, 30px);
   color: inherit;
   text-decoration: none;
 }
@@ -2140,7 +2155,7 @@ img {
   margin: 0;
   color: var(--brand-gold);
   font-family: var(--font-serif);
-  font-size: clamp(2rem, 2.6vw, 2.5rem);
+  font-size: clamp(1.8rem, 2.1vw, 2.15rem);
   line-height: 1;
 }
 
@@ -2154,8 +2169,8 @@ img {
 }
 
 .mission-icon {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   display: block;
   fill: none;
   stroke: var(--brand-navy);
@@ -2180,9 +2195,9 @@ img {
 
 .mission-card h3 {
   margin: 0;
-  font-size: clamp(1.35rem, 1.95vw, 1.75rem);
-  line-height: 1.1;
-  letter-spacing: -0.025em;
+  font-size: clamp(1.22rem, 1.55vw, 1.48rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
 }
 
 /* The statement in five words, for a reader deciding which card to open
@@ -2473,35 +2488,66 @@ img {
   color: var(--white);
 }
 
-.mission-next-band .shell {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 22px clamp(24px, 3vw, 40px);
-}
-
-.mission-next-band > .shell > div > p:first-child {
-  margin: 0 0 8px;
+.mission-next-label {
+  margin: 0 0 20px;
   color: var(--brand-gold);
-  font-size: 0.84rem;
+  font-size: 0.95rem;
   font-weight: 750;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.mission-next-band h2 {
-  margin: 0 0 10px;
-  font-size: clamp(1.4rem, 2.4vw, 2rem);
-  line-height: 1.1;
+/* Two destinations now, so the band is a pair of panels rather than one
+   heading with a button after it. */
+.mission-next-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.mission-next-band > .shell > div > p:last-child {
-  max-width: 62ch;
-  margin: 0;
+.mission-next-list a {
+  display: grid;
+  gap: 6px;
+  height: 100%;
+  padding: 22px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--card-radius);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 200ms ease,
+    background 200ms ease,
+    transform 200ms ease;
+}
+
+.mission-next-list a:hover,
+.mission-next-list a:focus-visible {
+  border-color: var(--brand-gold);
+  background: rgba(255, 255, 255, 0.09);
+  transform: translateY(-3px);
+}
+
+.mission-next-list span {
+  color: var(--brand-gold);
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.mission-next-list strong {
+  font-size: 1.22rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.mission-next-list em {
   color: #c3cfd8;
-  font-size: 0.98rem;
-  line-height: 1.6;
+  font-size: 0.92rem;
+  font-style: normal;
 }
 
 /* The tally stops being a column beside the statement and becomes a row of
@@ -6888,7 +6934,6 @@ a.partner-logo:focus-visible {
   line-height: 1.05;
 }
 
-.objective-grid,
 .outcome-list {
   margin: clamp(26px, 3vw, 38px) 0 0;
   padding: 0;
@@ -6896,27 +6941,15 @@ a.partner-logo:focus-visible {
   display: grid;
 }
 
-/* Three objectives, so they sit across the page as equals rather than as
-   three wide bands with most of their width empty. The statement carries the
-   serif face: these are the program's claims about its graduates, and they
-   are short enough to be read as statements rather than as body copy. */
-.objective-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(290px, 100%), 1fr));
-  gap: clamp(16px, 1.6vw, 22px);
-}
-
-.objective-grid li {
-  display: grid;
-  gap: 22px;
-  align-content: start;
-  padding: clamp(26px, 2.4vw, 34px);
-}
-
-.objective-grid li > p:last-child {
-  margin: 0;
+/* The objectives take the outcome rows. Three of them across the page while
+   ten outcomes ran down it made two sets from one document look like two
+   unrelated components. What differs is that an objective has no short name,
+   so its statement is the only line in the row and carries the serif face
+   the mission statements use. */
+.outcome-list.is-objectives li > p:last-child {
   color: var(--ink);
   font-family: var(--font-serif);
-  font-size: clamp(1.14rem, 1.35vw, 1.3rem);
+  font-size: clamp(1.12rem, 1.3vw, 1.26rem);
   line-height: 1.5;
 }
 
@@ -6954,7 +6987,6 @@ a.partner-logo:focus-visible {
   line-height: 1.62;
 }
 
-.objective-grid li,
 .outcome-list li {
   border: 1px solid var(--line);
   border-radius: var(--card-radius);
@@ -6967,17 +6999,14 @@ a.partner-logo:focus-visible {
 /* A white card on the white band is no card at all, which is what the first
    attempt did to the objectives. Each takes the other band's colour, so both
    read as cards wherever the section alternation puts them. */
-.section.white .objective-grid li,
 .section.white .outcome-list li {
   background: var(--cream);
 }
 
-.section.cream .objective-grid li,
 .section.cream .outcome-list li {
   background: var(--white);
 }
 
-.objective-grid li:hover,
 .outcome-list li:hover {
   transform: translateY(-3px);
   border-color: var(--brand-gold);
@@ -6985,12 +7014,10 @@ a.partner-logo:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .objective-grid li,
   .outcome-list li {
     transition: none;
   }
 
-  .objective-grid li:hover,
   .outcome-list li:hover {
     transform: none;
   }

@@ -19,8 +19,7 @@ import {
   activityYear,
   getMission,
   missionStatement,
-  otherMission,
-  type Mission,
+  otherMissions,
 } from "@/lib/missions";
 
 export const dynamic = "force-dynamic";
@@ -123,8 +122,10 @@ export default async function MissionPage({ params }: MissionPageProps) {
         ? `${earliest}`
         : `${earliest}–${latest}`;
 
-  const next: Mission = otherMission(mission);
-  const nextRecorded = activitiesFor(next, stories).length;
+  const others = otherMissions(mission).map((other) => ({
+    ...other,
+    recorded: activitiesFor(other, stories).length,
+  }));
 
   return (
     <>
@@ -306,22 +307,26 @@ export default async function MissionPage({ params }: MissionPageProps) {
 
         <section className="mission-next-band">
           <div className="shell">
-            <div>
-              <p>The other half of the program&rsquo;s work</p>
-              <h2>
-                {next.code} · {next.name}
-              </h2>
-              {/* The count rather than a summary line: a sentence here would
-                  be read as that mission's statement, which it is not. */}
-              <p>
-                {nextRecorded}{" "}
-                {nextRecorded === 1 ? "activity" : "activities"} recorded
-                against it so far.
-              </p>
-            </div>
-            <Link className="button button-gold" href={`/mission/${next.slug}`}>
-              Open {next.name}
-            </Link>
+            <p className="mission-next-label">
+              The rest of the program&rsquo;s work
+            </p>
+            {/* Counts rather than summary lines: a sentence here would be
+                read as that mission's statement, which it is not. */}
+            <ul className="mission-next-list">
+              {others.map((other) => (
+                <li key={other.key}>
+                  <Link href={`/mission/${other.slug}`}>
+                    <span>{other.code}</span>
+                    <strong>{other.name}</strong>
+                    <em>
+                      {other.recorded}{" "}
+                      {other.recorded === 1 ? "activity" : "activities"}{" "}
+                      recorded
+                    </em>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
       </main>

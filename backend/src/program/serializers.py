@@ -984,6 +984,7 @@ class ProgramSettingsSerializer(serializers.ModelSerializer):
             "vision",
             "mission_one",
             "mission_two",
+            "mission_three",
             "program_years",
             "credit_hours",
             "address",
