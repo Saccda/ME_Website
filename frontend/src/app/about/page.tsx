@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import SiteFooter from "@/components/SiteFooter";
+import MissionIcon from "@/components/MissionIcon";
 import SiteHeader from "@/components/SiteHeader";
 import VisionMark from "@/components/VisionMark";
 import { getHomeData, getNewsEvents } from "@/lib/api";
@@ -69,8 +70,12 @@ export default async function AboutPage() {
                 return (
                   <article className="mission-card" key={mission.key}>
                     <Link href={`/mission/${mission.slug}`}>
-                      <p className="mission-card-head">{mission.code}</p>
+                      <p className="mission-card-head">
+                        <span>{mission.index}</span>
+                        <MissionIcon name={mission.key} />
+                      </p>
                       <h3>{mission.name}</h3>
+                      <p className="mission-card-tagline">{mission.tagline}</p>
                       <p className="mission-card-statement">
                         {missionStatement(mission, program)}
                       </p>

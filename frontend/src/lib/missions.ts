@@ -9,11 +9,15 @@ export type Mission = {
   key: MissionKey;
   /** How the program numbers them in the approved document. */
   code: string;
+  /** The same number as a card ordinal: "01" reads as a sequence, "M1" as a label. */
+  index: string;
   slug: string;
   /** The two headings the program gave these: short, and the ones it uses. */
   name: string;
   /** Which ProgramSettings field holds the approved wording. */
   statementField: "mission_one" | "mission_two";
+  /** The statement in five words, for the line under the card title. */
+  tagline: string;
   /** One line on what the mission asks of the program. Ours, not the document's. */
   premise: string;
   /** Where the work itself lives, for a reader who wants more than the log. */
@@ -32,9 +36,11 @@ export const missions: readonly Mission[] = [
   {
     key: "teaching",
     code: "M1",
+    index: "01",
     slug: "teaching-and-learning",
     name: "Teaching & Learning",
     statementField: "mission_one",
+    tagline: "Modern mechanical engineering education",
     premise:
       "Education that reaches students through modern equipment, industry practice, and engagement beyond the campus.",
     elsewhere: [
@@ -46,9 +52,11 @@ export const missions: readonly Mission[] = [
   {
     key: "research",
     code: "M2",
+    index: "02",
     slug: "research-and-innovation",
     name: "Research & Innovation",
     statementField: "mission_two",
+    tagline: "Collaborative research with university partners",
     premise:
       "Research carried out with partners, and taken far enough to work outside the laboratory.",
     elsewhere: [
