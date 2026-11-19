@@ -23,8 +23,6 @@
      Measured on the tinted chip over both card colours -- 5.2:1 on a cream
      card, 5.9:1 on a white one -- because the chip appears on both. */
   --gold-ink: #7a5906;
-  --gold-tint: rgba(231, 185, 77, 0.16);
-  --gold-tint-line: rgba(197, 148, 32, 0.38);
 
   /* Brand accents: the three ME logo colors plus the hero gold.
      `--accent-N` is the true brand color, for borders, rules and fills.
@@ -772,7 +770,8 @@ img {
 /* Same reasoning as the archive band below it: the hero already separates this
    from the header, and what a reader came for is the events, not the gap above
    them. */
-.section.upcoming-section {
+.section.upcoming-section,
+.section.about-vision {
   padding-top: clamp(30px, 3.4vw, 48px);
 }
 
@@ -2096,21 +2095,20 @@ img {
   transform: rotate(-36deg);
 }
 
-/* The two missions, as two doors rather than two paragraphs.
+/* The three missions, as a list of three doors.
 
-   They used to be a pair of statements in boxes with nothing to do: the serif
-   ran to 1.8rem, so a three-line statement filled a 360px card and that was
-   the whole section. Each is now the way into its own page -- the name the
-   program uses for that half of its work, the approved statement at reading
-   size, and how much has been filed under it, which is the part that makes
-   the card worth opening. */
-/* Three across on a wide screen, and it folds to two then one on its own:
-   a fixed three-column track would put the third card's title on four lines
-   on a tablet. */
-.mission-grid {
+   They began as statements in boxes with nothing to do. Then as cards, which
+   worked for two and stopped working at three: 378px of column is not enough
+   width to read a 25-word statement in, and the three are read in order
+   anyway. So a list, with the same pieces -- the mark, the code, the keyword,
+   the statement, and how much has been filed under it, which is the part that
+   makes a row worth opening. */
+.mission-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr));
-  gap: clamp(16px, 1.6vw, 22px);
+  gap: 14px;
+  margin: clamp(26px, 3vw, 38px) 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 .mission-card {
@@ -2124,9 +2122,10 @@ img {
 }
 
 .mission-card > a {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 190px;
+  gap: clamp(20px, 2.4vw, 34px);
+  align-items: center;
   padding: clamp(22px, 2.2vw, 30px);
   color: inherit;
   text-decoration: none;
@@ -2139,106 +2138,133 @@ img {
   box-shadow: 0 14px 30px rgba(7, 29, 46, 0.08);
 }
 
-/* The code and the keyword on one line, the mark at the end of it. They name
-   the same thing, so a numeral stacked above its own title just made the
-   card twice as tall to say it twice. The code is M1 rather than 01: it is
-   the program's own label and what the mission page is headed with. */
+/* The mark gets the square the objectives and outcomes give their index, so
+   the three sets keep one left-hand rhythm down the page -- and the same
+   navy, which is what makes any of them visible from across a room. */
+.mission-card-mark {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 10px;
+  background: var(--brand-navy);
+}
+
+.mission-card-mark .mission-icon {
+  stroke: var(--white);
+}
+
+.mission-card-mark .mission-icon-accent {
+  stroke: var(--brand-gold);
+}
+
+.mission-card-body {
+  display: block;
+  min-width: 0;
+}
+
+/* The code and the keyword on one line. They name the same thing, so a
+   numeral stacked above its own title just said it twice. The code is M1
+   rather than 01: it is the program's own label, and what the mission page
+   is headed with. */
 .mission-card-head {
   display: flex;
   align-items: baseline;
-  gap: 14px;
-  margin: 0 0 10px;
+  gap: 12px;
+  margin: 0 0 6px;
 }
 
+/* The darker gold, not the brand one. #e7b94d on white is 1.83:1 -- it
+   failed even the 3:1 that type this size is allowed, and it was the same
+   washed-out gold-on-pale that sent the index chips navy. */
 .mission-card-code {
   flex: none;
   margin: 0;
-  color: var(--brand-gold);
+  color: var(--gold-ink);
   font-family: var(--font-serif);
-  font-size: clamp(1.8rem, 2.1vw, 2.15rem);
+  font-size: clamp(1.7rem, 2vw, 2.05rem);
   line-height: 1;
 }
 
-/* Pushed to the end of the row, and nudged onto the cap line: the row is
-   baseline-aligned for the two pieces of text, which would otherwise hang
-   the icon off the bottom of them. */
-.mission-card-head .mission-icon {
-  flex: none;
-  margin-left: auto;
-  align-self: center;
-}
-
 .mission-icon {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   display: block;
   fill: none;
   stroke: var(--brand-navy);
   stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0.8;
-  transition:
-    transform 220ms ease,
-    opacity 220ms ease;
+  transition: transform 220ms ease;
 }
 
 .mission-icon-accent {
-  stroke: #c08f16;
+  stroke: #9a7310;
 }
 
 .mission-card:hover .mission-icon,
 .mission-card:focus-within .mission-icon {
-  opacity: 1;
   transform: translateY(-2px);
 }
 
 .mission-card h3 {
   margin: 0;
-  font-size: clamp(1.22rem, 1.55vw, 1.48rem);
-  line-height: 1.12;
+  font-size: clamp(1.22rem, 1.55vw, 1.46rem);
+  line-height: 1.14;
   letter-spacing: -0.02em;
 }
 
-/* The statement in five words, for a reader deciding which card to open
-   before they have read either statement. */
+/* The statement in five words, for a reader deciding which row to open
+   before they have read any statement. */
 .mission-card-tagline {
-  margin: 0 0 18px;
+  display: block;
+  margin: 0 0 10px;
   color: var(--gold-ink);
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   font-weight: 750;
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
 .mission-card-statement {
-  margin: 0 0 26px;
+  display: block;
+  max-width: 80ch;
+  margin: 0;
   color: var(--ink);
-  font-size: 1.02rem;
-  line-height: 1.68;
+  font-size: 1rem;
+  line-height: 1.62;
 }
 
-/* Pinned to the bottom so the two cards agree on where the cue sits, however
-   long the statements above them run. */
+/* The count as the figure it is, with the cue under it: a row this wide ends
+   on its right-hand edge, and that edge should say how much is behind the
+   link rather than repeating the title. */
 .mission-card-cue {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px 16px;
-  margin: auto 0 0;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
-}
-
-.mission-card-cue span {
-  color: var(--muted);
-  font-size: 0.9rem;
+  display: grid;
+  gap: 2px;
+  justify-items: end;
+  padding-left: clamp(16px, 2vw, 28px);
+  border-left: 1px solid var(--line);
+  text-align: right;
 }
 
 .mission-card-cue strong {
   color: var(--brand-navy);
-  font-size: 0.93rem;
+  font-family: var(--font-serif);
+  font-size: 2.1rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.mission-card-cue > span {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.mission-card-cue em {
+  margin-top: 10px;
+  color: var(--brand-navy);
+  font-size: 0.92rem;
+  font-style: normal;
   font-weight: 750;
 }
 
@@ -2251,6 +2277,43 @@ img {
 .mission-card:hover .mission-card-cue i,
 .mission-card:focus-within .mission-card-cue i {
   transform: translateX(4px);
+}
+
+/* The right-hand column goes first: a count and a cue do not need 190px of
+   a narrow screen when they read perfectly well as a line under the
+   statement. */
+@media (max-width: 900px) {
+  .mission-card > a {
+    grid-template-columns: 76px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .mission-card-cue {
+    display: flex;
+    flex-wrap: wrap;
+    grid-column: 1 / -1;
+    align-items: baseline;
+    gap: 6px 14px;
+    padding: 16px 0 0;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+    text-align: left;
+  }
+
+  .mission-card-cue strong {
+    font-size: 1.5rem;
+  }
+
+  .mission-card-cue em {
+    margin: 0 0 0 auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .mission-card > a {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
 
 /* A mission page. The statement it is held to, a tally of what has been
@@ -6899,6 +6962,11 @@ a.partner-logo:focus-visible {
    decides whether a section is worth their time. A tinted square with a
    border gives the set a row of anchors down the page, and the darker gold
    is what makes the numeral readable rather than merely present. */
+/* Navy, not a gold tint. Dark gold on pale gold measured 5.2:1 and still
+   read as washed out, because a ratio does not help much when the text and
+   its ground are the same hue -- there is nothing for the eye to catch on.
+   White on navy is 14:1 and the scheme stays gold at 7:1, so the two lines
+   stay distinguishable from each other as well as from the square. */
 .outcome-index {
   display: grid;
   gap: 3px;
@@ -6907,9 +6975,8 @@ a.partner-logo:focus-visible {
   min-height: 92px;
   margin: 0;
   padding: 12px 6px;
-  border: 1px solid var(--gold-tint-line);
   border-radius: 10px;
-  background: var(--gold-tint);
+  background: var(--brand-navy);
   text-align: center;
 }
 
@@ -6918,7 +6985,7 @@ a.partner-logo:focus-visible {
    a 9px smudge under a large numeral and the chip answered only half the
    question it was there to answer. */
 .outcome-index span {
-  color: var(--gold-ink);
+  color: var(--brand-gold);
   font-size: 0.95rem;
   font-weight: 850;
   letter-spacing: 0.08em;
@@ -6927,7 +6994,7 @@ a.partner-logo:focus-visible {
 }
 
 .outcome-index strong {
-  color: var(--gold-ink);
+  color: var(--white);
   font-family: var(--font-serif);
   font-size: 2.1rem;
   font-weight: 400;
@@ -8556,7 +8623,6 @@ a.partner-logo:focus-visible {
   }
 
   .proof-grid,
-  .mission-grid,
   .focus-grid,
   .research-grid,
   .facility-grid,

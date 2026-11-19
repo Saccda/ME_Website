@@ -26,7 +26,10 @@ export default async function AboutPage() {
       <SiteHeader settings={program} />
       <main id="main-content" className="editorial-page">
         <Breadcrumbs trail={[{ label: "About the program" }]} />
-        <section className="directory-hero">
+        {/* Compact: at full height the band stood 430px tall to carry a
+            title and one sentence, and the vision statement -- which is what
+            the page opens with -- started 880px down a 900px screen. */}
+        <section className="directory-hero is-compact">
           <div className="shell">
             <p className="eyebrow light">About the program</p>
             <h1>About the Program</h1>
@@ -43,7 +46,9 @@ export default async function AboutPage() {
               <p className="eyebrow">Our vision</p>
               <VisionMark />
             </div>
-            <blockquote>“{program.vision}.”</blockquote>
+            {/* The template supplies the full stop, so a statement that
+                already ends in one came out "…of society..". */}
+            <blockquote>“{program.vision.replace(/\s*\.+\s*$/, "")}.”</blockquote>
             <p className="vision-attribution">
               {program.program_name} · Faculty of Engineering, Royal University
               of Phnom Penh
@@ -65,35 +70,46 @@ export default async function AboutPage() {
                 actually been done against it.
               </p>
             </div>
-            <div className="mission-grid">
+            {/* A list, for the same reason the outcomes are one: three cards
+                across the page left each statement in a column too narrow to
+                read it in, and the three are read in order anyway. */}
+            <ol className="mission-list">
               {missions.map((mission) => {
                 const recorded = activitiesFor(mission, stories).length;
                 return (
-                  <article className="mission-card" key={mission.key}>
+                  <li className="mission-card" key={mission.key}>
                     <Link href={`/mission/${mission.slug}`}>
-                      <div className="mission-card-head">
-                        <p className="mission-card-code">{mission.code}</p>
-                        <h3>{mission.name}</h3>
+                      <span className="mission-card-mark" aria-hidden="true">
                         <MissionIcon name={mission.key} />
-                      </div>
-                      <p className="mission-card-tagline">{mission.tagline}</p>
-                      <p className="mission-card-statement">
-                        {missionStatement(mission, program)}
-                      </p>
-                      <p className="mission-card-cue">
+                      </span>
+                      <span className="mission-card-body">
+                        <span className="mission-card-head">
+                          <span className="mission-card-code">
+                            {mission.code}
+                          </span>
+                          <h3>{mission.name}</h3>
+                        </span>
+                        <span className="mission-card-tagline">
+                          {mission.tagline}
+                        </span>
+                        <span className="mission-card-statement">
+                          {missionStatement(mission, program)}
+                        </span>
+                      </span>
+                      <span className="mission-card-cue">
+                        <strong>{recorded}</strong>
                         <span>
-                          {recorded}{" "}
                           {recorded === 1 ? "activity" : "activities"} recorded
                         </span>
-                        <strong>
+                        <em>
                           Open the mission <i aria-hidden="true">→</i>
-                        </strong>
-                      </p>
+                        </em>
+                      </span>
                     </Link>
-                  </article>
+                  </li>
                 );
               })}
-            </div>
+            </ol>
           </div>
         </section>
 
