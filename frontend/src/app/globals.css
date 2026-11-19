@@ -2124,21 +2124,33 @@ img {
   box-shadow: 0 14px 30px rgba(7, 29, 46, 0.08);
 }
 
-/* The ordinal at one end of the row and the mission's mark at the other.
-   The numeral is soft gold because it is a marker rather than a reading:
-   what it labels is the keyword directly beneath it. */
+/* The code and the keyword on one line, the mark at the end of it. They name
+   the same thing, so a numeral stacked above its own title just made the
+   card twice as tall to say it twice. The code is M1 rather than 01: it is
+   the program's own label and what the mission page is headed with. */
 .mission-card-head {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 0 0 22px;
+  align-items: baseline;
+  gap: 14px;
+  margin: 0 0 10px;
 }
 
-.mission-card-head span {
+.mission-card-code {
+  flex: none;
+  margin: 0;
   color: var(--brand-gold);
   font-family: var(--font-serif);
-  font-size: clamp(2.3rem, 3vw, 2.9rem);
+  font-size: clamp(2rem, 2.6vw, 2.5rem);
   line-height: 1;
+}
+
+/* Pushed to the end of the row, and nudged onto the cap line: the row is
+   baseline-aligned for the two pieces of text, which would otherwise hang
+   the icon off the bottom of them. */
+.mission-card-head .mission-icon {
+  flex: none;
+  margin-left: auto;
+  align-self: center;
 }
 
 .mission-icon {
@@ -2167,8 +2179,8 @@ img {
 }
 
 .mission-card h3 {
-  margin: 0 0 8px;
-  font-size: clamp(1.45rem, 2.2vw, 1.95rem);
+  margin: 0;
+  font-size: clamp(1.35rem, 1.95vw, 1.75rem);
   line-height: 1.1;
   letter-spacing: -0.025em;
 }
@@ -6843,32 +6855,37 @@ a.partner-logo:focus-visible {
    is what makes the numeral readable rather than merely present. */
 .outcome-index {
   display: grid;
-  gap: 2px;
+  gap: 3px;
   place-content: center;
-  width: 68px;
-  min-height: 68px;
+  width: 92px;
+  min-height: 92px;
   margin: 0;
-  padding: 8px 4px;
+  padding: 12px 6px;
   border: 1px solid var(--gold-tint-line);
   border-radius: 10px;
   background: var(--gold-tint);
   text-align: center;
 }
 
+/* The scheme is half of what a reader cites -- "PLO 7", not "7" -- so it is
+   set to be read, not to be found afterwards with the eye. At 0.6rem it was
+   a 9px smudge under a large numeral and the chip answered only half the
+   question it was there to answer. */
 .outcome-index span {
   color: var(--gold-ink);
-  font-size: 0.6rem;
+  font-size: 0.95rem;
   font-weight: 850;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
+  line-height: 1;
   text-transform: uppercase;
 }
 
 .outcome-index strong {
   color: var(--gold-ink);
   font-family: var(--font-serif);
-  font-size: 1.85rem;
+  font-size: 2.1rem;
   font-weight: 400;
-  line-height: 1;
+  line-height: 1.05;
 }
 
 .objective-grid,
@@ -6912,7 +6929,7 @@ a.partner-logo:focus-visible {
 
 .outcome-list li {
   display: grid;
-  grid-template-columns: 68px 1fr;
+  grid-template-columns: 92px 1fr;
   gap: 0 clamp(20px, 2.2vw, 30px);
   align-items: center;
   padding: clamp(20px, 2vw, 26px) clamp(22px, 2.2vw, 30px);

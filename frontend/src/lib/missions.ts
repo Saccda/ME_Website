@@ -18,7 +18,12 @@ export type Mission = {
   statementField: "mission_one" | "mission_two";
   /** The statement in five words, for the line under the card title. */
   tagline: string;
-  /** One line on what the mission asks of the program. Ours, not the document's. */
+  /**
+   * One line on what the mission asks of the program, for the page's meta
+   * description only. Deliberately not rendered: on the page it sat a
+   * paragraph away from the approved statement and read as a rival version
+   * of it, and a reader cannot tell which one the program signed off.
+   */
   premise: string;
   /** Where the work itself lives, for a reader who wants more than the log. */
   elsewhere: readonly { label: string; href: string }[];

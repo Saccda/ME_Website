@@ -124,6 +124,7 @@ export default async function MissionPage({ params }: MissionPageProps) {
         : `${earliest}–${latest}`;
 
   const next: Mission = otherMission(mission);
+  const nextRecorded = activitiesFor(next, stories).length;
 
   return (
     <>
@@ -140,13 +141,17 @@ export default async function MissionPage({ params }: MissionPageProps) {
           ]}
         />
 
+        {/* No summary line under the title. One sentence in the hero and the
+            approved statement in the band directly below it read as two
+            competing versions of the mission, and a reader has no way to tell
+            which one the program actually signed off. Only the statement is
+            the statement. */}
         <section className="directory-hero is-compact mission-hero">
           <div className="shell">
             <p className="eyebrow light">
               {mission.code} · Mission of the program
             </p>
             <h1>{mission.name}</h1>
-            <p>{mission.premise}</p>
           </div>
         </section>
 
@@ -306,7 +311,13 @@ export default async function MissionPage({ params }: MissionPageProps) {
               <h2>
                 {next.code} · {next.name}
               </h2>
-              <p>{next.premise}</p>
+              {/* The count rather than a summary line: a sentence here would
+                  be read as that mission's statement, which it is not. */}
+              <p>
+                {nextRecorded}{" "}
+                {nextRecorded === 1 ? "activity" : "activities"} recorded
+                against it so far.
+              </p>
             </div>
             <Link className="button button-gold" href={`/mission/${next.slug}`}>
               Open {next.name}

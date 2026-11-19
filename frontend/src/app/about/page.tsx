@@ -70,11 +70,11 @@ export default async function AboutPage() {
                 return (
                   <article className="mission-card" key={mission.key}>
                     <Link href={`/mission/${mission.slug}`}>
-                      <p className="mission-card-head">
-                        <span>{mission.index}</span>
+                      <div className="mission-card-head">
+                        <p className="mission-card-code">{mission.code}</p>
+                        <h3>{mission.name}</h3>
                         <MissionIcon name={mission.key} />
-                      </p>
-                      <h3>{mission.name}</h3>
+                      </div>
                       <p className="mission-card-tagline">{mission.tagline}</p>
                       <p className="mission-card-statement">
                         {missionStatement(mission, program)}
