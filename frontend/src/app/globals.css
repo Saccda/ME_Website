@@ -2072,51 +2072,386 @@ img {
   transform: rotate(-36deg);
 }
 
+/* The two missions, as two doors rather than two paragraphs.
+
+   They used to be a pair of statements in boxes with nothing to do: the serif
+   ran to 1.8rem, so a three-line statement filled a 360px card and that was
+   the whole section. Each is now the way into its own page -- the name the
+   program uses for that half of its work, the approved statement at reading
+   size, and how much has been filed under it, which is the part that makes
+   the card worth opening. */
 .mission-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  gap: clamp(16px, 1.6vw, 22px);
 }
 
-.mission-grid article {
-  min-height: 360px;
-  display: grid;
-  grid-template-columns: 62px 1fr;
-  grid-template-rows: auto 1fr;
-  gap: 28px;
-  padding: 38px;
+.mission-card {
   border: 1px solid var(--line);
+  border-radius: 10px;
   background: var(--white);
-  transition: background 220ms ease, color 220ms ease, transform 220ms ease;
+  transition:
+    border-color 220ms ease,
+    transform 220ms ease,
+    box-shadow 220ms ease;
 }
 
-.mission-grid article:hover {
-  color: var(--white);
-  background: var(--navy);
-  transform: translateY(-4px);
+.mission-card > a {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: clamp(24px, 2.4vw, 34px);
+  color: inherit;
+  text-decoration: none;
 }
 
-.mission-grid > article > span {
-  color: var(--gold);
+.mission-card:hover,
+.mission-card:focus-within {
+  border-color: var(--brand-gold);
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(7, 29, 46, 0.08);
+}
+
+/* The code is the whole mark. The old cards carried a ⌁ and a ◎ beside it,
+   and ⌁ has no glyph in the Segoe stack -- it arrived as a 4px speck. */
+.mission-card-head {
+  margin: 0 0 18px;
+  color: var(--brand-gold);
   font-family: var(--font-serif);
-  font-size: 2rem;
+  font-size: 2.05rem;
+  line-height: 1;
 }
 
-.mission-icon {
-  justify-self: end;
-  font-size: 5rem;
-  line-height: 0.8;
-  color: var(--gold);
+.mission-card h3 {
+  margin: 0 0 14px;
+  font-size: clamp(1.3rem, 1.9vw, 1.65rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
-.mission-grid p {
-  grid-column: 1 / -1;
-  align-self: end;
-  max-width: 620px;
+.mission-card-statement {
+  margin: 0 0 26px;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+/* Pinned to the bottom so the two cards agree on where the cue sits, however
+   long the statements above them run. */
+.mission-card-cue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin: auto 0 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.mission-card-cue span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.mission-card-cue strong {
+  color: var(--brand-navy);
+  font-size: 0.93rem;
+  font-weight: 750;
+}
+
+.mission-card-cue i {
+  display: inline-block;
+  font-style: normal;
+  transition: transform 200ms ease;
+}
+
+.mission-card:hover .mission-card-cue i,
+.mission-card:focus-within .mission-card-cue i {
+  transform: translateX(4px);
+}
+
+/* A mission page. The statement it is held to, a tally of what has been
+   filed against it, and the log itself. */
+.mission-statement-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 64px);
+  align-items: start;
+}
+
+.mission-statement-copy blockquote {
+  max-width: 760px;
   margin: 0;
   font-family: var(--font-serif);
-  font-size: clamp(1.25rem, 2vw, 1.8rem);
-  line-height: 1.45;
+  font-size: clamp(1.3rem, 2.3vw, 1.95rem);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.mission-statement-source {
+  margin: 20px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+/* Hairline gaps rather than borders between the figures: the 1px of cream
+   showing through the padding is the rule. */
+.mission-tally {
+  display: grid;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--cream);
+}
+
+.mission-tally > div {
+  padding: 18px 20px;
+  background: var(--white);
+}
+
+.mission-tally strong {
+  display: block;
+  color: var(--brand-navy);
+  font-family: var(--font-serif);
+  font-size: 2.3rem;
+  line-height: 1;
+}
+
+.mission-tally span {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.mission-tally > p {
+  margin: 0;
+  padding: 14px 20px 16px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+/* A rule between the statement and the log, carrying the places the work
+   itself is described. Slim on purpose: a signpost, not a section. */
+.mission-where-band {
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--cream);
+}
+
+.mission-where-band .shell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px clamp(18px, 2.4vw, 30px);
+}
+
+.mission-where-band > .shell > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.mission-where-band ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px clamp(16px, 2vw, 26px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mission-where-band a {
+  color: var(--brand-navy);
+  font-size: 0.96rem;
+  font-weight: 650;
+  text-decoration-color: var(--brand-gold);
+  text-underline-offset: 4px;
+}
+
+.mission-log {
+  display: grid;
+  gap: clamp(34px, 4vw, 54px);
+}
+
+.mission-log-year > h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 0 0 18px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--brand-navy);
+  color: var(--brand-navy);
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.mission-log-year > h3 span {
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.mission-log-year ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mission-log-entry {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) 128px;
+  gap: clamp(18px, 2.4vw, 32px);
+  align-items: start;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.mission-log-when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  padding-top: 3px;
+  color: var(--brand-navy);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.mission-log-when em {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--brand-gold);
+  color: var(--brand-navy);
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mission-log-category {
+  margin: 0 0 6px;
+  color: #9d700d;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.mission-log-body h3 {
+  margin: 0 0 8px;
+  font-size: 1.12rem;
+  line-height: 1.3;
+}
+
+.mission-log-body h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.mission-log-body h3 a:hover,
+.mission-log-body h3 a:focus-visible {
+  text-decoration: underline;
+  text-decoration-color: var(--brand-gold);
+  text-underline-offset: 4px;
+}
+
+.mission-log-excerpt {
+  max-width: 70ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.mission-log-media {
+  overflow: hidden;
+  border-radius: 8px;
+  aspect-ratio: 4 / 3;
+  background: var(--cream);
+}
+
+.mission-log-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mission-log-media span {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: rgba(10, 33, 100, 0.3);
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+}
+
+.mission-next-band {
+  padding: clamp(40px, 5vw, 64px) 0;
+  background: var(--brand-navy);
+  color: var(--white);
+}
+
+.mission-next-band .shell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px clamp(24px, 3vw, 40px);
+}
+
+.mission-next-band > .shell > div > p:first-child {
+  margin: 0 0 8px;
+  color: var(--brand-gold);
+  font-size: 0.84rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mission-next-band h2 {
+  margin: 0 0 10px;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  line-height: 1.1;
+}
+
+.mission-next-band > .shell > div > p:last-child {
+  max-width: 62ch;
+  margin: 0;
+  color: #c3cfd8;
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+/* The tally stops being a column beside the statement and becomes a row of
+   figures under it. auto-fit rather than a fixed count because the research
+   mission has a third figure the teaching one does not. */
+@media (max-width: 980px) {
+  .mission-statement-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-tally {
+    grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+  }
+
+  .mission-tally > p {
+    grid-column: 1 / -1;
+  }
 }
 
 .focus-grid {
@@ -8199,9 +8534,16 @@ a.partner-logo:focus-visible {
     height: 230px;
   }
 
-  .mission-grid article {
-    min-height: 330px;
-    padding: 28px;
+  /* The log loses its two side columns before it loses its shape: the
+     thumbnail goes first, then the date sits above the entry rather than
+     taking a third of a narrow screen. */
+  .mission-log-entry {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .mission-log-media {
+    display: none;
   }
 
   .focus-card {

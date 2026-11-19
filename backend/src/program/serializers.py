@@ -910,6 +910,7 @@ class NewsEventSerializer(serializers.ModelSerializer):
             "id",
             "sort_order",
             "content_type",
+            "mission",
             "category",
             "title",
             "slug",

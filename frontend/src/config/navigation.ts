@@ -19,7 +19,14 @@ export const navigationItems: readonly NavigationSection[] = [
     label: "About",
     links: [
       { label: "Vision", href: "/about#vision" },
-      { label: "Mission", href: "/about#mission" },
+      {
+        label: "Mission",
+        href: "/about#mission",
+        children: [
+          { label: "M1 — Teaching & Learning", href: "/mission/teaching-and-learning" },
+          { label: "M2 — Research & Innovation", href: "/mission/research-and-innovation" },
+        ],
+      },
       {
         label: "PEOs (Program Educational Objectives)",
         href: "/about#peos",

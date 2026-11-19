@@ -1,8 +1,10 @@
+import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import VisionMark from "@/components/VisionMark";
-import { getHomeData } from "@/lib/api";
+import { getHomeData, getNewsEvents } from "@/lib/api";
+import { activitiesFor, missions, missionStatement } from "@/lib/missions";
 import {
   programEducationalObjectives,
   programLearningOutcomes,
@@ -12,7 +14,10 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AboutPage() {
-  const home = await getHomeData();
+  // The stories are read here only to count them. A mission card that says
+  // how much has been filed under it is worth opening; one that does not is
+  // a statement with an arrow after it.
+  const [home, stories] = await Promise.all([getHomeData(), getNewsEvents()]);
   const program = home.settings;
 
   return (
@@ -47,24 +52,41 @@ export default async function AboutPage() {
 
         <section className="section cream" id="mission">
           <div className="shell">
-            <div className="section-intro compact">
+            <div className="detail-section-heading">
               <div>
                 <p className="eyebrow">Our mission</p>
                 <h2>How we deliver the vision</h2>
               </div>
+              <p>
+                The work of the program falls into two halves. Each one has a
+                page of its own recording what has actually been done against
+                it.
+              </p>
             </div>
             <div className="mission-grid">
-              {[program.mission_one, program.mission_two].map(
-                (mission, index) => (
-                  <article key={mission}>
-                    <span>0{index + 1}</span>
-                    <div className="mission-icon" aria-hidden="true">
-                      {index === 0 ? "⌁" : "◎"}
-                    </div>
-                    <p>{mission}</p>
+              {missions.map((mission) => {
+                const recorded = activitiesFor(mission, stories).length;
+                return (
+                  <article className="mission-card" key={mission.key}>
+                    <Link href={`/mission/${mission.slug}`}>
+                      <p className="mission-card-head">{mission.code}</p>
+                      <h3>{mission.name}</h3>
+                      <p className="mission-card-statement">
+                        {missionStatement(mission, program)}
+                      </p>
+                      <p className="mission-card-cue">
+                        <span>
+                          {recorded}{" "}
+                          {recorded === 1 ? "activity" : "activities"} recorded
+                        </span>
+                        <strong>
+                          Open the mission <i aria-hidden="true">→</i>
+                        </strong>
+                      </p>
+                    </Link>
                   </article>
-                ),
-              )}
+                );
+              })}
             </div>
           </div>
         </section>

@@ -1730,3 +1730,56 @@ class GalleryPhotoNamingTests(TestCase):
         title = gallery_photo_title("A" * 300, 12)
         self.assertEqual(len(title), 255)
         self.assertTrue(title.endswith(" – photo 12"))
+
+
+class MissionAlignmentTests(TestCase):
+    """Which mission an activity delivers travels with the story.
+
+    The mission pages are the program's own record of what it has done against
+    what it said it would do, so the field has to reach the frontend; a page
+    that decided this for itself by reading titles would file the next story
+    wrong and nobody could correct it.
+    """
+
+    def setUp(self):
+        cache.clear()
+
+    def story(self, slug, **kwargs):
+        return NewsEvent.objects.create(
+            content_type="news",
+            title=slug.replace("-", " ").title(),
+            slug=slug,
+            excerpt="An activity.",
+            **kwargs,
+        )
+
+    def payload(self):
+        response = self.client.get(reverse("news-list"))
+        self.assertEqual(response.status_code, 200)
+        return {item["slug"]: item for item in response.json()["results"]}
+
+    def test_the_alignment_is_published_with_the_story(self):
+        self.story("students-on-the-machines", mission="teaching")
+        self.story("a-field-trial", mission="research")
+        self.story("an-open-week", mission="both")
+
+        stories = self.payload()
+        self.assertEqual(stories["students-on-the-machines"]["mission"], "teaching")
+        self.assertEqual(stories["a-field-trial"]["mission"], "research")
+        self.assertEqual(stories["an-open-week"]["mission"], "both")
+
+    def test_an_unfiled_story_says_so_rather_than_guessing(self):
+        """Blank is a real answer: a notice that records no activity.
+
+        It has to arrive as an empty string rather than null, because the
+        frontend reads it as "not filed here" for both pages.
+        """
+        self.story("a-notice")
+        self.assertEqual(self.payload()["a-notice"]["mission"], "")
+
+    def test_the_choices_are_the_two_missions_and_both(self):
+        field = NewsEvent._meta.get_field("mission")
+        self.assertEqual(
+            [value for value, _ in field.choices],
+            ["teaching", "research", "both"],
+        )

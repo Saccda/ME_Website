@@ -323,6 +323,12 @@ export type FaqItem = {
 export type NewsEvent = {
   id: number;
   content_type: "news" | "event";
+  /**
+   * Which mission this activity delivers, filed by its author in Wagtail.
+   * Empty for a story that records no activity, and on a backend that
+   * predates the field -- `lib/missions.ts` covers that second case.
+   */
+  mission: "teaching" | "research" | "both" | "";
   category: string;
   title: string;
   slug: string;
@@ -1254,6 +1260,7 @@ async function fetchNewsEvents(): Promise<NewsEvent[] | null> {
   return items.map((item, index) => ({
     id: item.id ?? index,
     content_type: item.content_type ?? "news",
+    mission: item.mission ?? "",
     category: item.category ?? "",
     title: item.title ?? "",
     slug: item.slug ?? "",

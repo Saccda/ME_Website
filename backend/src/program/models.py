@@ -1214,7 +1214,28 @@ class FacultyWorkItem(Orderable):
 class NewsEvent(ClusterableModel, OrderedModel):
     CONTENT_TYPES = (("news", "News"), ("event", "Event"))
 
+    # Which of the program's two missions this activity delivers. The mission
+    # pages are an account of what the program has actually done against what
+    # it said it would do, so the judgement belongs to whoever writes the
+    # story rather than to the site's code.
+    MISSIONS = (
+        ("teaching", "M1 - Teaching & Learning"),
+        ("research", "M2 - Research & Innovation"),
+        ("both", "Both missions"),
+    )
+
     content_type = models.CharField(max_length=10, choices=CONTENT_TYPES, default="news")
+    mission = models.CharField(
+        max_length=10,
+        choices=MISSIONS,
+        blank=True,
+        verbose_name="Mission alignment",
+        help_text=(
+            "Which mission page lists this activity. Leave empty and it is "
+            "listed on neither, which is the right answer for an "
+            "announcement that records no activity."
+        ),
+    )
     category = models.CharField(
         max_length=80,
         blank=True,
@@ -1311,6 +1332,7 @@ class NewsEvent(ClusterableModel, OrderedModel):
     panels = [
         FieldPanel("sort_order"),
         FieldPanel("content_type"),
+        FieldPanel("mission"),
         FieldPanel("category"),
         FieldPanel("title"),
         FieldPanel("slug"),
